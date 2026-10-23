@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #F7F4EC;
+  --color-surface: #FFFEFA;
+  --color-navy: #102744;
+  --color-navy-dark: #0A192C;
+  --color-teal: #0097A7;
+  --color-teal-dark: #007887;
+  --color-teal-light: #E0F7FA;
+  --color-amber: #F3B54A;
+  --color-amber-light: #FEF3D6;
+  --color-text-muted: #647084;
+  --color-border-card: #E5E3DC;
+
+  --font-serif: 'Noto Serif', Georgia, serif;
+  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: #102744;
+  background-color: #F7F4EC;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom ticket notch styling */
+.ticket-notch-left {
+  position: relative;
+}
+.ticket-notch-left::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #F7F4EC;
+  box-shadow: inset -2px 0 3px rgba(0, 0, 0, 0.04);
+  z-index: 10;
+}
+
+.ticket-notch-right {
+  position: relative;
+}
+.ticket-notch-right::after {
+  content: '';
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #F7F4EC;
+  box-shadow: inset 2px 0 3px rgba(0, 0, 0, 0.04);
+  z-index: 10;
+}
+
+/* Dashed perforation line */
+.ticket-perforation {
+  background-image: linear-gradient(to bottom, #CBD5E1 50%, rgba(255, 255, 255, 0) 0%);
+  background-position: left;
+  background-size: 2px 10px;
+  background-repeat: repeat-y;
+}
+
+.ticket-perforation-h {
+  background-image: linear-gradient(to right, #CBD5E1 50%, rgba(255, 255, 255, 0) 0%);
+  background-position: top;
+  background-size: 10px 2px;
+  background-repeat: repeat-x;
+}
+
+/* Wheel rotation animation */
+@keyframes spin-wheel {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-wheel {
+  animation: spin-wheel 0.8s linear infinite;
+}
+
+/* Road dash flow animation */
+@keyframes road-flow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 40;
+  }
+}
+
+.animate-road-flow {
+  animation: road-flow 0.6s linear infinite;
+}
+
+/* Bus gentle float */
+@keyframes bus-bob {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.animate-bus-bob {
+  animation: bus-bob 1.8s ease-in-out infinite;
+}
+
+/* Shimmer effect */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-spin-wheel,
+  .animate-road-flow,
+  .animate-bus-bob,
+  .animate-shimmer {
+    animation: none !important;
+  }
+}
+
+/* Print Styles for Boarding Ticket */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .ticket-print-card {
+    border: 2px solid #102744 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    margin: 0 auto;
+    max-width: 700px;
+  }
+}
