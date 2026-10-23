@@ -305,6 +305,11 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                     <RefreshCw className="w-4 h-4 animate-spin" />
                     <span>Đang xử lý giao dịch demo…</span>
                   </>
+                ) : totalPrice === 0 ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                    <span>Xác nhận nhận vé (Miễn phí 0đ — Chuyến test)</span>
+                  </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />

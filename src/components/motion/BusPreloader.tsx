@@ -1,44 +1,68 @@
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
-interface BusPreloaderProps {
-  onComplete: () => void;
-  minDuration?: number;
+export interface BusPreloaderProps {
+  isReady: boolean;
+  onExitComplete: () => void;
+  maxTimeoutMs?: number;
 }
 
 export const BusPreloader: React.FC<BusPreloaderProps> = ({
-  onComplete,
-  minDuration = 1500,
+  isReady,
+  onExitComplete,
+  maxTimeoutMs = 3500,
 }) => {
-  const [isExiting, setIsExiting] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+  const [isTimedOut, setIsTimedOut] = useState(false);
+  const completedRef = useRef(false);
 
+  // Fallback safety timeout in case assets hang or fail
   useEffect(() => {
-    // Automatically transition to app after assets load or timer expires
-    const timer = setTimeout(() => {
-      setIsExiting(true);
-      setTimeout(() => {
-        onComplete();
-      }, 350);
-    }, minDuration);
+    const safetyTimer = setTimeout(() => {
+      setIsTimedOut(true);
+    }, maxTimeoutMs);
 
-    return () => clearTimeout(timer);
-  }, [minDuration, onComplete]);
+    return () => clearTimeout(safetyTimer);
+  }, [maxTimeoutMs]);
+
+  // Derived state: exit begins immediately when assets are ready or safety timeout fires
+  const isExiting = isReady || isTimedOut;
+
+  // Cleanup & exit completion timer (instant 40ms on reduced motion, 300ms on normal)
+  useEffect(() => {
+    if (!isExiting) return;
+
+    const exitDuration = shouldReduceMotion ? 40 : 300;
+    const exitTimer = setTimeout(() => {
+      if (!completedRef.current) {
+        completedRef.current = true;
+        onExitComplete();
+      }
+    }, exitDuration);
+
+    return () => clearTimeout(exitTimer);
+  }, [isExiting, onExitComplete, shouldReduceMotion]);
 
   return (
     <AnimatePresence>
       {!isExiting && (
         <motion.aside
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.35, ease: 'easeInOut' } }}
+          exit={{
+            opacity: 0,
+            transition: { duration: shouldReduceMotion ? 0.04 : 0.3, ease: 'easeInOut' },
+          }}
           className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#F7F4EC] overflow-hidden"
           role="status"
           aria-live="polite"
           aria-label="Đang mở hành trình"
         >
-          {/* Subtle background landscape moving slowly */}
+          {/* Subtle background landscape */}
           <div className="absolute inset-x-0 bottom-1/3 h-48 opacity-25 overflow-hidden pointer-events-none">
             <svg
-              className="w-[200%] h-full transform -translate-x-12 animate-[pulse_6s_ease-in-out_infinite]"
+              className={`w-[200%] h-full transform -translate-x-12 ${
+                shouldReduceMotion ? '' : 'animate-[pulse_6s_ease-in-out_infinite]'
+              }`}
               viewBox="0 0 1600 200"
               preserveAspectRatio="none"
               fill="none"
@@ -58,13 +82,15 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
           {/* Main Bus Stage */}
           <div className="relative flex flex-col items-center z-10 w-full max-w-xl px-4">
             {/* Speed breeze lines */}
-            <div className="absolute -top-4 left-1/4 right-1/4 h-8 flex flex-col justify-around pointer-events-none opacity-40">
-              <span className="w-16 h-0.5 bg-teal-400 rounded-full self-start animate-[pulse_1s_ease-in-out_infinite]" />
-              <span className="w-24 h-0.5 bg-slate-300 rounded-full self-end animate-[pulse_1.4s_ease-in-out_infinite]" />
-            </div>
+            {!shouldReduceMotion && (
+              <div className="absolute -top-4 left-1/4 right-1/4 h-8 flex flex-col justify-around pointer-events-none opacity-40">
+                <span className="w-16 h-0.5 bg-teal-400 rounded-full self-start animate-[pulse_1s_ease-in-out_infinite]" />
+                <span className="w-24 h-0.5 bg-slate-300 rounded-full self-end animate-[pulse_1.4s_ease-in-out_infinite]" />
+              </div>
+            )}
 
-            {/* Bus Body with suspension bounce */}
-            <div className="relative animate-bus-bob w-full flex justify-center">
+            {/* Bus Body (suspension bounce disabled in reduced motion) */}
+            <div className={`relative ${shouldReduceMotion ? '' : 'animate-bus-bob'} w-full flex justify-center`}>
               <svg
                 width="380"
                 height="150"
@@ -149,30 +175,26 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                   fill="none"
                 />
 
-                {/* Left Wheel (Front) - Rotating Container */}
+                {/* Left Wheel (Front) */}
                 <g transform="translate(103, 120)">
-                  {/* Wheel Cutout shadow */}
                   <circle cx="0" cy="0" r="21" fill="#0F172A" />
-                  {/* Rotating Multi-Spoke Alloy Rim */}
-                  <g className="animate-spin-wheel" style={{ transformOrigin: '0 0' }}>
+                  <g className={shouldReduceMotion ? '' : 'animate-spin-wheel'} style={{ transformOrigin: '0 0' }}>
                     <circle cx="0" cy="0" r="18" fill="#1E293B" stroke="#64748B" strokeWidth="2.5" />
                     <circle cx="0" cy="0" r="12" fill="#CBD5E1" stroke="#94A3B8" strokeWidth="1.5" />
                     <circle cx="0" cy="0" r="5" fill="#0097A7" />
-                    {/* 6 Spokes */}
                     <line x1="0" y1="-12" x2="0" y2="12" stroke="#475569" strokeWidth="2" />
                     <line x1="-10.4" y1="-6" x2="10.4" y2="6" stroke="#475569" strokeWidth="2" />
                     <line x1="-10.4" y1="6" x2="10.4" y2="-6" stroke="#475569" strokeWidth="2" />
                   </g>
                 </g>
 
-                {/* Right Wheel (Rear) - Rotating Container */}
+                {/* Right Wheel (Rear) */}
                 <g transform="translate(277, 120)">
                   <circle cx="0" cy="0" r="21" fill="#0F172A" />
-                  <g className="animate-spin-wheel" style={{ transformOrigin: '0 0' }}>
+                  <g className={shouldReduceMotion ? '' : 'animate-spin-wheel'} style={{ transformOrigin: '0 0' }}>
                     <circle cx="0" cy="0" r="18" fill="#1E293B" stroke="#64748B" strokeWidth="2.5" />
                     <circle cx="0" cy="0" r="12" fill="#CBD5E1" stroke="#94A3B8" strokeWidth="1.5" />
                     <circle cx="0" cy="0" r="5" fill="#0097A7" />
-                    {/* 6 Spokes */}
                     <line x1="0" y1="-12" x2="0" y2="12" stroke="#475569" strokeWidth="2" />
                     <line x1="-10.4" y1="-6" x2="10.4" y2="6" stroke="#475569" strokeWidth="2" />
                     <line x1="-10.4" y1="6" x2="10.4" y2="-6" stroke="#475569" strokeWidth="2" />
@@ -189,12 +211,10 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
               </svg>
             </div>
 
-            {/* Continuous Running Road Line */}
+            {/* Road Line (static in reduced motion, flowing in normal) */}
             <div className="w-full max-w-sm mt-1 mb-6 flex flex-col items-center">
               <svg width="100%" height="8" viewBox="0 0 320 8" fill="none" className="overflow-visible">
-                {/* Road surface line */}
                 <line x1="0" y1="2" x2="320" y2="2" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round" />
-                {/* Moving road dash marks (right to left) */}
                 <line
                   x1="0"
                   y1="2"
@@ -202,33 +222,39 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                   y2="2"
                   stroke="#0097A7"
                   strokeWidth="2.5"
-                  strokeDasharray="14 18"
-                  className="animate-road-flow"
+                  strokeDasharray={shouldReduceMotion ? undefined : '14 18'}
+                  className={shouldReduceMotion ? '' : 'animate-road-flow'}
                 />
               </svg>
             </div>
 
-            {/* Status text & Indeterminate Progress */}
+            {/* Status text & Progress */}
             <div className="flex flex-col items-center text-center">
               <p className="text-sm font-semibold tracking-wide text-[#102744] mb-3">
                 Đang mở hành trình…
               </p>
 
-              {/* Glowing Teal Progress Bar (Indeterminate) */}
+              {/* Progress Bar */}
               <div className="w-56 h-1.5 bg-[#E5E3DC] rounded-full overflow-hidden relative">
-                <div className="absolute top-0 bottom-0 w-24 bg-gradient-to-r from-transparent via-[#0097A7] to-transparent rounded-full animate-[shimmer_1.4s_infinite]" />
+                <div
+                  className={`absolute top-0 bottom-0 ${
+                    shouldReduceMotion
+                      ? 'w-full bg-[#0097A7]'
+                      : 'w-24 bg-gradient-to-r from-transparent via-[#0097A7] to-transparent rounded-full animate-[shimmer_1.4s_infinite]'
+                  }`}
+                />
               </div>
 
-              {/* Sub-legend as requested in spec */}
+              {/* Sub-legend */}
               <div className="mt-4 flex items-center gap-3 text-xs text-[#647084]">
                 <span className="flex items-center gap-1">
                   <span className="inline-block w-2 h-2 rounded-full bg-[#0097A7]" />
-                  Bánh xe xoay
+                  Bánh xe
                 </span>
                 <span>→</span>
                 <span className="flex items-center gap-1">
                   <span className="inline-block w-2 h-2 rounded-full bg-[#CBD5E1]" />
-                  Vạch đường trôi
+                  Vạch đường
                 </span>
                 <span>→</span>
                 <span className="flex items-center gap-1 text-[#102744] font-medium">

@@ -1,207 +1,246 @@
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import confetti from 'canvas-confetti';
 import type { Booking } from '../../types';
 import { bookingService } from '../../services/bookingService';
-import { Printer, Mail, Search, ArrowRight, Info } from 'lucide-react';
+import {
+  Printer,
+  Search,
+  ArrowRight,
+  ShieldCheck,
+  AlertCircle,
+} from 'lucide-react';
 
 interface BoardingTicketProps {
-  booking: Booking;
+  booking: Booking | null;
   onNavigateHome: () => void;
   onOpenLookup: () => void;
 }
+
+// Decorative vertical barcode strip for the left edge of the desktop ticket
+const LeftVerticalBarcode: React.FC<{ code: string }> = ({ code }) => {
+  return (
+    <div
+      className="hidden md:flex flex-col items-center justify-between w-10 sm:w-11 bg-[#FAF8F5] border-r border-[#E5E3DC] py-5 select-none shrink-0"
+      aria-hidden="true"
+    >
+      <div className="rotate-90 origin-center whitespace-nowrap text-[8px] font-mono tracking-[0.25em] text-[#647084] font-bold">
+        {code}
+      </div>
+
+      <div className="my-auto flex flex-col gap-1 items-center opacity-65">
+        <span className="w-5 h-[1.5px] bg-[#102744]" />
+        <span className="w-5 h-[3px] bg-[#102744]" />
+        <span className="w-5 h-[1px] bg-[#102744]" />
+        <span className="w-5 h-[2.5px] bg-[#102744]" />
+        <span className="w-5 h-[1px] bg-[#102744]" />
+        <span className="w-5 h-[3.5px] bg-[#102744]" />
+        <span className="w-5 h-[2px] bg-[#102744]" />
+        <span className="w-5 h-[1px] bg-[#102744]" />
+        <span className="w-5 h-[3px] bg-[#102744]" />
+        <span className="w-5 h-[1.5px] bg-[#102744]" />
+        <span className="w-5 h-[2px] bg-[#102744]" />
+      </div>
+
+      <span className="text-[7.5px] uppercase font-bold tracking-widest text-[#647084] -rotate-90 block">
+        PASS
+      </span>
+    </div>
+  );
+};
 
 export const BoardingTicket: React.FC<BoardingTicketProps> = ({
   booking,
   onNavigateHome,
   onOpenLookup,
 }) => {
-  useEffect(() => {
-    // Subtle confetti burst
-    try {
-      confetti({
-        particleCount: 60,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#0097A7', '#F3B54A', '#102744'],
-      });
-    } catch {
-      // Ignored if canvas-confetti is not loaded
-    }
-  }, []);
+  const shouldReduceMotion = useReducedMotion();
+
+  // Guard clause: Missing booking
+  if (!booking) {
+    return (
+      <div className="min-h-screen bg-[#F7F4EC] flex items-center justify-center p-6 text-center">
+        <div className="bg-[#FFFEFA] p-8 rounded-3xl border border-[#E5E3DC] shadow-sm max-w-md w-full">
+          <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+          <h2 className="font-serif text-2xl font-bold text-[#102744]">
+            Chưa có thông tin vé
+          </h2>
+          <p className="text-xs sm:text-sm text-[#647084] mt-2 mb-6 leading-relaxed">
+            Hệ thống chưa ghi nhận phiên đặt vé hợp lệ. Quý khách vui lòng quay lại tìm chuyến xe để thực hiện đặt chỗ.
+          </p>
+          <button
+            type="button"
+            onClick={onNavigateHome}
+            className="w-full py-3 bg-[#0097A7] hover:bg-[#007887] text-white font-bold text-sm rounded-xl shadow-md shadow-[#0097A7]/20 transition-all cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Quay lại trang chủ</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handleEmailDemo = () => {
-    alert(`[Mô phỏng demo] Bản vé điện tử đã được định dạng gửi tới email: ${booking.passenger.email}`);
-  };
+  // Safe stop resolutions
+  const pickupStop =
+    booking.trip.departureStops?.find((s) => s.id === booking.passenger.pickupStopId) ||
+    booking.trip.departureLocation;
 
-  // Find stop names
-  const pickupStop = booking.trip.departureStops.find(
-    (s) => s.id === booking.passenger.pickupStopId
-  ) || booking.trip.departureStops[0];
+  const dropoffStop =
+    booking.trip.dropoffStops?.find((s) => s.id === booking.passenger.dropoffStopId) ||
+    booking.trip.arrivalLocation;
 
-  const dropoffStop = booking.trip.dropoffStops.find(
-    (s) => s.id === booking.passenger.dropoffStopId
-  ) || booking.trip.dropoffStops[0];
+  // QR Code payload (safe demo verification URL/payload, no PII)
+  const qrPayload = `https://danava.bus/lookup?code=${booking.id}`;
 
   return (
-    <div className="min-h-screen bg-[#F7F4EC] relative overflow-hidden py-10 sm:py-16">
-      {/* Background terminal scenery with soft opacity matching panel 04 */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-20 filter blur-xs">
-        <img
-          src="/assets/images/bus_terminal_station.jpg"
-          alt="Bến xe khách cao cấp"
-          className="w-full h-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-[#F7F4EC]/60" />
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
-        {/* Top Celebration Heading */}
+    <div className="min-h-screen bg-[#F7F4EC] py-8 sm:py-14 px-4 sm:px-6 flex flex-col items-center justify-center">
+      <div className="w-full max-w-[1020px]">
+        {/* ============================================================
+            MAIN MASTER BOARDING PASS TICKET CARD (Desktop ~1000px)
+            ============================================================ */}
         <motion.div
-          initial={{ opacity: 0, y: -16 }}
+          initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="text-center mb-8 no-print"
+          transition={{ duration: shouldReduceMotion ? 0.04 : 0.45, ease: 'easeOut' }}
+          className="ticket-print-card bg-[#FFFEFA] rounded-3xl border border-[#E5E3DC] shadow-lg shadow-[#102744]/6 overflow-hidden flex flex-col md:flex-row relative"
         >
-          {/* Animated Green Checkmark with SVG stroke */}
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 shadow-md">
-            <svg className="w-10 h-10" viewBox="0 0 48 48" fill="none">
-              <motion.circle
-                cx="24"
-                cy="24"
-                r="22"
-                stroke="#10B981"
-                strokeWidth="3"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.6, ease: 'easeInOut' }}
-              />
-              <motion.path
-                d="M14 24 L21 31 L34 17"
-                stroke="#10B981"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.4, delay: 0.4, ease: 'easeOut' }}
-              />
-            </svg>
-          </div>
+          {/* Decorative Left Edge Barcode (Desktop) */}
+          <LeftVerticalBarcode code={booking.id} />
 
-          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#102744]">
-            Đặt vé thành công!
-          </h1>
-          <p className="text-sm sm:text-base text-[#647084] mt-1">
-            Cảm ơn bạn đã lựa chọn đồng hành cùng <strong className="text-[#0097A7]">HÀNH TRÌNH</strong>
-          </p>
-        </motion.div>
-
-        {/* Central Master Ticket Card (Boarding Pass) */}
-        <motion.div
-          initial={{ opacity: 0, y: 24, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="ticket-print-card bg-[#FFFEFA] rounded-3xl border-2 border-[#E5E3DC] shadow-2xl overflow-hidden relative"
-        >
-          {/* Ticket Header */}
-          <div className="bg-[#102744] text-white p-6 sm:p-7 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#0097A7] flex items-center justify-center shadow-xs">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M4 12C4 8 8 6 12 12C16 18 20 16 20 12"
-                    stroke="#FFFEFA"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="5" cy="12" r="2" fill="#F3B54A" />
-                  <circle cx="19" cy="12" r="2" fill="#FFFFFF" />
-                </svg>
-              </div>
-              <div>
-                <span className="font-serif font-bold text-xl tracking-wider block leading-tight">
-                  HÀNH TRÌNH
-                </span>
-                <span className="text-[10px] tracking-widest text-[#E0F7FA] uppercase font-semibold">
-                  Thẻ lên xe điện tử • Boarding Pass
-                </span>
-              </div>
-            </div>
-
-            <div className="text-right">
-              <span className="text-[11px] text-slate-300 block">Mã đặt vé (Booking Code):</span>
-              <span className="font-mono font-bold text-lg text-[#F3B54A] tracking-wider">
-                {booking.id}
-              </span>
-            </div>
-          </div>
-
-          {/* Ticket Body Grid */}
-          <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            {/* Left 8 cols: Journey & Passenger info */}
-            <div className="md:col-span-8 space-y-6">
-              {/* Route Banner */}
-              <div className="flex items-center justify-between pb-4 border-b border-[#E5E3DC]">
-                <div>
-                  <span className="text-xs text-[#647084]">Điểm đi</span>
-                  <div className="font-serif text-2xl font-bold text-[#102744]">
-                    {booking.trip.from}
+          {/* ==========================================================
+              MAIN CONTENT AREA (~72% on desktop, Ivory White)
+              ========================================================== */}
+          <div className="flex-1 p-6 sm:p-8 lg:p-9 flex flex-col justify-between">
+            {/* Top Celebration & Header Unit */}
+            <div>
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3.5">
+                  {/* Teal Animated Checkmark Icon */}
+                  <div className="w-12 h-12 rounded-full bg-[#E0F7FA] border border-[#0097A7]/30 flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                      <motion.path
+                        d="M5 13l4 4L19 7"
+                        fill="transparent"
+                        stroke="#0097A7"
+                        strokeWidth="2.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        initial={shouldReduceMotion ? { pathLength: 1 } : { pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{ duration: shouldReduceMotion ? 0.04 : 0.45, ease: 'easeOut' }}
+                      />
+                    </svg>
                   </div>
-                  <p className="text-xs font-medium text-[#0097A7] mt-0.5">
-                    {pickupStop?.name}
-                  </p>
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#102744] tracking-tight">
+                        Đặt vé thành công
+                      </h1>
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-300">
+                        Vé demo
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-[#647084] mt-0.5">
+                      Vé điện tử của bạn đã sẵn sàng.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex flex-col items-center px-4">
-                  <span className="text-[11px] font-semibold text-[#647084] mb-1">
-                    {booking.trip.duration}
+                <div className="text-right hidden sm:block">
+                  <span className="text-[10px] uppercase font-bold text-[#647084] block">
+                    Mã đặt vé
                   </span>
-                  <div className="w-20 sm:w-28 h-0.5 bg-[#CBD5E1] relative flex items-center justify-center">
-                    <span className="w-2 h-2 rounded-full bg-[#0097A7] absolute left-0" />
-                    <span className="text-xs text-[#0097A7]">→</span>
-                    <span className="w-2 h-2 rounded-full bg-[#F3B54A] absolute right-0" />
-                  </div>
-                  <span className="text-[10px] text-emerald-600 font-semibold mt-1">Đã xác nhận</span>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-xs text-[#647084]">Điểm đến</span>
-                  <div className="font-serif text-2xl font-bold text-[#102744]">
-                    {booking.trip.to}
-                  </div>
-                  <p className="text-xs font-medium text-[#F3B54A] mt-0.5">
-                    {dropoffStop?.name}
-                  </p>
+                  <span className="font-mono font-bold text-base text-[#102744] tracking-wider block">
+                    {booking.id}
+                  </span>
                 </div>
               </div>
 
-              {/* Specific Booking Specs Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+              {/* Journey Route Highlight */}
+              <div className="bg-[#FAF8F5] p-4 rounded-2xl border border-[#E5E3DC] mb-6 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className="font-serif font-bold text-lg sm:text-xl text-[#102744]">
+                    {booking.trip.from}
+                  </span>
+                  <span className="text-[#0097A7] font-bold text-base sm:text-lg">→</span>
+                  <span className="font-serif font-bold text-lg sm:text-xl text-[#102744]">
+                    {booking.trip.to}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-[#0097A7] bg-[#E0F7FA] px-2.5 py-1 rounded-lg">
+                    {booking.trip.vehicle.name}
+                  </span>
+                  <span className="text-xs text-[#647084] font-medium hidden sm:inline">
+                    • {booking.trip.operator}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Structured 2-Column Ticket Information Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-[#E5E3DC] pt-5">
+              {/* Left Column */}
+              <div className="space-y-3.5">
                 <div>
-                  <span className="text-[#647084] block mb-0.5">Ngày khởi hành:</span>
-                  <strong className="text-[#102744] text-sm">
+                  <span className="text-[10.5px] uppercase font-semibold text-[#647084] block">
+                    Ngày khởi hành
+                  </span>
+                  <span className="text-sm font-bold text-[#102744] block mt-0.5">
                     {bookingService.formatDisplayDate(booking.date)}
-                  </strong>
+                  </span>
                 </div>
 
                 <div>
-                  <span className="text-[#647084] block mb-0.5">Giờ xuất bến:</span>
-                  <strong className="text-[#0097A7] text-sm">
-                    {booking.trip.departureTime}
-                  </strong>
+                  <span className="text-[10.5px] uppercase font-semibold text-[#647084] block">
+                    Giờ xuất bến
+                  </span>
+                  <span className="text-sm font-bold text-[#0097A7] block mt-0.5">
+                    {booking.trip.departureTime} (Thời lượng: {booking.trip.duration})
+                  </span>
                 </div>
 
                 <div>
-                  <span className="text-[#647084] block mb-0.5">Số ghế đã chọn:</span>
-                  <div className="flex gap-1.5 flex-wrap">
+                  <span className="text-[10.5px] uppercase font-semibold text-[#647084] block">
+                    Điểm đón
+                  </span>
+                  <span className="text-xs font-bold text-[#102744] block mt-0.5">
+                    {pickupStop?.name}
+                  </span>
+                  <span className="text-[11px] text-[#647084] block mt-0.5 line-clamp-2">
+                    {pickupStop?.address}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[10.5px] uppercase font-semibold text-[#647084] block">
+                    Hành khách
+                  </span>
+                  <span className="text-xs font-bold text-[#102744] block mt-0.5 break-words">
+                    {booking.passenger.fullName} ({booking.selectedSeats.length} người)
+                  </span>
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-3.5">
+                <div>
+                  <span className="text-[10.5px] uppercase font-semibold text-[#647084] block">
+                    Vị trí ghế đã chọn
+                  </span>
+                  <div className="flex gap-1.5 flex-wrap mt-0.5">
                     {booking.selectedSeats.map((code) => (
-                      <span key={code} className="px-2 py-0.5 bg-[#E0F7FA] text-[#007887] font-bold rounded-md">
+                      <span
+                        key={code}
+                        className="px-2.5 py-0.5 bg-[#E0F7FA] text-[#007887] font-mono font-bold rounded-md text-xs border border-[#0097A7]/30"
+                      >
                         {code}
                       </span>
                     ))}
@@ -209,103 +248,157 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                 </div>
 
                 <div>
-                  <span className="text-[#647084] block mb-0.5">Hành khách:</span>
-                  <strong className="text-[#102744]">{booking.passenger.fullName}</strong>
+                  <span className="text-[10.5px] uppercase font-semibold text-[#647084] block">
+                    Điểm trả dự kiến
+                  </span>
+                  <span className="text-xs font-bold text-[#102744] block mt-0.5">
+                    {dropoffStop?.name}
+                  </span>
+                  <span className="text-[11px] text-[#647084] block mt-0.5 line-clamp-2">
+                    {dropoffStop?.address}
+                  </span>
                 </div>
 
                 <div>
-                  <span className="text-[#647084] block mb-0.5">Số điện thoại:</span>
-                  <strong className="text-[#102744]">{booking.passenger.phone}</strong>
-                </div>
-
-                <div>
-                  <span className="text-[#647084] block mb-0.5">Tổng tiền vé:</span>
-                  <strong className="text-[#0097A7] text-sm font-serif">
+                  <span className="text-[10.5px] uppercase font-semibold text-[#647084] block">
+                    Tổng thanh toán
+                  </span>
+                  <span className="font-serif font-bold text-base sm:text-lg text-[#0097A7] block mt-0.5">
                     {bookingService.formatCurrency(booking.totalAmount)}
-                  </strong>
+                  </span>
                 </div>
-              </div>
 
-              {/* Note or extra detail */}
-              <div className="bg-[#F7F4EC] p-3 rounded-2xl text-[11px] text-[#647084] flex items-center gap-2 border border-[#E5E3DC]">
-                <Info className="w-4 h-4 text-[#0097A7] shrink-0" />
-                <span>
-                  Quý khách vui lòng có mặt tại <strong>{pickupStop?.name}</strong> trước 20 phút giờ khởi hành.
-                </span>
+                <div>
+                  <span className="text-[10.5px] uppercase font-semibold text-[#647084] block">
+                    Trạng thái thanh toán
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-emerald-700 text-xs font-bold mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    Đã thanh toán (Mô phỏng demo)
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Right 4 cols: Perforation line + QR code for check-in */}
-            <div className="md:col-span-4 flex flex-col items-center justify-center p-4 bg-[#F7F4EC]/40 rounded-2xl border border-[#E5E3DC] text-center">
-              {/* QR Code */}
-              <div className="p-3 bg-white rounded-xl shadow-xs border border-[#CBD5E1]">
-                <QRCodeSVG
-                  value={`HANHTRINH:${booking.id}:${booking.trip.from}-${booking.trip.to}:${booking.selectedSeats.join(',')}`}
-                  size={120}
-                  level="M"
-                  includeMargin={false}
-                />
-              </div>
-
-              <span className="font-mono text-xs font-bold text-[#102744] mt-3">
-                {booking.id}
+            {/* Note & Demo Disclaimer */}
+            <div className="mt-6 pt-3 border-t border-[#E5E3DC] flex items-center justify-between gap-2 text-[11px] text-[#647084]">
+              <span className="italic flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#0097A7] shrink-0 inline" />
+                Vé minh họa — không có giá trị lên xe thực tế.
               </span>
-
-              <p className="text-[10px] text-amber-700 font-medium mt-1 leading-tight max-w-[160px]">
-                VÉ ĐIỆN TỬ DEMO
-                <br />
-                (Mã minh họa trải nghiệm)
-              </p>
+              <span className="font-mono text-[10px] hidden sm:inline">
+                DANAVA-{booking.id}
+              </span>
             </div>
           </div>
 
-          {/* Ticket Footer Bar */}
-          <div className="bg-[#F7F4EC] border-t border-[#E5E3DC] px-6 py-3 flex flex-wrap items-center justify-between text-[11px] text-[#647084]">
-            <span>Đơn vị vận hành: {booking.trip.operator}</span>
-            <span>Trạng thái: Đã thanh toán (Mô phỏng)</span>
+          {/* ==========================================================
+              PERFORATION SEPARATOR & CUTOUT NOTCHES
+              ========================================================== */}
+          <div className="relative w-full md:w-[2px] bg-transparent">
+            {/* Dashed vertical line (desktop) or horizontal (mobile) */}
+            <div className="hidden md:block absolute inset-y-0 left-0 w-px border-r-2 border-dashed border-[#CBD5E1]" />
+            <div className="md:hidden w-full border-t-2 border-dashed border-[#CBD5E1]" />
+
+            {/* Semi-circular notches */}
+            <div
+              className="hidden md:block absolute -top-3.5 -left-3 w-6 h-6 rounded-full bg-[#F7F4EC] border-b border-[#CBD5E1] pointer-events-none z-10"
+              aria-hidden="true"
+            />
+            <div
+              className="hidden md:block absolute -bottom-3.5 -left-3 w-6 h-6 rounded-full bg-[#F7F4EC] border-t border-[#CBD5E1] pointer-events-none z-10"
+              aria-hidden="true"
+            />
+
+            {/* Mobile notches */}
+            <div
+              className="md:hidden absolute -left-3 -top-3 w-6 h-6 rounded-full bg-[#F7F4EC] border-r border-[#CBD5E1] pointer-events-none z-10"
+              aria-hidden="true"
+            />
+            <div
+              className="md:hidden absolute -right-3 -top-3 w-6 h-6 rounded-full bg-[#F7F4EC] border-l border-[#CBD5E1] pointer-events-none z-10"
+              aria-hidden="true"
+            />
+          </div>
+
+          {/* ==========================================================
+              RIGHT QR TICKET STUB (~28% on desktop, Warm Cream/Amber)
+              ========================================================== */}
+          <div className="md:w-[260px] lg:w-[280px] shrink-0 bg-[#FAF5EA] p-6 sm:p-7 flex flex-col justify-between items-center text-center rounded-b-3xl md:rounded-b-none md:rounded-r-3xl">
+            {/* Stub Header */}
+            <div>
+              <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#647084] block">
+                DANAVA BOARDING
+              </span>
+              <span className="font-serif font-bold text-sm text-[#102744] block mt-0.5">
+                Cuống vé điện tử
+              </span>
+            </div>
+
+            {/* High-Contrast QR Code */}
+            <motion.div
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: shouldReduceMotion ? 0.04 : 0.35, delay: 0.15 }}
+              className="my-4 p-3 bg-white rounded-2xl border border-[#E5E3DC] shadow-xs flex flex-col items-center justify-center"
+            >
+              <QRCodeSVG
+                value={qrPayload}
+                size={136}
+                level="M"
+                includeMargin={true}
+              />
+            </motion.div>
+
+            {/* Electronic Ticket Code Info */}
+            <div className="w-full">
+              <span className="text-[10.5px] uppercase font-bold tracking-wider text-[#647084] block">
+                Mã vé điện tử
+              </span>
+              <span className="font-mono font-bold text-sm text-[#102744] block mt-0.5">
+                {booking.id}
+              </span>
+              <span className="text-[10px] text-[#647084] block mt-1">
+                Quét để kiểm tra vé demo
+              </span>
+            </div>
           </div>
         </motion.div>
 
-        {/* Action Buttons Row (Hidden when printing) */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4 no-print">
-          {/* Print/Save Ticket */}
+        {/* ============================================================
+            ACTION BUTTONS ROW (Hidden when printing)
+            ============================================================ */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5 no-print w-full">
+          {/* Secondary Outline Button: Lưu vé / In PDF */}
           <button
             type="button"
             onClick={handlePrint}
-            className="px-6 py-3 bg-[#0097A7] hover:bg-[#007887] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-md shadow-[#0097A7]/20 flex items-center gap-2 transition-all active:scale-95"
+            title="In hoặc lưu tệp PDF vé điện tử"
+            className="w-full sm:w-auto px-6 py-3 bg-[#FFFEFA] hover:bg-[#FAF8F5] active:scale-98 text-[#102744] border-2 border-[#CBD5E1] hover:border-[#0097A7] font-bold text-xs sm:text-sm rounded-xl shadow-2xs flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
-            <Printer className="w-4 h-4" />
-            <span>In / Lưu vé (PDF)</span>
+            <Printer className="w-4 h-4 text-[#0097A7]" />
+            <span>Lưu vé</span>
           </button>
 
-          {/* Send Email simulation */}
-          <button
-            type="button"
-            onClick={handleEmailDemo}
-            className="px-5 py-3 bg-[#FFFEFA] hover:bg-[#F7F4EC] text-[#102744] border border-[#E5E3DC] font-semibold text-xs sm:text-sm rounded-xl shadow-xs flex items-center gap-2 transition-all active:scale-95"
-          >
-            <Mail className="w-4 h-4 text-[#0097A7]" />
-            <span>Gửi qua email</span>
-          </button>
-
-          {/* Lookup ticket */}
+          {/* Primary Teal Button: Vé của tôi */}
           <button
             type="button"
             onClick={onOpenLookup}
-            className="px-5 py-3 bg-[#FFFEFA] hover:bg-[#F7F4EC] text-[#102744] border border-[#E5E3DC] font-semibold text-xs sm:text-sm rounded-xl shadow-xs flex items-center gap-2 transition-all active:scale-95"
+            className="w-full sm:w-auto px-7 py-3 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
-            <Search className="w-4 h-4 text-[#F3B54A]" />
-            <span>Tra cứu vé</span>
+            <Search className="w-4 h-4" />
+            <span>Vé của tôi</span>
           </button>
+        </div>
 
-          {/* Return Home */}
+        {/* Tertiary return home link */}
+        <div className="mt-4 text-center no-print">
           <button
             type="button"
             onClick={onNavigateHome}
-            className="px-5 py-3 bg-[#102744] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs flex items-center gap-2 transition-all active:scale-95"
+            className="text-xs text-[#647084] hover:text-[#0097A7] font-semibold underline underline-offset-4 transition-colors cursor-pointer"
           >
-            <span>Về trang chủ</span>
-            <ArrowRight className="w-4 h-4" />
+            Về trang chủ
           </button>
         </div>
       </div>

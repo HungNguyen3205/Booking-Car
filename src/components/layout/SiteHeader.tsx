@@ -5,16 +5,20 @@ interface SiteHeaderProps {
   currentTab: string;
   onNavigate: (tab: string) => void;
   onOpenLookup: () => void;
+  variant?: 'default' | 'compact';
 }
 
 export const SiteHeader: React.FC<SiteHeaderProps> = ({
   currentTab,
   onNavigate,
   onOpenLookup,
+  variant = 'default',
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  const isCompact = variant === 'compact';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,9 +41,18 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
   }, []);
 
   const navItems = [
-    { id: 'search', label: 'Tìm chuyến', action: () => onNavigate('search') },
+    {
+      id: 'search',
+      label: 'Tìm chuyến',
+      action: () => {
+        if (currentTab === 'home') {
+          document.getElementById('search-form-section')?.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          onNavigate('search');
+        }
+      },
+    },
     { id: 'routes', label: 'Tuyến đường', action: () => onNavigate('routes') },
-    { id: 'experience', label: 'Trải nghiệm', action: () => onNavigate('experience') },
     { id: 'lookup', label: 'Tra cứu vé', action: onOpenLookup },
   ];
 
@@ -47,17 +60,17 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
     <>
       <header
         className={`sticky top-0 z-40 w-full transition-all duration-200 border-b ${
-          isScrolled
-            ? 'h-[68px] bg-[#FFFEFA]/95 backdrop-blur-md shadow-xs border-[#E5E3DC]'
-            : 'h-[80px] bg-[#F7F4EC] border-[#E5E3DC]/70'
+          isCompact || isScrolled
+            ? 'h-[68px] sm:h-[76px] bg-[#FFFEFA]/95 backdrop-blur-md shadow-xs border-[#E5E3DC]'
+            : 'h-[76px] sm:h-[82px] bg-[#F7F4EC] border-[#E5E3DC]/70'
         }`}
       >
-        <div className="max-w-[1320px] mx-auto h-full px-6 lg:px-10 flex items-center justify-between">
+        <div className="max-w-[1340px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo Brand (Clean, single line title without bulky subtitle) */}
           <button
             type="button"
             onClick={() => onNavigate('home')}
-            className="flex items-center gap-3 text-left group focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-xl p-1 -ml-1 transition-transform active:scale-98"
+            className="flex items-center gap-3 text-left group focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-xl p-1 -ml-1 transition-transform active:scale-98 cursor-pointer"
             aria-label="Trang chủ HÀNH TRÌNH"
           >
             {/* SVG Logo Mark: Elegant Route Loop */}
@@ -79,13 +92,13 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
           </button>
 
           {/* Desktop Nav Items (Centered aligned) */}
-          <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+          <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={item.action}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
                   currentTab === item.id
                     ? 'text-[#0097A7] bg-[#E0F7FA]/80 font-semibold'
                     : 'text-[#102744] hover:text-[#0097A7] hover:bg-black/5'
@@ -96,27 +109,19 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             ))}
           </nav>
 
-          {/* Desktop Actions: Only Login & Register (Tra cứu vé is properly in the main nav menu!) */}
-          <div className="hidden md:flex items-center space-x-3">
+          {/* Desktop Right Action: Đăng nhập dạng outline navy */}
+          <div className="hidden lg:flex items-center">
             <button
               type="button"
               onClick={() => setAuthModalOpen(true)}
-              className="px-4 py-2 text-sm font-medium text-[#102744] hover:text-[#0097A7] hover:bg-black/5 rounded-full transition-colors"
+              className="px-5 py-2 text-sm font-semibold text-[#102744] hover:text-white border-2 border-[#102744] hover:bg-[#102744] rounded-full transition-all active:scale-95 shadow-2xs cursor-pointer"
             >
               Đăng nhập
             </button>
-
-            <button
-              type="button"
-              onClick={() => setAuthModalOpen(true)}
-              className="px-5 py-2 text-sm font-semibold text-white bg-[#102744] hover:bg-[#007887] rounded-full shadow-xs transition-all active:scale-95"
-            >
-              Đăng ký
-            </button>
           </div>
 
-          {/* Mobile Button */}
-          <div className="flex items-center gap-2 md:hidden">
+          {/* Mobile Button (shown for screens under 1024px) */}
+          <div className="flex items-center gap-2 lg:hidden">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -131,7 +136,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-[#FFFEFA] border-b border-[#E5E3DC] px-6 pt-2 pb-6 space-y-2 shadow-lg animate-in slide-in-from-top-2 duration-150">
+          <div className="lg:hidden bg-[#FFFEFA] border-b border-[#E5E3DC] px-6 pt-2 pb-6 space-y-2 shadow-lg animate-in slide-in-from-top-2 duration-150">
             {navItems.map((item) => (
               <button
                 key={item.id}

@@ -145,18 +145,33 @@
   .animate-spin-wheel,
   .animate-road-flow,
   .animate-bus-bob,
-  .animate-shimmer {
+  .animate-shimmer,
+  .animate-ping,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-spin {
     animation: none !important;
+    transition: none !important;
   }
 }
 
 /* Print Styles for Boarding Ticket */
 @media print {
-  body {
-    background: #FFFFFF !important;
-    color: #000000 !important;
+  @page {
+    size: A4 portrait;
+    margin: 1cm 0.8cm;
   }
-  .no-print {
+  html, body {
+    background: #FFFFFF !important;
+    color: #102744 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  header, footer, nav, .no-print, [role="banner"], [role="contentinfo"] {
     display: none !important;
   }
   .print-only {
@@ -165,8 +180,11 @@
   .ticket-print-card {
     border: 2px solid #102744 !important;
     box-shadow: none !important;
-    page-break-inside: avoid;
-    margin: 0 auto;
-    max-width: 700px;
+    background: #FFFFFF !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0.5cm auto !important;
+    max-width: 680px !important;
+    width: 100% !important;
   }
 }

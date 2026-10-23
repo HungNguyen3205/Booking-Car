@@ -5,18 +5,25 @@ import { BoardingTicket } from './BoardingTicket';
 import { Search, Ticket, Phone, ArrowLeft, AlertCircle, Info, RefreshCw } from 'lucide-react';
 
 interface TicketLookupViewProps {
+  initialBookingCode?: string;
   onBack: () => void;
   onNavigateHome: () => void;
 }
 
 export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
+  initialBookingCode,
   onBack,
   onNavigateHome,
 }) => {
-  const [bookingCode, setBookingCode] = useState('HT250426001');
-  const [phone, setPhone] = useState('0905123456');
+  const [bookingCode, setBookingCode] = useState(initialBookingCode || 'HT250426001');
+  const [phone, setPhone] = useState(initialBookingCode ? '' : '0905123456');
   const [isSearching, setIsSearching] = useState(false);
-  const [foundBooking, setFoundBooking] = useState<Booking | null>(null);
+  const [foundBooking, setFoundBooking] = useState<Booking | null>(() => {
+    if (initialBookingCode) {
+      return bookingService.findBooking(initialBookingCode);
+    }
+    return null;
+  });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleLookup = (e: React.FormEvent) => {

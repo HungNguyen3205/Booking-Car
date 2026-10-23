@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Trip, Seat } from '../../types';
 import { SeatButton } from './SeatButton';
-import { Sparkles } from 'lucide-react';
+import { Compass, Check, Lock, Ban, Layers, ShieldCheck } from 'lucide-react';
 
 interface SeatMapProps {
   trip: Trip;
   selectedSeatCodes: string[];
   maxSelectable: number;
   onToggleSeat: (seat: Seat) => void;
+  onLimitExceeded?: () => void;
 }
 
 export const SeatMap: React.FC<SeatMapProps> = ({
@@ -16,168 +17,494 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   selectedSeatCodes,
   maxSelectable,
   onToggleSeat,
+  onLimitExceeded,
 }) => {
   const [activeFloor, setActiveFloor] = useState<1 | 2>(1);
-  const [roofRevealed, setRoofRevealed] = useState(false);
-
-  // Trigger roof fade reveal after initial mount
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setRoofRevealed(true);
-    }, 450);
-    return () => clearTimeout(timer);
-  }, []);
+  const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
 
   // Filter seats by active floor
-  const floorSeats = trip.seats.filter((s) => s.floor === activeFloor);
+  const floorSeats = useMemo(() => {
+    return trip.seats.filter((s) => s.floor === activeFloor);
+  }, [trip.seats, activeFloor]);
 
-  // Group seats by rows
-  const rowNumbers = Array.from(new Set(floorSeats.map((s) => s.row))).sort((a, b) => a - b);
+  // Find all distinct rows sorted ascending
+  const rows = useMemo(() => {
+    return Array.from(new Set(floorSeats.map((s) => s.row))).sort((a, b) => a - b);
+  }, [floorSeats]);
+
+  // Find seat by exact row and col
+  const getSeatAt = useMemo(() => {
+    return (row: number, col: number): Seat | null => {
+      return floorSeats.find((s) => s.row === row && s.col === col) || null;
+    };
+  }, [floorSeats]);
+
+  const category = trip.vehicle.category;
+  const isSleeper = category === 'sleeper';
+  const isCabin = category === 'cabin';
+  const isLimousine = category === 'limousine';
 
   return (
-    <div className="bg-[#FFFEFA] rounded-3xl p-5 sm:p-7 border border-[#E5E3DC] shadow-xs">
-      {/* Floor Switcher (if multi-floor) */}
-      {trip.vehicle.floors === 2 && (
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="bg-[#F7F4EC] p-1.5 rounded-2xl border border-[#E5E3DC] flex gap-2">
+    <div className="w-full">
+      {/* ----------------------------------------------------
+          CABIN CONTROL TOOLBAR: Floor Switcher & View Mode
+          ---------------------------------------------------- */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-3 mb-4 border-b border-[#E5E3DC]">
+        {/* Floor Switcher */}
+        {trip.vehicle.floors === 2 ? (
+          <div className="flex items-center gap-1.5 bg-[#F7F4EC] p-1 rounded-2xl border border-[#E5E3DC]">
             <button
               type="button"
               onClick={() => setActiveFloor(1)}
-              className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeFloor === 1
                   ? 'bg-[#102744] text-white shadow-xs'
                   : 'text-[#647084] hover:text-[#102744]'
               }`}
             >
-              Tầng 1 (Tầng dưới)
+              <Layers className="w-3.5 h-3.5 text-[#00E5FF]" />
+              <span>Tầng 1 (Tầng dưới)</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveFloor(2)}
-              className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeFloor === 2
                   ? 'bg-[#102744] text-white shadow-xs'
                   : 'text-[#647084] hover:text-[#102744]'
               }`}
             >
-              Tầng 2 (Tầng trên)
+              <Layers className="w-3.5 h-3.5 text-[#00E5FF]" />
+              <span>Tầng 2 (Tầng trên)</span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs font-bold text-[#102744] bg-[#F7F4EC] px-3.5 py-1.5 rounded-xl border border-[#E5E3DC]">
+            <span className="w-2 h-2 rounded-full bg-[#0097A7]" />
+            <span>Khoang 1 tầng tiêu chuẩn VIP ({trip.vehicle.seatsTotal} chỗ)</span>
+          </div>
+        )}
+
+        {/* View Orientation Toggle */}
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-[#647084] font-medium hidden sm:inline flex items-center gap-1">
+            <Compass className="w-3.5 h-3.5 text-[#0097A7]" />
+            Hướng nhìn:
+          </span>
+          <div className="flex items-center bg-[#F7F4EC] p-0.5 rounded-xl border border-[#E5E3DC] text-xs">
+            <button
+              type="button"
+              onClick={() => setOrientation('horizontal')}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                orientation === 'horizontal'
+                  ? 'bg-[#0097A7] text-white shadow-2xs'
+                  : 'text-[#647084] hover:text-[#102744]'
+              }`}
+              title="Góc nhìn thân xe nằm ngang"
+            >
+              Ngang (Desktop)
+            </button>
+            <button
+              type="button"
+              onClick={() => setOrientation('vertical')}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                orientation === 'vertical'
+                  ? 'bg-[#0097A7] text-white shadow-2xs'
+                  : 'text-[#647084] hover:text-[#102744]'
+              }`}
+              title="Góc nhìn thân xe dọc (Mobile)"
+            >
+              Dọc
             </button>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Bus Top-Down Enclosure Container */}
-      <div className="relative mx-auto max-w-2xl bg-[#0F172A] p-4 sm:p-6 rounded-3xl sm:rounded-[36px] shadow-2xl border-4 border-[#334155] overflow-hidden">
-        {/* Roof Reveal Fade Animation Layer (450-650ms) */}
-        <AnimatePresence>
-          {!roofRevealed && (
-            <motion.div
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.55, ease: 'easeInOut' }}
-              className="absolute inset-0 z-30 bg-[#102744] flex flex-col items-center justify-center text-white p-6"
-            >
-              <div className="w-12 h-12 rounded-full bg-[#0097A7]/20 text-[#0097A7] flex items-center justify-center mb-3 animate-pulse">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <p className="font-serif font-bold text-base">Đang mở sơ đồ ghế ngồi…</p>
-              <p className="text-xs text-slate-300 mt-1">Góc nhìn chuẩn từ trên nóc xe</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* ----------------------------------------------------
+          INTERACTIVE TOP-DOWN COACH CHASSIS
+          Rendered through smooth crossfade when changing floors
+          ---------------------------------------------------- */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${activeFloor}-${orientation}`}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
+          className="w-full overflow-x-auto pb-2"
+        >
+          {orientation === 'horizontal' ? (
+            /* ==========================================================
+               HORIZONTAL CHASSIS:
+               ĐẦU XE BÊN TRÁI -> KHOANG HÀNH KHÁCH -> ĐUÔI XE BÊN PHẢI
+               ========================================================== */
+            <div className="min-w-[680px] max-w-full bg-[#FAF8F5] rounded-[36px] border-2 border-[#D8D4C8] p-3.5 sm:p-4.5 shadow-sm relative overflow-hidden">
+              {/* Outer coach roof rail accents */}
+              <div className="absolute top-0 left-8 right-8 h-1 bg-gradient-to-r from-[#0097A7]/50 via-[#CBD5E1] to-slate-400 rounded-full" />
+              <div className="absolute bottom-0 left-8 right-8 h-1 bg-gradient-to-r from-[#0097A7]/50 via-[#CBD5E1] to-slate-400 rounded-full" />
 
-        {/* Bus Cabin Header: Steering Wheel & Front Windshield */}
-        <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-700/80 text-slate-400 text-xs px-2">
-          {/* Driver Cockpit */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-slate-800 border-2 border-slate-600 flex items-center justify-center text-slate-300 shadow-inner" title="Vị trí Bác tài">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 3v18M3 12h18M6.5 6.5l11 11M6.5 17.5l11-11" />
-              </svg>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-slate-200 text-xs">Vị trí Tài xế</span>
-              <span className="text-[10px] text-teal-400">Đầu xe / Cửa lên</span>
-            </div>
-          </div>
+              <div className="flex items-stretch gap-3">
+                {/* ----------------------------------------------------
+                    1. FRONT CABIN (ĐẦU XE BÊN TRÁI)
+                    ---------------------------------------------------- */}
+                <div className="w-28 sm:w-32 shrink-0 rounded-2xl bg-gradient-to-r from-[#E2E8F0] via-[#EDF2F7] to-[#F8FAFC] border border-[#CBD5E1] p-3 flex flex-col justify-between relative shadow-inner">
+                  {/* Curved Windshield Front Glass Accent */}
+                  <div className="absolute top-2 bottom-2 -left-1.5 w-3 rounded-l-full bg-gradient-to-b from-[#0097A7]/30 via-[#38BDF8]/20 to-[#0097A7]/30 border-l-2 border-[#0097A7]/40 shadow-sm" />
 
-          <div className="text-right">
-            <span className="text-[11px] font-semibold text-slate-300">
-              {trip.vehicle.name}
-            </span>
-            <span className="block text-[10px] text-slate-400">
-              {activeFloor === 1 ? 'Sơ đồ Tầng dưới' : 'Sơ đồ Tầng trên'}
-            </span>
-          </div>
-        </div>
-
-        {/* Seats Grid: Longitudinal Bus Layout with Central Aisle */}
-        <div className="py-2 overflow-x-auto">
-          <div className="min-w-[280px] flex flex-col gap-3">
-            {rowNumbers.map((rowNum) => {
-              const rowSeats = floorSeats.filter((s) => s.row === rowNum);
-              return (
-                <div key={rowNum} className="flex items-center justify-between gap-3 px-2">
-                  {/* Left Column Seat(s) */}
-                  <div className="flex gap-2">
-                    {rowSeats.slice(0, 1).map((seat) => (
-                      <SeatButton
-                        key={seat.id}
-                        seat={seat}
-                        isSelected={selectedSeatCodes.includes(seat.code)}
-                        onToggle={onToggleSeat}
-                        disabled={selectedSeatCodes.length >= maxSelectable}
-                      />
-                    ))}
+                  {/* Top: Side Mirror 1 */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-bold text-[#647084] uppercase tracking-wider">
+                      Đầu xe
+                    </span>
+                    <span className="w-3 h-1.5 bg-[#102744] rounded-full" title="Gương chiếu hậu trái" />
                   </div>
 
-                  {/* Center Aisle indicator */}
-                  <div className="flex-1 flex items-center justify-center px-2">
-                    <span className="text-[10px] tracking-wider text-slate-500 uppercase font-medium">
-                      Lối đi
+                  {/* Windshield wiper and glass reflection */}
+                  <div className="text-center py-1">
+                    <span className="text-[10px] font-bold text-[#102744] block">
+                      Kính trước
+                    </span>
+                    <div className="w-10 h-1 bg-[#0097A7]/30 rounded-full mx-auto mt-0.5" />
+                  </div>
+
+                  {/* Driver Cockpit */}
+                  <div className="bg-[#102744] rounded-xl p-2 text-white flex items-center gap-2 shadow-xs border border-slate-700">
+                    <div className="w-7 h-7 rounded-full bg-[#1E293B] border border-cyan-400/40 flex items-center justify-center text-cyan-300">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 3v18M3 12h18M6.5 6.5l11 11M6.5 17.5l11-11" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold block leading-tight">Tài xế</span>
+                      <span className="text-[8.5px] text-cyan-300">Cabin lái</span>
+                    </div>
+                  </div>
+
+                  {/* Entrance Door & Passenger Steps */}
+                  <div className="bg-amber-100/80 rounded-xl p-1.5 border border-amber-300 text-center">
+                    <span className="text-[10px] font-bold text-amber-900 block leading-tight">
+                      Cửa lên xe
+                    </span>
+                    <span className="text-[8px] text-amber-700 block">
+                      Bậc bước an toàn
                     </span>
                   </div>
 
-                  {/* Right Column Seat(s) */}
-                  <div className="flex gap-2">
-                    {rowSeats.slice(1).map((seat) => (
-                      <SeatButton
-                        key={seat.id}
-                        seat={seat}
-                        isSelected={selectedSeatCodes.includes(seat.code)}
-                        onToggle={onToggleSeat}
-                        disabled={selectedSeatCodes.length >= maxSelectable}
-                      />
-                    ))}
+                  {/* Bottom: Side Mirror 2 */}
+                  <div className="flex justify-end">
+                    <span className="w-3 h-1.5 bg-[#102744] rounded-full" title="Gương chiếu hậu phải" />
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Rear of Bus / Engine compartment indicator */}
-        <div className="mt-4 pt-3 border-t border-slate-700/80 flex justify-between items-center text-[10px] text-slate-400 px-2">
-          <span>Khu vực Đuôi xe</span>
-          <span className="text-teal-400">Điều hòa mát lạnh toàn khoang</span>
-        </div>
-      </div>
+                {/* ----------------------------------------------------
+                    2. PASSENGER INTERIOR CABIN (KHOANG NỘI THẤT HÀNH KHÁCH)
+                    ---------------------------------------------------- */}
+                <div className="flex-1 bg-white rounded-2xl border border-[#E5E3DC] p-3 shadow-inner flex flex-col justify-between">
+                  {/* Row of Seats 1 (Dãy A / Cửa sổ bên trên) */}
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-16 sm:w-18 shrink-0 text-right pr-1">
+                      <span className="text-[11px] font-bold text-[#102744] block">
+                        {isCabin ? 'Cabin A' : 'Dãy A'}
+                      </span>
+                      <span className="text-[9px] text-[#647084]">Cửa sổ</span>
+                    </div>
+                    <div className="flex gap-2 sm:gap-3">
+                      {rows.map((rowNum) => {
+                        const seat = getSeatAt(rowNum, 1);
+                        return seat ? (
+                          <SeatButton
+                            key={seat.id}
+                            seat={seat}
+                            isSelected={selectedSeatCodes.includes(seat.code)}
+                            onToggle={onToggleSeat}
+                            disabled={selectedSeatCodes.length >= maxSelectable}
+                            orientation="horizontal"
+                            onLimitExceeded={onLimitExceeded}
+                          />
+                        ) : (
+                          <div
+                            key={`empty-${rowNum}-1`}
+                            className={
+                              isCabin
+                                ? 'w-[74px] sm:w-[86px] h-[52px] sm:h-[58px]'
+                                : isSleeper
+                                ? 'w-[64px] sm:w-[76px] h-[46px] sm:h-[50px]'
+                                : 'w-[54px] sm:w-[62px] h-[48px] sm:h-[52px]'
+                            }
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
 
-      {/* Legend at bottom as required in spec */}
-      <div className="mt-6 pt-4 border-t border-[#E5E3DC] flex flex-wrap items-center justify-center gap-6 text-xs text-[#102744]">
+                  {/* Walkway 1 (Lối đi nội thất) */}
+                  <div className="my-1.5 py-1 px-3 bg-[#F7F4EC] rounded-lg border border-dashed border-[#E5E3DC] flex items-center justify-between text-[9px] text-[#647084] tracking-wider uppercase font-semibold">
+                    <span>← Lối đi nội thất</span>
+                    <span className="hidden sm:inline">
+                      {isCabin
+                        ? 'Hành lang Cabin cách âm chuẩn Hoàng Gia'
+                        : isLimousine
+                        ? 'Lối đi VIP rộng rãi bọc da cao cấp'
+                        : 'Thảm tiêu âm đa tầng'}
+                    </span>
+                    <span>Lối đi nội thất →</span>
+                  </div>
+
+                  {/* Row of Seats 2 (Dãy B / Giữa hoặc Cửa sổ) */}
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-16 sm:w-18 shrink-0 text-right pr-1">
+                      <span className="text-[11px] font-bold text-[#102744] block">
+                        {isCabin ? 'Cabin B' : 'Dãy B'}
+                      </span>
+                      <span className="text-[9px] text-[#647084]">
+                        {isSleeper ? 'Dãy giữa' : 'Cửa sổ'}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 sm:gap-3">
+                      {rows.map((rowNum) => {
+                        const seat = getSeatAt(rowNum, 2);
+                        return seat ? (
+                          <SeatButton
+                            key={seat.id}
+                            seat={seat}
+                            isSelected={selectedSeatCodes.includes(seat.code)}
+                            onToggle={onToggleSeat}
+                            disabled={selectedSeatCodes.length >= maxSelectable}
+                            orientation="horizontal"
+                            onLimitExceeded={onLimitExceeded}
+                          />
+                        ) : (
+                          <div
+                            key={`empty-${rowNum}-2`}
+                            className={
+                              isCabin
+                                ? 'w-[74px] sm:w-[86px] h-[52px] sm:h-[58px]'
+                                : isSleeper
+                                ? 'w-[64px] sm:w-[76px] h-[46px] sm:h-[50px]'
+                                : 'w-[54px] sm:w-[62px] h-[48px] sm:h-[52px]'
+                            }
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Row of Seats 3 (Only for 3-column Sleeper: Dãy C) */}
+                  {isSleeper && (
+                    <>
+                      <div className="my-1.5 py-1 px-3 bg-[#F7F4EC] rounded-lg border border-dashed border-[#E5E3DC] flex items-center justify-between text-[9px] text-[#647084] tracking-wider uppercase font-semibold">
+                        <span>← Lối đi 2</span>
+                        <span className="hidden sm:inline">Thảm tiêu âm</span>
+                        <span>Lối đi 2 →</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-16 sm:w-18 shrink-0 text-right pr-1">
+                          <span className="text-[11px] font-bold text-[#102744] block">Dãy C</span>
+                          <span className="text-[9px] text-[#647084]">Cửa sổ</span>
+                        </div>
+                        <div className="flex gap-2 sm:gap-3">
+                          {rows.map((rowNum) => {
+                            const seat = getSeatAt(rowNum, 3);
+                            return seat ? (
+                              <SeatButton
+                                key={seat.id}
+                                seat={seat}
+                                isSelected={selectedSeatCodes.includes(seat.code)}
+                                onToggle={onToggleSeat}
+                                disabled={selectedSeatCodes.length >= maxSelectable}
+                                orientation="horizontal"
+                                onLimitExceeded={onLimitExceeded}
+                              />
+                            ) : (
+                              <div
+                                key={`empty-${rowNum}-3`}
+                                className="w-[64px] sm:w-[76px] h-[46px] sm:h-[50px]"
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* ----------------------------------------------------
+                    3. REAR COACH SECTION (ĐUÔI XE BÊN PHẢI)
+                    ---------------------------------------------------- */}
+                <div className="w-20 sm:w-24 shrink-0 rounded-2xl bg-gradient-to-l from-[#E2E8F0] via-[#EDF2F7] to-[#F8FAFC] border border-[#CBD5E1] p-2.5 flex flex-col justify-between text-center shadow-inner">
+                  {/* Top LED Taillight */}
+                  <div className="w-full h-2 bg-gradient-to-r from-rose-500 to-rose-600 rounded-full shadow-xs" title="Đèn hậu LED" />
+
+                  {/* Rear AC Ventilation & Safety Exit */}
+                  <div className="my-auto space-y-1.5">
+                    <span className="text-[10px] font-bold text-[#102744] block">
+                      Đuôi xe
+                    </span>
+                    <div className="p-1 bg-white/80 rounded-lg border border-slate-200">
+                      <span className="text-[8.5px] font-semibold text-rose-700 block">
+                        Cửa thoát hiểm
+                      </span>
+                    </div>
+                    <span className="text-[8px] text-[#647084] block">
+                      Dàn lạnh trung tâm
+                    </span>
+                  </div>
+
+                  {/* Bottom LED Taillight */}
+                  <div className="w-full h-2 bg-gradient-to-r from-rose-500 to-rose-600 rounded-full shadow-xs" title="Đèn hậu LED" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* ==========================================================
+               VERTICAL CHASSIS (MOBILE TỐI ƯU):
+               ĐẦU XE Ở TRÊN -> HÀNG GHẾ XUỐNG DƯỚI -> ĐUÔI XE Ở DƯỚI
+               ========================================================== */
+            <div className="max-w-[460px] mx-auto bg-[#FAF8F5] rounded-[36px] border-2 border-[#D8D4C8] p-4 shadow-sm relative overflow-hidden">
+              {/* Front Coach Cap & Driver */}
+              <div className="rounded-2xl bg-gradient-to-b from-[#E2E8F0] to-[#F8FAFC] border border-[#CBD5E1] p-3 mb-4 flex items-center justify-between shadow-inner">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#102744] border-2 border-cyan-400/50 flex items-center justify-center text-cyan-300 shadow-xs">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 3v18M3 12h18M6.5 6.5l11 11M6.5 17.5l11-11" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-[#102744] block">Tài xế</span>
+                    <span className="text-[9.5px] text-[#0097A7] font-semibold">Đầu xe</span>
+                  </div>
+                </div>
+
+                <div className="bg-amber-100 px-3 py-1 rounded-xl border border-amber-300 text-right">
+                  <span className="text-xs font-bold text-amber-900 block">Cửa lên xe</span>
+                  <span className="text-[9px] text-amber-700 block">Bậc an toàn</span>
+                </div>
+              </div>
+
+              {/* Rows of seats */}
+              <div className="bg-white rounded-2xl border border-[#E5E3DC] p-3.5 space-y-3">
+                {rows.map((rowNum) => {
+                  const seat1 = getSeatAt(rowNum, 1);
+                  const seat2 = getSeatAt(rowNum, 2);
+                  const seat3 = isSleeper ? getSeatAt(rowNum, 3) : null;
+
+                  return (
+                    <div key={rowNum} className="flex items-center justify-between gap-2">
+                      {/* Column 1 */}
+                      <div className="shrink-0">
+                        {seat1 ? (
+                          <SeatButton
+                            seat={seat1}
+                            isSelected={selectedSeatCodes.includes(seat1.code)}
+                            onToggle={onToggleSeat}
+                            disabled={selectedSeatCodes.length >= maxSelectable}
+                            orientation="vertical"
+                            onLimitExceeded={onLimitExceeded}
+                          />
+                        ) : (
+                          <div className="w-[52px] h-[68px]" />
+                        )}
+                      </div>
+
+                      {/* Walkway 1 */}
+                      <div className="flex-1 flex items-center justify-center px-1">
+                        <span className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">
+                          Lối đi
+                        </span>
+                      </div>
+
+                      {/* Column 2 */}
+                      <div className="shrink-0">
+                        {seat2 ? (
+                          <SeatButton
+                            seat={seat2}
+                            isSelected={selectedSeatCodes.includes(seat2.code)}
+                            onToggle={onToggleSeat}
+                            disabled={selectedSeatCodes.length >= maxSelectable}
+                            orientation="vertical"
+                            onLimitExceeded={onLimitExceeded}
+                          />
+                        ) : (
+                          <div className="w-[52px] h-[68px]" />
+                        )}
+                      </div>
+
+                      {/* Column 3 (Only Sleeper) */}
+                      {isSleeper && (
+                        <>
+                          <div className="flex-1 flex items-center justify-center px-1">
+                            <span className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">
+                              Lối đi 2
+                            </span>
+                          </div>
+                          <div className="shrink-0">
+                            {seat3 ? (
+                              <SeatButton
+                                seat={seat3}
+                                isSelected={selectedSeatCodes.includes(seat3.code)}
+                                onToggle={onToggleSeat}
+                                disabled={selectedSeatCodes.length >= maxSelectable}
+                                orientation="vertical"
+                                onLimitExceeded={onLimitExceeded}
+                              />
+                            ) : (
+                              <div className="w-[52px] h-[68px]" />
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Rear Section */}
+              <div className="mt-4 rounded-2xl bg-gradient-to-t from-[#E2E8F0] to-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-center text-xs text-[#647084]">
+                <span className="font-semibold text-[#102744]">Khu vực đuôi xe</span>
+                <span className="text-[10px] block text-cyan-700">Điều hòa khử khuẩn đa điểm</span>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* ----------------------------------------------------
+          LEGEND: Trạng thái ghế rõ ràng, chuẩn accessibility
+          ---------------------------------------------------- */}
+      <div className="mt-5 pt-3.5 border-t border-[#E5E3DC] flex flex-wrap items-center justify-center gap-4 sm:gap-7 text-xs text-[#102744]">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg bg-[#FFFEFA] border-2 border-[#CBD5E1]" />
+          <div className="w-5 h-5 rounded-lg bg-[#FFFEFA] border-2 border-[#CBD5E1] shadow-2xs" />
           <span>Còn trống</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg bg-[#0097A7] border-2 border-[#007887]" />
-          <span className="font-semibold text-[#0097A7]">Đang chọn</span>
+          <div className="w-5 h-5 rounded-lg bg-[#0097A7] border border-[#00695C] text-white flex items-center justify-center shadow-xs">
+            <Check className="w-3.5 h-3.5 stroke-[3]" />
+          </div>
+          <span className="font-bold text-[#0097A7]">Đang chọn</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg bg-[#102744]" />
+          <div className="w-5 h-5 rounded-lg bg-[#1E293B] text-slate-400 flex items-center justify-center shadow-xs">
+            <Lock className="w-3 h-3" />
+          </div>
           <span className="text-[#647084]">Đã đặt</span>
         </div>
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 text-slate-400 flex items-center justify-center">
+            <Ban className="w-3 h-3" />
+          </div>
+          <span className="text-slate-400">Không khả dụng</span>
+        </div>
+      </div>
+
+      {/* Simulation layout disclaimer */}
+      <div className="mt-3 text-center">
+        <p className="text-[11px] text-[#647084] italic flex items-center justify-center gap-1">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#0097A7] inline" />
+          * Sơ đồ mô phỏng theo cấu hình không gian tiêu chuẩn của dòng xe {trip.vehicle.name} (Bản thử nghiệm)
+        </p>
       </div>
     </div>
   );

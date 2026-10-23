@@ -20,7 +20,7 @@ export const FeaturedRoutes: React.FC<FeaturedRoutesProps> = ({ onSelectRoute })
             </span>
           </div>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#102744] tracking-tight">
-            Tuyến đường nổi bật
+            Mỗi cung đường, một câu chuyện.
           </h2>
           <p className="mt-3 text-sm sm:text-base text-[#647084]">
             Những cung đường di sản và biển xanh miền Trung với tần suất chuyến dày đặc và phương tiện cao cấp nhất.

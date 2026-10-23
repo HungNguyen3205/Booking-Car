@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
 import { BusPreloader } from './components/motion/BusPreloader';
 import { SiteHeader } from './components/layout/SiteHeader';
 import { SiteFooter } from './components/layout/SiteFooter';
@@ -10,104 +10,189 @@ import { BookingSteps } from './components/home/BookingSteps';
 import { BenefitsSection } from './components/home/BenefitsSection';
 import { FaqSection } from './components/home/FaqSection';
 import { TripResultsView } from './components/search/TripResultsView';
-import { SeatSelectionModal } from './components/seats/SeatSelectionModal';
-import { PassengerForm } from './components/checkout/PassengerForm';
-import { DemoPayment } from './components/checkout/DemoPayment';
-import { BoardingTicket } from './components/tickets/BoardingTicket';
-import { TicketLookupView } from './components/tickets/TicketLookupView';
 import type { Booking, BookingStep, PassengerInfo, SearchParams, Seat, Trip } from './types';
 import { bookingService } from './services/bookingService';
-import { MOCK_TRIPS } from './data/mockData';
+import { VEHICLE_MODELS } from './data/mockData';
+import { preloadCriticalHeroAssets } from './data/sceneData';
+import { getVietnamTodayDateStr, isValidBookingDate } from './utils/dateUtils';
+
+// Code-split dynamic booking steps and ticket lookup to optimize initial bundle
+const SeatSelectionModal = React.lazy(() =>
+  import('./components/seats/SeatSelectionModal').then((m) => ({ default: m.SeatSelectionModal }))
+);
+const PassengerForm = React.lazy(() =>
+  import('./components/checkout/PassengerForm').then((m) => ({ default: m.PassengerForm }))
+);
+const DemoPayment = React.lazy(() =>
+  import('./components/checkout/DemoPayment').then((m) => ({ default: m.DemoPayment }))
+);
+const BoardingTicket = React.lazy(() =>
+  import('./components/tickets/BoardingTicket').then((m) => ({ default: m.BoardingTicket }))
+);
+const TicketLookupView = React.lazy(() =>
+  import('./components/tickets/TicketLookupView').then((m) => ({ default: m.TicketLookupView }))
+);
 
 export const App: React.FC = () => {
-  // Preloader state
-  const [appReady, setAppReady] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
-  // Navigation Step
-  const [currentStep, setCurrentStep] = useState<BookingStep>('home');
+  // 3-Stage Lifecycle for realistic loading & synchronized hero entrance:
+  // 1. criticalAssetsReady: Default vehicle & initial route scenes loaded & decoded
+  // 2. loaderExitComplete: Preloader has fully faded out and unmounted
+  // 3. heroIntroReady: Signal for hero bus to begin smooth entrance
+  const [criticalAssetsReady, setCriticalAssetsReady] = useState(false);
+  const [loaderExitComplete, setLoaderExitComplete] = useState(false);
+  const [heroIntroReady, setHeroIntroReady] = useState(false);
 
-  // Booking Flow States with URL restoration support
-  const [searchParams, setSearchParams] = useState<SearchParams>(() => {
+  // Navigation Step with URL restoration support
+  const [currentStep, setCurrentStep] = useState<BookingStep>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const from = urlParams.get('from');
-      const to = urlParams.get('to');
-      const date = urlParams.get('date');
-      const passengers = urlParams.get('passengers');
-      if (from || to) {
+      const step = urlParams.get('step');
+      if (step === 'search') return 'search';
+      if (step === 'lookup') return 'lookup';
+      if (urlParams.has('from') && urlParams.has('to') && step !== 'home') {
+        return 'search';
+      }
+    }
+    return 'home';
+  });
+
+  // Booking Flow States with safe URL restoration and strict validation
+  const [searchParams, setSearchParams] = useState<SearchParams>(() => {
+    const today = getVietnamTodayDateStr();
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const rawFrom = urlParams.get('from')?.trim();
+      const rawTo = urlParams.get('to')?.trim();
+      const rawDate = urlParams.get('date')?.trim();
+      const rawPassengers = urlParams.get('passengers')?.trim();
+
+      const validDate = isValidBookingDate(rawDate) ? (rawDate as string) : today;
+      let validPassengers = 1;
+      if (rawPassengers) {
+        const parsed = parseInt(rawPassengers, 10);
+        if (!isNaN(parsed)) {
+          validPassengers = Math.min(5, Math.max(1, parsed));
+        }
+      }
+
+      if (rawFrom || rawTo) {
+        const from = rawFrom || 'Đà Nẵng';
+        const to = rawTo || (from === 'Huế' ? 'Đà Nẵng' : 'Huế');
         return {
-          from: from || 'Đà Nẵng',
-          to: to || 'Huế',
-          date: date || '2026-10-28',
-          passengers: passengers ? Math.max(1, parseInt(passengers, 10) || 1) : 1,
+          from,
+          to,
+          date: validDate,
+          passengers: validPassengers,
         };
       }
     }
     return {
       from: 'Đà Nẵng',
       to: 'Huế',
-      date: '2026-10-28',
+      date: today,
       passengers: 1,
     };
   });
 
-  const [availableTrips, setAvailableTrips] = useState<Trip[]>(MOCK_TRIPS);
+  const [availableTrips, setAvailableTrips] = useState<Trip[]>(() => {
+    return bookingService.searchTrips(searchParams);
+  });
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [passengerInfo, setPassengerInfo] = useState<PassengerInfo | null>(null);
   const [completedBooking, setCompletedBooking] = useState<Booking | null>(null);
+  const initialParamsRef = useRef({ from: searchParams.from, to: searchParams.to });
+
+  // Parallel preload critical hero assets immediately on mount
+  useEffect(() => {
+    let isMounted = true;
+    const defaultVehicle = VEHICLE_MODELS['sleeper']?.image || '';
+    const { from, to } = initialParamsRef.current;
+
+    // Safety timeout to avoid hanging indefinitely if network stalls
+    const safetyTimer = setTimeout(() => {
+      if (isMounted) {
+        setCriticalAssetsReady(true);
+      }
+    }, 3200);
+
+    preloadCriticalHeroAssets(from, to, defaultVehicle)
+      .then(() => {
+        if (isMounted) {
+          clearTimeout(safetyTimer);
+          setCriticalAssetsReady(true);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          clearTimeout(safetyTimer);
+          setCriticalAssetsReady(true);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimer);
+    };
+  }, []); // Run strictly once on initial mount
+
+  const handleLoaderExitComplete = () => {
+    setLoaderExitComplete(true);
+    // Trigger hero bus entrance smoothly as soon as preloader finishes exit
+    setHeroIntroReady(true);
+  };
 
   // Sync search params to URL query string without reloading
-  const updateUrlParams = (params: SearchParams) => {
+  const updateUrlParams = (params: SearchParams, step?: BookingStep) => {
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       url.searchParams.set('from', params.from);
       url.searchParams.set('to', params.to);
       url.searchParams.set('date', params.date);
       url.searchParams.set('passengers', params.passengers.toString());
+      if (step && step !== 'home') {
+        url.searchParams.set('step', step);
+      } else if (step === 'home') {
+        url.searchParams.delete('step');
+      }
       window.history.replaceState({}, '', url.toString());
     }
   };
 
   // Scroll to top on step change
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentStep]);
+    window.scrollTo({ top: 0, behavior: shouldReduceMotion ? 'auto' : 'smooth' });
+  }, [currentStep, shouldReduceMotion]);
 
   // Handle Search Submission
   const handleSearch = (params: SearchParams) => {
     setSearchParams(params);
-    updateUrlParams(params);
+    updateUrlParams(params, 'search');
     const results = bookingService.searchTrips(params);
-    setAvailableTrips(results.length > 0 ? results : MOCK_TRIPS);
+    setAvailableTrips(results);
     setCurrentStep('search');
   };
 
   // Handle Select Trip from Search Results
   const handleSelectTrip = (trip: Trip) => {
     setSelectedTrip(trip);
-    // Pre-select first available seats according to passenger count for ease of demo, or reset
-    const availableCodes = trip.seats
-      .filter((s) => s.status === 'available')
-      .slice(0, searchParams.passengers)
-      .map((s) => s.code);
-
-    setSelectedSeats(availableCodes);
+    // Reset seat selection completely on trip select to ensure clean state
+    setSelectedSeats([]);
     setCurrentStep('seat-select');
   };
 
-  // Handle Seat Toggle
+  // Handle Seat Toggle with strict limit checking
   const handleToggleSeat = (seat: Seat) => {
-    if (seat.status === 'booked') return;
+    if (seat.status === 'booked' || seat.status === 'disabled') return;
 
     if (selectedSeats.includes(seat.code)) {
       setSelectedSeats(selectedSeats.filter((c) => c !== seat.code));
     } else {
+      // Do NOT replace the last seat if limit is reached - preserve user selection
       if (selectedSeats.length < searchParams.passengers) {
         setSelectedSeats([...selectedSeats, seat.code]);
-      } else {
-        // Replace last seat if limit reached
-        setSelectedSeats([...selectedSeats.slice(0, -1), seat.code]);
       }
     }
   };
@@ -145,29 +230,43 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F4EC] text-[#102744]">
-      {/* 01: Mandatory Real Bus Running Preloader */}
-      {!appReady && (
-        <BusPreloader onComplete={() => setAppReady(true)} minDuration={1400} />
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen flex flex-col bg-[#F7F4EC] text-[#102744]">
+      {/* 01: Mandatory Real Bus Running Preloader with real asset synchronization */}
+      {!loaderExitComplete && (
+        <BusPreloader
+          isReady={criticalAssetsReady}
+          onExitComplete={handleLoaderExitComplete}
+          maxTimeoutMs={3500}
+        />
       )}
 
-      {/* Main Web Application (fades in once loader completes) */}
-      <div className={`flex-1 flex flex-col transition-opacity duration-500 ${appReady ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Main Web Application (seamlessly ready as preloader starts exit) */}
+      <div
+        className={`flex-1 flex flex-col transition-opacity duration-300 ${
+          criticalAssetsReady || loaderExitComplete ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
         {/* Site Header */}
         <SiteHeader
           currentTab={currentStep}
+          variant={currentStep === 'home' ? 'default' : 'compact'}
           onNavigate={(tab) => {
             if (tab === 'home') setCurrentStep('home');
             else if (tab === 'search') setCurrentStep('search');
             else if (tab === 'routes') {
               setCurrentStep('home');
               setTimeout(() => {
-                document.getElementById('routes-section')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('routes-section')?.scrollIntoView({
+                  behavior: shouldReduceMotion ? 'auto' : 'smooth',
+                });
               }, 100);
             } else if (tab === 'experience') {
               setCurrentStep('home');
               setTimeout(() => {
-                document.getElementById('experience-section')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('experience-section')?.scrollIntoView({
+                  behavior: shouldReduceMotion ? 'auto' : 'smooth',
+                });
               }, 100);
             }
           }}
@@ -176,7 +275,8 @@ export const App: React.FC = () => {
 
         {/* View Router Switcher */}
         <main className="flex-1">
-          <AnimatePresence mode="wait">
+          <Suspense fallback={<div className="min-h-screen bg-[#F7F4EC]" />}>
+            <AnimatePresence mode="wait">
             {/* Step: Home Page */}
             {currentStep === 'home' && (
               <motion.div
@@ -184,13 +284,13 @@ export const App: React.FC = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
+                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
               >
                 <AnimatedBusHero
-                  initialOrigin={searchParams.from}
-                  initialDest={searchParams.to}
+                  initialParams={searchParams}
                   onSearch={handleSearch}
                   isSearching={false}
+                  introReady={heroIntroReady}
                 />
                 <FeaturedRoutes
                   onSelectRoute={(from, to) => {
@@ -213,16 +313,19 @@ export const App: React.FC = () => {
             {currentStep === 'search' && (
               <motion.div
                 key="search"
-                initial={{ opacity: 0, y: 8 }}
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25 }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
               >
                 <TripResultsView
                   searchParams={searchParams}
                   allTrips={availableTrips}
                   onSelectTrip={handleSelectTrip}
-                  onModifySearch={() => setCurrentStep('home')}
+                  onModifySearch={() => {
+                    setCurrentStep('home');
+                    updateUrlParams(searchParams, 'home');
+                  }}
                 />
               </motion.div>
             )}
@@ -231,10 +334,10 @@ export const App: React.FC = () => {
             {currentStep === 'seat-select' && selectedTrip && (
               <motion.div
                 key="seat-select"
-                initial={{ opacity: 0, y: 8 }}
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25 }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
               >
                 <SeatSelectionModal
                   trip={selectedTrip}
@@ -253,10 +356,10 @@ export const App: React.FC = () => {
             {currentStep === 'passenger-info' && selectedTrip && (
               <motion.div
                 key="passenger-info"
-                initial={{ opacity: 0, y: 8 }}
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25 }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
               >
                 <PassengerForm
                   trip={selectedTrip}
@@ -273,10 +376,10 @@ export const App: React.FC = () => {
             {currentStep === 'payment' && selectedTrip && passengerInfo && (
               <motion.div
                 key="payment"
-                initial={{ opacity: 0, y: 8 }}
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25 }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
               >
                 <DemoPayment
                   trip={selectedTrip}
@@ -293,10 +396,10 @@ export const App: React.FC = () => {
             {currentStep === 'success' && completedBooking && (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, scale: 0.98 }}
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: shouldReduceMotion ? 0.04 : 0.3 }}
               >
                 <BoardingTicket
                   booking={completedBooking}
@@ -310,19 +413,21 @@ export const App: React.FC = () => {
             {currentStep === 'lookup' && (
               <motion.div
                 key="lookup"
-                initial={{ opacity: 0, y: 8 }}
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25 }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
               >
                 <TicketLookupView
+                  initialBookingCode={completedBooking?.id}
                   onBack={() => setCurrentStep('home')}
                   onNavigateHome={() => setCurrentStep('home')}
                 />
               </motion.div>
             )}
           </AnimatePresence>
-        </main>
+        </Suspense>
+      </main>
 
         {/* Site Footer */}
         <SiteFooter
@@ -338,6 +443,7 @@ export const App: React.FC = () => {
         />
       </div>
     </div>
+    </MotionConfig>
   );
 };
 

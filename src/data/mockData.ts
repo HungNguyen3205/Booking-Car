@@ -50,8 +50,8 @@ export const VEHICLE_MODELS: Record<string, Vehicle> = {
 };
 
 // Generate realistic seats for Sleeper 34 (2 floors: Tầng 1: 17 seats A1-A17, Tầng 2: 17 seats B1-B17)
-const createSleeperSeats = (basePrice: number): Seat[] => {
-  const bookedCodes = new Set(['A3', 'A4', 'A7', 'A12', 'B2', 'B5', 'B9', 'B14']);
+const createSleeperSeats = (basePrice: number, bookedList: string[] = ['A3', 'A4', 'A7', 'A12', 'B2', 'B5', 'B9', 'B14']): Seat[] => {
+  const bookedCodes = new Set(bookedList);
   const seats: Seat[] = [];
 
   // Floor 1 (A)
@@ -88,8 +88,8 @@ const createSleeperSeats = (basePrice: number): Seat[] => {
 };
 
 // Generate realistic seats for Limousine 16 (1 floor)
-const createLimousineSeats = (basePrice: number): Seat[] => {
-  const bookedCodes = new Set(['L2', 'L5', 'L9']);
+const createLimousineSeats = (basePrice: number, bookedList: string[] = ['L2', 'L5', 'L9']): Seat[] => {
+  const bookedCodes = new Set(bookedList);
   const seats: Seat[] = [];
   for (let i = 1; i <= 16; i++) {
     const code = `L${i}`;
@@ -108,18 +108,19 @@ const createLimousineSeats = (basePrice: number): Seat[] => {
 };
 
 // Generate realistic seats for Royal Cabin 22 (2 floors)
-const createCabinSeats = (basePrice: number): Seat[] => {
-  const bookedCodes = new Set(['C1', 'C4', 'C7', 'C15', 'C18']);
+const createCabinSeats = (basePrice: number, bookedList: string[] = ['C1', 'C4', 'C7', 'C15', 'C18']): Seat[] => {
+  const bookedCodes = new Set(bookedList);
   const seats: Seat[] = [];
   for (let i = 1; i <= 22; i++) {
     const floor = i <= 11 ? 1 : 2;
+    const floorIdx = floor === 1 ? i : i - 11; // 1 to 11 on each floor
     const code = `C${i}`;
     seats.push({
       id: `seat_${code}`,
       code,
       floor,
-      row: floor === 1 ? i : i - 11,
-      col: (i % 2) + 1,
+      row: Math.ceil(floorIdx / 2),
+      col: ((floorIdx - 1) % 2) + 1,
       status: bookedCodes.has(code) ? 'booked' : 'available',
       price: basePrice,
       type: 'cabin',
@@ -140,8 +141,36 @@ const HUE_DROPOFFS: StopPoint[] = [
   { id: 'hue-dai-noi', name: 'Khu vực Cửa Thượng Tứ (Đại Nội)', time: '+2h45m', address: 'Đường Đoàn Thị Điểm, Thuận Thành, TP. Huế' },
 ];
 
+// Helper to create trips with mathematically consistent availableSeatsCount
+const createTripData = (
+  rawTrip: Omit<Trip, 'availableSeatsCount'> & { availableSeatsCount?: number }
+): Trip => {
+  const availableSeatsCount = rawTrip.seats.filter((s) => s.status === 'available').length;
+  return {
+    ...rawTrip,
+    availableSeatsCount,
+  };
+};
+
 export const MOCK_TRIPS: Trip[] = [
-  {
+  createTripData({
+    id: 'trip-dn-hue-free',
+    code: 'HT-TEST-0D',
+    operator: 'HÀNH TRÌNH TEST (0Đ)',
+    vehicle: VEHICLE_MODELS.limousine,
+    from: 'Đà Nẵng',
+    to: 'Huế',
+    departureTime: '06:30',
+    arrivalTime: '09:00',
+    duration: '2h30m',
+    departureLocation: { name: 'Văn phòng Nguyễn Văn Linh', address: '124 Nguyễn Văn Linh' },
+    arrivalLocation: { name: 'Văn phòng Trung tâm Lê Lợi', address: '14 Lê Lợi' },
+    price: 0,
+    departureStops: DANANG_PICKUPS,
+    dropoffStops: HUE_DROPOFFS,
+    seats: createLimousineSeats(0, ['L5', 'L9']), // 14 available
+  }),
+  createTripData({
     id: 'trip-dn-hue-01',
     code: 'HT-101',
     operator: 'HÀNH TRÌNH EXPRESS',
@@ -154,12 +183,11 @@ export const MOCK_TRIPS: Trip[] = [
     departureLocation: { name: 'Bến xe Trung tâm Đà Nẵng', address: '185 Tôn Đức Thắng' },
     arrivalLocation: { name: 'Bến xe phía Nam Huế', address: '57 An Dương Vương' },
     price: 180000,
-    availableSeatsCount: 26,
     departureStops: DANANG_PICKUPS,
     dropoffStops: HUE_DROPOFFS,
-    seats: createSleeperSeats(180000),
-  },
-  {
+    seats: createSleeperSeats(180000, ['A3', 'A4', 'A7', 'A12', 'B2', 'B5', 'B9', 'B14']), // 26 available
+  }),
+  createTripData({
     id: 'trip-dn-hue-02',
     code: 'HT-102',
     operator: 'HÀNH TRÌNH EXPRESS',
@@ -172,12 +200,11 @@ export const MOCK_TRIPS: Trip[] = [
     departureLocation: { name: 'Bến xe Trung tâm Đà Nẵng', address: '185 Tôn Đức Thắng' },
     arrivalLocation: { name: 'Bến xe phía Nam Huế', address: '57 An Dương Vương' },
     price: 180000,
-    availableSeatsCount: 24,
     departureStops: DANANG_PICKUPS,
     dropoffStops: HUE_DROPOFFS,
-    seats: createSleeperSeats(180000),
-  },
-  {
+    seats: createSleeperSeats(180000, ['A1', 'A3', 'A4', 'A7', 'A12', 'B2', 'B5', 'B8', 'B9', 'B14']), // 24 available
+  }),
+  createTripData({
     id: 'trip-dn-hue-03',
     code: 'HT-L01',
     operator: 'HÀNH TRÌNH VIP LINER',
@@ -190,12 +217,11 @@ export const MOCK_TRIPS: Trip[] = [
     departureLocation: { name: 'Văn phòng Nguyễn Văn Linh', address: '124 Nguyễn Văn Linh' },
     arrivalLocation: { name: 'Văn phòng Trung tâm Lê Lợi', address: '14 Lê Lợi' },
     price: 240000,
-    availableSeatsCount: 13,
     departureStops: DANANG_PICKUPS,
     dropoffStops: HUE_DROPOFFS,
-    seats: createLimousineSeats(240000),
-  },
-  {
+    seats: createLimousineSeats(240000, ['L2', 'L5', 'L9']), // 13 available
+  }),
+  createTripData({
     id: 'trip-dn-hue-04',
     code: 'HT-104',
     operator: 'HÀNH TRÌNH EXPRESS',
@@ -208,12 +234,11 @@ export const MOCK_TRIPS: Trip[] = [
     departureLocation: { name: 'Bến xe Trung tâm Đà Nẵng', address: '185 Tôn Đức Thắng' },
     arrivalLocation: { name: 'Bến xe phía Nam Huế', address: '57 An Dương Vương' },
     price: 200000,
-    availableSeatsCount: 21,
     departureStops: DANANG_PICKUPS,
     dropoffStops: HUE_DROPOFFS,
-    seats: createSleeperSeats(200000),
-  },
-  {
+    seats: createSleeperSeats(200000, ['A2', 'A3', 'A5', 'A7', 'A8', 'A11', 'A14', 'B1', 'B3', 'B4', 'B7', 'B12', 'B15']), // 21 available
+  }),
+  createTripData({
     id: 'trip-dn-hue-05',
     code: 'HT-C01',
     operator: 'HÀNH TRÌNH ROYAL CABIN',
@@ -226,12 +251,11 @@ export const MOCK_TRIPS: Trip[] = [
     departureLocation: { name: 'Bến xe Trung tâm Đà Nẵng', address: '185 Tôn Đức Thắng' },
     arrivalLocation: { name: 'Bến xe phía Nam Huế', address: '57 An Dương Vương' },
     price: 320000,
-    availableSeatsCount: 17,
     departureStops: DANANG_PICKUPS,
     dropoffStops: HUE_DROPOFFS,
-    seats: createCabinSeats(320000),
-  },
-  {
+    seats: createCabinSeats(320000, ['C1', 'C4', 'C7', 'C15', 'C18']), // 17 available
+  }),
+  createTripData({
     id: 'trip-dn-hue-06',
     code: 'HT-106',
     operator: 'HÀNH TRÌNH EXPRESS',
@@ -244,12 +268,11 @@ export const MOCK_TRIPS: Trip[] = [
     departureLocation: { name: 'Bến xe Trung tâm Đà Nẵng', address: '185 Tôn Đức Thắng' },
     arrivalLocation: { name: 'Bến xe phía Nam Huế', address: '57 An Dương Vương' },
     price: 180000,
-    availableSeatsCount: 25,
     departureStops: DANANG_PICKUPS,
     dropoffStops: HUE_DROPOFFS,
-    seats: createSleeperSeats(180000),
-  },
-  {
+    seats: createSleeperSeats(180000, ['A3', 'A4', 'A6', 'A9', 'A12', 'B2', 'B5', 'B10', 'B14']), // 25 available
+  }),
+  createTripData({
     id: 'trip-dn-ha-01',
     code: 'HT-HA01',
     operator: 'HÀNH TRÌNH EXPRESS',
@@ -262,12 +285,11 @@ export const MOCK_TRIPS: Trip[] = [
     departureLocation: { name: 'Sân bay Đà Nẵng', address: 'Cổng T1' },
     arrivalLocation: { name: 'Phố cổ Hội An', address: 'Bến xe Hội An, Huỳnh Thúc Kháng' },
     price: 120000,
-    availableSeatsCount: 11,
     departureStops: DANANG_PICKUPS,
     dropoffStops: [{ id: 'ha-bx', name: 'Bến xe Hội An', time: '+45m', address: 'Huỳnh Thúc Kháng, Hội An' }],
-    seats: createLimousineSeats(120000),
-  },
-  {
+    seats: createLimousineSeats(120000, ['L1', 'L3', 'L6', 'L8', 'L11']), // 11 available
+  }),
+  createTripData({
     id: 'trip-dn-qn-01',
     code: 'HT-QN01',
     operator: 'HÀNH TRÌNH ROYAL CABIN',
@@ -281,11 +303,10 @@ export const MOCK_TRIPS: Trip[] = [
     departureLocation: { name: 'Bến xe Trung tâm Đà Nẵng', address: '185 Tôn Đức Thắng' },
     arrivalLocation: { name: 'Bến xe Trung tâm Quy Nhơn', address: '71 Tây Sơn, Quy Nhơn' },
     price: 360000,
-    availableSeatsCount: 16,
     departureStops: DANANG_PICKUPS,
     dropoffStops: [{ id: 'qn-bx', name: 'Bến xe Quy Nhơn', time: '+6h30m', address: '71 Tây Sơn, Quy Nhơn' }],
-    seats: createCabinSeats(360000),
-  },
+    seats: createCabinSeats(360000, ['C2', 'C5', 'C8', 'C11', 'C14', 'C19']), // 16 available
+  }),
 ];
 
 export const FEATURED_ROUTES = [

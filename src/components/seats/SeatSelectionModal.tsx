@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Trip, Seat } from '../../types';
 import { SeatMap } from './SeatMap';
 import { bookingService } from '../../services/bookingService';
-import { ArrowLeft, ArrowRight, X, AlertCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  X,
+  AlertCircle,
+  Ticket as TicketIcon,
+  ChevronUp,
+  ChevronDown,
+} from 'lucide-react';
 
 interface SeatSelectionModalProps {
   trip: Trip;
@@ -16,6 +24,33 @@ interface SeatSelectionModalProps {
   onProceedToPassenger: () => void;
 }
 
+// Clean SVG Barcode Component for demo ticket stub
+const SvgTicketBarcode: React.FC<{ code: string }> = ({ code }) => {
+  const bars = [
+    { w: 2, s: 1 }, { w: 1, s: 2 }, { w: 3, s: 1 }, { w: 1, s: 1 },
+    { w: 2, s: 2 }, { w: 3.5, s: 1 }, { w: 1, s: 2 }, { w: 2, s: 1 },
+    { w: 2.5, s: 2 }, { w: 1, s: 1 }, { w: 2, s: 2 }, { w: 1, s: 2.5 },
+    { w: 3, s: 1 }, { w: 2, s: 1 }, { w: 3.5, s: 2 }, { w: 1, s: 1 },
+    { w: 2, s: 2 }, { w: 2.5, s: 1 }, { w: 1, s: 2 }, { w: 2, s: 1 },
+  ];
+  let currentX = 6;
+
+  return (
+    <div className="flex flex-col items-center">
+      <svg width="130" height="42" viewBox="0 0 130 42" className="overflow-visible">
+        {bars.map((bar, idx) => {
+          const x = currentX;
+          currentX += bar.w + bar.s * 1.8;
+          return <rect key={idx} x={x} y="2" width={bar.w} height="38" fill="#102744" rx="0.5" />;
+        })}
+      </svg>
+      <span className="font-mono text-[9px] tracking-[0.25em] font-bold text-[#647084] mt-1">
+        *{code}*
+      </span>
+    </div>
+  );
+};
+
 export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
   trip,
   dateStr,
@@ -26,167 +61,333 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
   onBack,
   onProceedToPassenger,
 }) => {
-  const totalPrice = selectedSeats.length * trip.price;
+  const [limitNotice, setLimitNotice] = useState<string | null>(null);
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+
+  // Compute total price accurately from individual seat prices if configured
+  const totalPrice = useMemo(() => {
+    return selectedSeats.reduce((sum, code) => {
+      const seat = trip.seats.find((s) => s.code === code);
+      return sum + (seat ? seat.price : trip.price);
+    }, 0);
+  }, [selectedSeats, trip]);
+
   const isEnoughSeats = selectedSeats.length === passengersCount;
 
-  return (
-    <div className="min-h-screen bg-[#F7F4EC] pb-20">
-      {/* Top Banner & Stepper (Panel 03 Header) */}
-      <div className="bg-[#FFFEFA] border-b border-[#E5E3DC] py-6 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102744] hover:text-[#0097A7] mb-3 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Quay lại kết quả</span>
-          </button>
+  const handleLimitExceeded = () => {
+    setLimitNotice(`Bạn đã chọn đủ ${passengersCount} ghế theo yêu cầu. Hãy bỏ chọn ghế đang chọn để đổi chỗ.`);
+    setTimeout(() => {
+      setLimitNotice((prev) => (prev ? null : prev));
+    }, 3500);
+  };
 
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+  return (
+    <div className="min-h-screen bg-[#F7F4EC] text-[#102744] flex flex-col pb-36 sm:pb-32">
+      {/* ============================================================
+          1. THANH THÔNG TIN GỌN PHÍA TRÊN & STEPPER
+          ============================================================ */}
+      <div className="bg-[#FFFEFA] border-b border-[#E5E3DC] sticky top-0 z-20 shadow-2xs">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          {/* Back button & Route title */}
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F7F4EC] hover:bg-[#E5E3DC] text-xs font-bold text-[#102744] rounded-xl border border-[#CBD5E1] transition-all cursor-pointer shrink-0"
+              title="Quay lại danh sách chuyến"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#0097A7]" />
+              <span className="hidden xs:inline">Quay lại</span>
+            </button>
+
             <div>
-              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#102744]">
-                Chọn chỗ cho hành trình
-              </h1>
-              <p className="text-xs sm:text-sm text-[#647084] mt-1">
-                {trip.from} → {trip.to} • {trip.departureTime}, {bookingService.formatDisplayDate(dateStr)} • {passengersCount} khách
+              <div className="flex items-center gap-2">
+                <h1 className="font-serif font-bold text-base sm:text-lg text-[#102744] flex items-center gap-1.5 leading-tight">
+                  <span>{trip.from}</span>
+                  <span className="text-[#0097A7]">→</span>
+                  <span>{trip.to}</span>
+                </h1>
+                <span className="text-[11px] font-bold text-[#0097A7] uppercase bg-[#E0F7FA] px-2 py-0.5 rounded-md hidden sm:inline">
+                  {trip.vehicle.name}
+                </span>
+              </div>
+              <p className="text-xs text-[#647084] mt-0.5">
+                {trip.departureTime} • {bookingService.formatDisplayDate(dateStr)} • {passengersCount} hành khách
               </p>
             </div>
+          </div>
 
-            {/* Stepper matching reference sketch */}
-            <div className="flex items-center gap-2 sm:gap-4 text-xs font-semibold">
-              <div className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
-                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
-                <span>1. Chọn chuyến</span>
-              </div>
-              <span className="text-[#CBD5E1]">→</span>
-              <div className="flex items-center gap-1.5 text-white bg-[#0097A7] px-3.5 py-1.5 rounded-full shadow-xs">
-                <span className="w-4 h-4 rounded-full bg-white text-[#0097A7] flex items-center justify-center text-[10px] font-bold">2</span>
-                <span>2. Chọn chỗ</span>
-              </div>
-              <span className="text-[#CBD5E1]">→</span>
-              <div className="flex items-center gap-1.5 text-[#647084] px-2 py-1">
-                <span className="w-4 h-4 rounded-full bg-[#E5E3DC] text-[#647084] flex items-center justify-center text-[10px]">3</span>
-                <span>3. Thanh toán</span>
-              </div>
+          {/* Stepper matching flow */}
+          <div className="flex items-center gap-2 sm:gap-3 text-xs font-semibold self-end sm:self-auto">
+            <div className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+              <span className="w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[9px] font-bold">✓</span>
+              <span className="hidden sm:inline">1. Chọn chuyến</span>
+            </div>
+            <span className="text-[#CBD5E1]">→</span>
+            <div className="flex items-center gap-1.5 text-white bg-[#0097A7] px-3 py-1 rounded-full shadow-xs">
+              <span className="w-3.5 h-3.5 rounded-full bg-white text-[#0097A7] flex items-center justify-center text-[9px] font-bold">2</span>
+              <span>2. Chọn chỗ</span>
+            </div>
+            <span className="text-[#CBD5E1]">→</span>
+            <div className="flex items-center gap-1 text-[#647084] px-2 py-1">
+              <span className="w-3.5 h-3.5 rounded-full bg-[#E5E3DC] text-[#647084] flex items-center justify-center text-[9px]">3</span>
+              <span className="hidden sm:inline">3. Thanh toán</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Seat Map & Summary Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Interactive Seat Map (~60% / 7 cols) */}
-          <div className="lg:col-span-7">
+      {/* ============================================================
+          LIMIT EXCEEDED TOAST / NOTIFICATION
+          ============================================================ */}
+      <AnimatePresence>
+        {limitNotice && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#102744] text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs max-w-md border border-cyan-400/40"
+          >
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="flex-1 font-medium">{limitNotice}</span>
+            <button
+              type="button"
+              onClick={() => setLimitNotice(null)}
+              className="text-slate-400 hover:text-white p-0.5 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ============================================================
+          2. KHUNG VÉ NGANG KHỔ LỚN CHỨA THÂN XE Ở GIỮA (~1180px)
+          ============================================================ */}
+      <div className="max-w-[1200px] w-full mx-auto px-3 sm:px-6 mt-5 sm:mt-7 flex-1">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="bg-[#FFFEFA] rounded-3xl border border-[#E5E3DC] shadow-md shadow-[#102744]/5 flex flex-col lg:flex-row relative"
+        >
+          {/* ==========================================================
+              MAIN TICKET AREA (KHOANG XE TRUNG TÂM)
+              ========================================================== */}
+          <div className="flex-1 p-4 sm:p-6 lg:p-7">
+            {/* Ticket Header Label */}
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#E5E3DC]">
+              <div className="flex items-center gap-2">
+                <TicketIcon className="w-4 h-4 text-[#0097A7]" />
+                <span className="text-xs font-bold uppercase tracking-wider text-[#102744]">
+                  Sơ đồ vị trí chỗ ngồi • {trip.operator}
+                </span>
+              </div>
+              <span className="text-[11px] font-semibold text-[#0097A7] bg-[#E0F7FA] px-2.5 py-0.5 rounded-full">
+                Mã: {trip.code}
+              </span>
+            </div>
+
+            {/* Top-down Coach Vector Map */}
             <SeatMap
               trip={trip}
               selectedSeatCodes={selectedSeats}
               maxSelectable={passengersCount}
               onToggleSeat={onToggleSeat}
+              onLimitExceeded={handleLimitExceeded}
+            />
+          </div>
+
+          {/* ==========================================================
+              PERFORATION DIVIDER & TICKET CUTOUTS
+              ========================================================== */}
+          <div className="hidden lg:block relative w-[2px] bg-transparent">
+            {/* Dashed vertical perforated line */}
+            <div className="absolute inset-y-0 left-0 w-px border-r-2 border-dashed border-[#CBD5E1]" />
+
+            {/* Top Semi-circle Notch (Khuyết vé trên) */}
+            <div
+              className="absolute -top-3.5 -left-3 w-6 h-6 rounded-full bg-[#F7F4EC] border-b border-[#CBD5E1] pointer-events-none z-10"
+              aria-hidden="true"
             />
 
-            {/* Hint Notice */}
-            <div className="mt-4 p-4 bg-[#FFFEFA] rounded-2xl border border-[#E5E3DC] flex items-start gap-3 text-xs text-[#647084]">
-              <AlertCircle className="w-4 h-4 text-[#0097A7] shrink-0 mt-0.5" />
-              <span>
-                Bạn đang đặt vé cho <strong>{passengersCount} hành khách</strong>. Vui lòng chọn đúng <strong>{passengersCount} vị trí ghế</strong> trên sơ đồ để tiếp tục.
+            {/* Bottom Semi-circle Notch (Khuyết vé dưới) */}
+            <div
+              className="absolute -bottom-3.5 -left-3 w-6 h-6 rounded-full bg-[#F7F4EC] border-t border-[#CBD5E1] pointer-events-none z-10"
+              aria-hidden="true"
+            />
+          </div>
+
+          {/* ==========================================================
+              RIGHT TICKET STUB (CUỐNG VÉ MINH HỌA)
+              ========================================================== */}
+          <div className="lg:w-[220px] shrink-0 bg-[#FAF8F5] p-5 sm:p-6 flex flex-col justify-between items-center text-center border-t lg:border-t-0 border-[#E5E3DC] rounded-b-3xl lg:rounded-b-none lg:rounded-r-3xl relative">
+            {/* Top Ticket Stub Badge */}
+            <div className="w-full">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#647084] block">
+                DANAVA PASS
+              </span>
+              <span className="font-serif font-bold text-sm text-[#102744] block mt-0.5">
+                Cuống vé chọn chỗ
+              </span>
+            </div>
+
+            {/* Trip Details on Stub */}
+            <div className="my-4 py-3 border-y border-[#E5E3DC] w-full space-y-1.5 text-xs">
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-[#647084]">Tuyến:</span>
+                <span className="font-bold text-[#102744]">{trip.from} - {trip.to}</span>
+              </div>
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-[#647084]">Giờ chạy:</span>
+                <span className="font-bold text-[#0097A7]">{trip.departureTime}</span>
+              </div>
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-[#647084]">Số khách:</span>
+                <span className="font-bold text-[#102744]">{passengersCount} người</span>
+              </div>
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-[#647084]">Đã chọn:</span>
+                <span className="font-bold text-[#0097A7]">{selectedSeats.length} / {passengersCount}</span>
+              </div>
+            </div>
+
+            {/* SVG Barcode Graphic */}
+            <div className="w-full flex flex-col items-center">
+              <SvgTicketBarcode code={`${trip.code}-${dateStr.replace(/-/g, '')}`} />
+            </div>
+
+            {/* Restrained Demo Disclaimer Badge */}
+            <div className="mt-4 p-2 bg-amber-50 rounded-xl border border-amber-200/80 w-full text-center">
+              <span className="text-[9.5px] font-bold text-amber-800 block uppercase tracking-wider">
+                Phiên chọn ghế demo
+              </span>
+              <span className="text-[8.5px] text-amber-700 block leading-tight mt-0.5">
+                Chưa có giá trị lên xe thực tế
               </span>
             </div>
           </div>
+        </motion.div>
+      </div>
 
-          {/* Right Column: Sticky Booking Summary (~40% / 5 cols) */}
-          <div className="lg:col-span-5 lg:sticky lg:top-24">
-            <div className="bg-[#FFFEFA] rounded-3xl p-6 border border-[#E5E3DC] shadow-sm space-y-6">
-              <h3 className="font-serif font-bold text-lg text-[#102744] pb-3 border-b border-[#E5E3DC]">
-                Thông tin chuyến xe
-              </h3>
-
-              {/* Trip Brief with Thumbnail */}
-              <div className="flex gap-4 items-center">
-                <div className="w-24 h-16 rounded-xl overflow-hidden bg-[#F7F4EC] p-1 border border-[#E5E3DC] shrink-0 flex items-center justify-center">
-                  <img
-                    src={trip.vehicle.image}
-                    alt={trip.vehicle.name}
-                    className="w-full h-full object-contain"
-                  />
+      {/* ============================================================
+          3. THANH TÓM TẮT VÀ NÚT TIẾP TỤC PHÍA DƯỚI (STICKY BOTTOM)
+          ============================================================ */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-[#FFFEFA]/95 backdrop-blur-md border-t border-[#E5E3DC] shadow-lg shadow-[#102744]/10 pb-[env(safe-area-inset-bottom)]">
+        {/* Mobile Expandable Drawer */}
+        <AnimatePresence>
+          {mobileSummaryOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="sm:hidden border-b border-[#E5E3DC] px-4 py-3 bg-[#FAF8F5] overflow-hidden"
+            >
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between text-[#647084]">
+                  <span>Lộ trình:</span>
+                  <span className="font-semibold text-[#102744]">{trip.from} → {trip.to} ({trip.departureTime})</span>
                 </div>
-                <div>
-                  <h4 className="font-bold text-sm text-[#102744]">
-                    {trip.departureTime} → {trip.arrivalTime}
-                  </h4>
-                  <p className="text-xs text-[#647084] mt-0.5">
-                    {trip.from} → {trip.to}
-                  </p>
-                  <p className="text-[11px] text-[#0097A7] font-semibold mt-0.5">
-                    {trip.vehicle.name}
-                  </p>
+                <div className="flex justify-between text-[#647084]">
+                  <span>Phương tiện:</span>
+                  <span className="font-semibold text-[#0097A7]">{trip.vehicle.name}</span>
                 </div>
-              </div>
-
-              {/* Departure & Arrival Detailed Locations */}
-              <div className="space-y-3 bg-[#F7F4EC] p-4 rounded-2xl border border-[#E5E3DC] text-xs">
-                <div>
-                  <span className="text-[#647084] block text-[11px]">Điểm khởi hành:</span>
-                  <span className="font-semibold text-[#102744]">{trip.departureLocation.name}</span>
-                </div>
-                <div className="border-t border-[#E5E3DC] pt-2">
-                  <span className="text-[#647084] block text-[11px]">Điểm đến dự kiến:</span>
-                  <span className="font-semibold text-[#102744]">{trip.arrivalLocation.name}</span>
+                <div className="flex justify-between text-[#647084] pt-1 border-t border-[#E5E3DC]">
+                  <span>Ghế đang chọn:</span>
+                  <span className="font-bold text-[#102744]">
+                    {selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn'}
+                  </span>
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-              {/* Selected Seats Chips with Framer Motion Layout Animation */}
-              <div>
-                <label className="text-xs font-bold text-[#102744] uppercase tracking-wider block mb-2">
-                  Ghế đã chọn ({selectedSeats.length}/{passengersCount})
-                </label>
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-3 sm:py-3.5">
+          {/* Main Summary Row */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            {/* Left: Trip summary & Selected Seats Chips */}
+            <div className="flex-1 flex flex-wrap items-center gap-3 sm:gap-4 w-full sm:w-auto">
+              {/* Trip route pill */}
+              <div className="hidden md:block">
+                <span className="text-xs font-bold text-[#102744] block">
+                  {trip.from} → {trip.to} • {trip.departureTime}
+                </span>
+                <span className="text-[11px] text-[#647084]">
+                  {trip.vehicle.name} • {trip.operator}
+                </span>
+              </div>
+
+              <div className="h-8 w-px bg-[#E5E3DC] hidden md:block" />
+
+              {/* Selected seats list chips */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-bold text-[#102744] uppercase tracking-wider shrink-0">
+                    Ghế ({selectedSeats.length}/{passengersCount}):
+                  </span>
+                  {/* Mobile toggle button */}
+                  <button
+                    type="button"
+                    onClick={() => setMobileSummaryOpen(!mobileSummaryOpen)}
+                    className="sm:hidden text-[#647084] hover:text-[#102744] p-0.5"
+                    aria-label="Xem chi tiết tóm tắt"
+                  >
+                    {mobileSummaryOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
 
                 {selectedSeats.length === 0 ? (
-                  <p className="text-xs text-[#647084] italic bg-[#F7F4EC] p-3 rounded-xl border border-dashed border-[#CBD5E1]">
-                    Chưa chọn ghế nào. Vui lòng bấm vào ghế còn trống trên sơ đồ xe bên cạnh.
-                  </p>
+                  <span className="text-xs text-[#647084] italic bg-[#F7F4EC] px-2.5 py-1 rounded-lg border border-dashed border-[#CBD5E1]">
+                    Vui lòng chọn {passengersCount} chỗ ngồi
+                  </span>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    <AnimatePresence>
-                      {selectedSeats.map((code) => (
-                        <motion.span
-                          key={code}
-                          layout
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.6 }}
-                          transition={{ duration: 0.2 }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#E0F7FA] text-[#007887] border border-[#0097A7]/40 rounded-xl font-bold text-xs shadow-2xs"
-                        >
-                          <span>Ghế {code}</span>
-                          <button
-                            type="button"
-                            onClick={() => onRemoveSeatCode(code)}
-                            className="hover:bg-[#0097A7] hover:text-white rounded-full p-0.5 transition-colors"
-                            aria-label={`Bỏ chọn ghế ${code}`}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <AnimatePresence mode="popLayout">
+                      {selectedSeats.map((code) => {
+                        const seat = trip.seats.find((s) => s.code === code);
+                        const seatPrice = seat ? seat.price : trip.price;
+                        return (
+                          <motion.span
+                            key={code}
+                            layout
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.7 }}
+                            transition={{ duration: 0.16 }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#E0F7FA] text-[#007887] border border-[#0097A7]/40 rounded-lg font-bold text-xs shadow-2xs"
                           >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </motion.span>
-                      ))}
+                            <span>{code}</span>
+                            <span className="text-[10px] font-normal text-[#0097A7]">
+                              ({bookingService.formatCurrency(seatPrice)})
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => onRemoveSeatCode(code)}
+                              className="hover:bg-[#0097A7] hover:text-white rounded-full p-0.5 transition-colors cursor-pointer ml-0.5"
+                              aria-label={`Bỏ chọn ghế ${code}`}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </motion.span>
+                        );
+                      })}
                     </AnimatePresence>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Pricing breakdown */}
-              <div className="pt-4 border-t border-[#E5E3DC] space-y-2">
-                <div className="flex justify-between text-xs text-[#647084]">
-                  <span>Đơn giá vé:</span>
-                  <span>{bookingService.formatCurrency(trip.price)} × {selectedSeats.length}</span>
-                </div>
-                <div className="flex justify-between items-baseline pt-1">
-                  <span className="font-bold text-sm text-[#102744]">Tổng tiền:</span>
-                  <span className="font-serif font-bold text-2xl text-[#0097A7]">
-                    {bookingService.formatCurrency(totalPrice)}
-                  </span>
-                </div>
+            {/* Right: Total Price & Proceed Button */}
+            <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-[#E5E3DC]">
+              {/* Total Price */}
+              <div className="text-left sm:text-right">
+                <span className="text-[10px] uppercase font-bold text-[#647084] block">
+                  Tổng thanh toán
+                </span>
+                <span className="font-serif font-bold text-xl sm:text-2xl text-[#0097A7] leading-tight block">
+                  {bookingService.formatCurrency(totalPrice)}
+                </span>
               </div>
 
               {/* Proceed Action Button */}
@@ -194,17 +395,11 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                 type="button"
                 disabled={!isEnoughSeats}
                 onClick={onProceedToPassenger}
-                className="w-full py-3.5 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-semibold text-sm rounded-xl shadow-md shadow-[#0097A7]/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="py-3 px-6 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
               >
                 <span>Tiếp tục điền thông tin</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-
-              {!isEnoughSeats && selectedSeats.length > 0 && (
-                <p className="text-[11px] text-amber-700 text-center font-medium">
-                  Cần chọn thêm {passengersCount - selectedSeats.length} ghế nữa để tiếp tục
-                </p>
-              )}
             </div>
           </div>
         </div>
