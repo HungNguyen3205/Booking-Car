@@ -28,7 +28,7 @@ export const AnimatedBusHero: React.FC<AnimatedBusHeroProps> = ({
       const v = new URLSearchParams(window.location.search).get('vehicle');
       if (v === 'limousine' || v === 'cabin' || v === 'sleeper') return v;
     }
-    return 'sleeper';
+    return 'limousine';
   });
 
   const [displayedVehicleType, setDisplayedVehicleType] = useState<VehicleCategory>(selectedVehicleType);
@@ -169,7 +169,7 @@ export const AnimatedBusHero: React.FC<AnimatedBusHeroProps> = ({
           </div>
 
           {/* RIGHT COLUMN: Ticket Opening 2.5D Pop-up Diorama (~56%) */}
-          <div className="lg:col-span-7 xl:col-span-7 flex justify-center items-center">
+          <div className="lg:col-span-7 xl:col-span-7 w-full min-w-0 flex justify-center items-center">
             <TicketJourneyScene
               fromCity={currentOrigin}
               toCity={currentDest}

@@ -51,9 +51,6 @@ export const App: React.FC = () => {
       const step = urlParams.get('step');
       if (step === 'search') return 'search';
       if (step === 'lookup') return 'lookup';
-      if (urlParams.has('from') && urlParams.has('to') && step !== 'home') {
-        return 'search';
-      }
     }
     return 'home';
   });
@@ -108,15 +105,15 @@ export const App: React.FC = () => {
   // Parallel preload critical hero assets immediately on mount
   useEffect(() => {
     let isMounted = true;
-    const defaultVehicle = VEHICLE_MODELS['sleeper']?.image || '';
+    const defaultVehicle = VEHICLE_MODELS['limousine']?.image || VEHICLE_MODELS['sleeper']?.image || '';
     const { from, to } = initialParamsRef.current;
 
-    // Safety timeout to avoid hanging indefinitely if network stalls
+    // Fast safety timeout to avoid hanging indefinitely
     const safetyTimer = setTimeout(() => {
       if (isMounted) {
         setCriticalAssetsReady(true);
       }
-    }, 3200);
+    }, 1200);
 
     preloadCriticalHeroAssets(from, to, defaultVehicle)
       .then(() => {

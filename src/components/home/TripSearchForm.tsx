@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeftRight, Calendar, MapPin, Search, Users, ChevronDown } from 'lucide-react';
+import { ArrowLeftRight, Calendar, MapPin, Users, ChevronDown, ArrowRight } from 'lucide-react';
 import { POPULAR_CITIES } from '../../data/mockData';
 import type { SearchParams } from '../../types';
 import { getVietnamTodayDateStr, isValidBookingDate, formatVietnamDate } from '../../utils/dateUtils';
@@ -447,8 +447,8 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
             disabled={isLoading}
             className="w-full h-[52px] sm:h-[54px] px-6 sm:px-8 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-bold text-sm sm:text-base rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap disabled:opacity-60"
           >
-            <Search className="w-4 h-4 stroke-[2.5]" />
             <span>Tìm chuyến</span>
+            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
       </div>

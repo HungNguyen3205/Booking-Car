@@ -371,14 +371,19 @@ const CITY_ALIAS_MAP: Record<string, string> = {
 };
 
 // Directional Route Pair Overrides
-// STRICT: Only applies when fromId AND toId match exactly in the specified direction!
-// Does NOT use symmetric matching. Does NOT horizontally mirror text/architecture.
 export const ROUTE_PAIR_OVERRIDES: RoutePairOverride[] = [
   {
     fromId: 'da-nang',
     toId: 'hue',
-    pairAsset: '/assets/images/scenes/scene_pair_dad_hue.jpg',
+    pairAsset: '/assets/images/scenes/diorama_danang_hue.png',
     landmarkLabel: 'Đà Nẵng — Huế: Cung đường di sản miền Trung',
+    horizonPosition: 38,
+  },
+  {
+    fromId: 'hue',
+    toId: 'da-nang',
+    pairAsset: '/assets/images/scenes/diorama_danang_hue.png',
+    landmarkLabel: 'Huế — Đà Nẵng: Cung đường di sản miền Trung',
     horizonPosition: 38,
   },
 ];
