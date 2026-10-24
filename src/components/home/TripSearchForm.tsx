@@ -155,28 +155,15 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
     <form
       id="search-form-section"
       onSubmit={handleSubmit}
-      className={`bg-[#FFFEFA] border border-[#E5E3DC] shadow-lg shadow-[#102744]/5 transition-all relative z-30 ${
+      className={`bg-[#FFFEFA] border border-[#E5E3DC] shadow-sm transition-all relative z-30 ${
         isHorizontalBar
-          ? 'w-full max-w-full rounded-[28px] sm:rounded-[32px] p-4 sm:p-5 lg:p-5'
+          ? 'w-full max-w-full rounded-[18px] p-3.5 sm:p-4 lg:p-4.5'
           : compact
-          ? 'max-w-4xl mx-auto rounded-[22px] p-5 sm:p-6'
-          : 'w-full max-w-[620px] rounded-[22px] p-5 sm:p-6'
+          ? 'max-w-4xl mx-auto rounded-2xl p-5 sm:p-6'
+          : 'w-full max-w-[620px] rounded-2xl p-5 sm:p-6'
       }`}
       aria-label="Form tìm kiếm chuyến xe"
     >
-      {/* Ticket perforation cutouts for horizontal bar mode */}
-      {isHorizontalBar && (
-        <>
-          <div
-            className="hidden sm:block absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#F7F4EC] border-r border-[#CBD5E1] pointer-events-none z-10"
-            aria-hidden="true"
-          />
-          <div
-            className="hidden sm:block absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#F7F4EC] border-l border-[#CBD5E1] pointer-events-none z-10"
-            aria-hidden="true"
-          />
-        </>
-      )}
 
       {errorMsg && (
         <div

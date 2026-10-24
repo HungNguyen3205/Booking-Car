@@ -1,97 +1,93 @@
 import React from 'react';
-import { FEATURED_ROUTES } from '../../data/mockData';
-import { bookingService } from '../../services/bookingService';
-import { ArrowRight, Clock, MapPin } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface FeaturedRoutesProps {
   onSelectRoute: (from: string, to: string) => void;
 }
 
 export const FeaturedRoutes: React.FC<FeaturedRoutesProps> = ({ onSelectRoute }) => {
-  return (
-    <section id="routes-section" className="py-16 sm:py-20 bg-[#F7F4EC]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0097A7]" />
-            <span className="text-xs font-bold tracking-widest text-[#0097A7] uppercase">
-              HÀNH TRÌNH TIÊU BIỂU
-            </span>
-          </div>
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#102744] tracking-tight">
-            Mỗi cung đường, một câu chuyện.
-          </h2>
-          <p className="mt-3 text-sm sm:text-base text-[#647084]">
-            Những cung đường di sản và biển xanh miền Trung với tần suất chuyến dày đặc và phương tiện cao cấp nhất.
-          </p>
-        </div>
+  const destinationCards = [
+    {
+      id: 'da-nang',
+      title: 'Đà Nẵng',
+      subtitle: 'THÀNH PHỐ CỦA NHỮNG TRẢI NGHIỆM',
+      image: '/assets/images/scenes/scene_danang.jpg',
+      from: 'Đà Nẵng',
+      to: 'Huế',
+    },
+    {
+      id: 'hue',
+      title: 'Huế',
+      subtitle: 'DI SẢN GIỮA DÒNG THỜI GIAN',
+      image: '/assets/images/scenes/scene_hue.jpg',
+      from: 'Huế',
+      to: 'Đà Nẵng',
+    },
+    {
+      id: 'other',
+      title: 'Những cung đường khác',
+      subtitle: 'CÒN NHIỀU ĐIỂM ĐẾN ĐANG CHỜ BẠN',
+      image: '/assets/images/scenes/scene_hoi_an.jpg',
+      from: 'Đà Nẵng',
+      to: 'Hội An',
+    },
+  ];
 
-        {/* Route Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {FEATURED_ROUTES.map((route) => (
-            <div
-              key={route.id}
-              className="group bg-[#FFFEFA] rounded-3xl overflow-hidden border border-[#E5E3DC] hover:border-[#0097A7]/40 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col"
-            >
-              {/* Image banner with scale on hover */}
-              <div className="relative h-48 sm:h-52 overflow-hidden">
+  return (
+    <section id="routes-section" className="pt-4 sm:pt-6 pb-14 bg-[#F7F4EC]">
+      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-8">
+          {/* LEFT: EDITORIAL SERIF HEADLINE */}
+          <div className="lg:w-[28%] shrink-0">
+            <h2 className="font-serif font-bold text-3xl sm:text-4xl lg:text-[40px] leading-[1.12] tracking-tight">
+              <span className="block text-[#102744]">Mỗi cung đường,</span>
+              <span className="block text-[#0097A7]">một câu chuyện.</span>
+            </h2>
+          </div>
+
+          {/* RIGHT: THREE HORIZONTAL DESTINATION CARDS */}
+          <div className="lg:w-[72%] grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+            {destinationCards.map((card) => (
+              <button
+                key={card.id}
+                type="button"
+                onClick={() => onSelectRoute(card.from, card.to)}
+                className="group relative h-24 sm:h-28 rounded-xl overflow-hidden border border-[#E5E3DC]/80 hover:border-[#0097A7]/50 shadow-2xs hover:shadow-md transition-all text-left flex flex-col justify-end p-3.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                aria-label={`Xem tuyến ${card.title}`}
+              >
+                {/* Background Landscape Photo with gentle zoom on hover */}
                 <img
-                  src={route.image}
-                  alt={`${route.from} đi ${route.to}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  src={card.image}
+                  alt={card.title}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <span className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-xs text-[#102744] text-[11px] font-bold rounded-full uppercase tracking-wider">
-                  {route.tag}
-                </span>
 
-                {/* Route Pill over image */}
-                <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-sm font-semibold">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-[#F3B54A]" />
-                    <span>{route.from}</span>
-                    <span>→</span>
-                    <span>{route.to}</span>
-                  </div>
-                  <span className="text-xs font-normal opacity-90">{route.distance}</span>
-                </div>
-              </div>
+                {/* Dark Gradient Overlay for optimal contrast */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10 pointer-events-none" />
 
-              {/* Card Body */}
-              <div className="p-5 flex-1 flex flex-col justify-between">
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center justify-between text-xs text-[#647084]">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-[#0097A7]" />
-                      Thời gian: {route.duration}
+                {/* Card Title & Subtitle + Arrow */}
+                <div className="relative z-10 flex items-end justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="block font-serif font-bold text-white text-base sm:text-lg leading-tight drop-shadow-xs">
+                      {card.title}
                     </span>
-                    <span>{route.tripsDaily} chuyến / ngày</span>
-                  </div>
-
-                  <div className="pt-2 flex items-baseline justify-between border-t border-[#E5E3DC]">
-                    <span className="text-xs text-[#647084]">Giá vé từ:</span>
-                    <span className="font-serif font-bold text-xl text-[#0097A7]">
-                      {bookingService.formatCurrency(route.priceFrom)}
+                    <span className="block text-[9px] sm:text-[10px] text-white/85 font-sans font-medium uppercase tracking-wider truncate mt-0.5">
+                      {card.subtitle}
                     </span>
                   </div>
-                </div>
 
-                {/* Action button */}
-                <button
-                  type="button"
-                  onClick={() => onSelectRoute(route.from, route.to)}
-                  className="w-full py-2.5 px-4 bg-[#F7F4EC] hover:bg-[#0097A7] text-[#102744] hover:text-white font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-2 group/btn"
-                >
-                  <span>Xem chuyến xe</span>
-                  <ArrowRight className="w-3.5 h-3.5 transform group-hover/btn:translate-x-1 transition-transform" />
-                </button>
-              </div>
-            </div>
-          ))}
+                  {/* Circular Arrow Badge */}
+                  <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center text-white group-hover:bg-[#0097A7] group-hover:scale-105 transition-all shrink-0">
+                    <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </section>
   );
 };
+

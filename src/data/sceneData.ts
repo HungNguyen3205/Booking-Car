@@ -375,14 +375,14 @@ export const ROUTE_PAIR_OVERRIDES: RoutePairOverride[] = [
   {
     fromId: 'da-nang',
     toId: 'hue',
-    pairAsset: '/assets/images/scenes/diorama_danang_hue.png',
+    pairAsset: '/assets/images/scenes/diorama_ticket_danang_hue.webp',
     landmarkLabel: 'Đà Nẵng — Huế: Cung đường di sản miền Trung',
     horizonPosition: 38,
   },
   {
     fromId: 'hue',
     toId: 'da-nang',
-    pairAsset: '/assets/images/scenes/diorama_danang_hue.png',
+    pairAsset: '/assets/images/scenes/diorama_ticket_danang_hue.webp',
     landmarkLabel: 'Huế — Đà Nẵng: Cung đường di sản miền Trung',
     horizonPosition: 38,
   },
