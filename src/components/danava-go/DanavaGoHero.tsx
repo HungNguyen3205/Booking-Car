@@ -10,6 +10,10 @@ const JourneyCanvas = React.lazy(() =>
   import('./3d/JourneyCanvas').then((m) => ({ default: m.JourneyCanvas }))
 );
 
+import type { JourneyTimelineState } from './3d/journeyTimeline';
+
+const SESSION_INTRO_KEY = 'danava_go_intro_played';
+
 interface DanavaGoHeroProps {
   initialParams: SearchParams;
   onSearch: (params: SearchParams) => void;
@@ -28,6 +32,20 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
     to: initialParams.to || 'Huế',
   });
 
+  // Kiểm tra phiên làm việc: Intro chỉ phát một lần duy nhất trong session, không lặp lại khi đổi xe/tuyến
+  const [isIntroPlayed, setIsIntroPlayed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return window.sessionStorage.getItem(SESSION_INTRO_KEY) === 'true';
+  });
+
+  // Trạng thái timeline tập trung [closed, opening, landscape-reveal, vehicle-enter, route-reveal, ready]
+  const [timelineState, setTimelineState] = useState<JourneyTimelineState>(() =>
+    isIntroPlayed || shouldReduceMotion ? 'ready' : 'closed'
+  );
+
+  const [isSkipped, setIsSkipped] = useState<boolean>(false);
+  const [introReplayKey, setIntroReplayKey] = useState<number>(0);
+
   // Developer debug mode enabled via ?debug=1 or ?debug3d=true
   const [isDebug] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -40,6 +58,43 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
 
   // Debug coach animation replay trigger
   const [coachReplayKey, setCoachReplayKey] = useState<number>(0);
+
+  // Xử lý bỏ qua intro an toàn (người dùng tương tác form hoặc click bỏ qua)
+  const handleSkipIntro = () => {
+    setIsSkipped(true);
+    setIsIntroPlayed(true);
+    setTimelineState('ready');
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(SESSION_INTRO_KEY, 'true');
+    }
+  };
+
+  // Hoàn tất intro bình thường
+  const handleIntroComplete = () => {
+    setIsIntroPlayed(true);
+    setTimelineState('ready');
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(SESSION_INTRO_KEY, 'true');
+    }
+  };
+
+  // Phát lại toàn bộ intro 2.5s (dành cho kiểm thử và debug)
+  const handleReplayIntro = () => {
+    setIsSkipped(false);
+    setIsIntroPlayed(false);
+    setTimelineState('closed');
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem(SESSION_INTRO_KEY);
+    }
+    setIntroReplayKey((k) => k + 1);
+  };
+
+  // Người dùng tương tác vào form tìm kiếm -> hoàn tất intro an toàn, không khóa form
+  const handleFormInteraction = () => {
+    if (!isIntroPlayed && !isSkipped) {
+      handleSkipIntro();
+    }
+  };
 
   const vehicleOptions: { id: VehicleCategory; label: string; icon: React.ReactNode }[] = [
     { id: 'sleeper', label: 'Giường nằm', icon: <BedDouble size={16} /> },
@@ -133,6 +188,11 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                     coachReplayKey={coachReplayKey}
                     fromCity={currentRoute.from}
                     toCity={currentRoute.to}
+                    isIntroPlayed={isIntroPlayed}
+                    introReplayKey={introReplayKey}
+                    isSkipped={isSkipped}
+                    onTimelineStateChange={setTimelineState}
+                    onTimelineComplete={handleIntroComplete}
                   />
                 </Suspense>
               </div>
@@ -146,23 +206,49 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
+                  {/* Nút bỏ qua intro nhanh nếu intro đang chạy */}
+                  {timelineState !== 'ready' && !shouldReduceMotion && (
+                    <button
+                      type="button"
+                      onClick={handleSkipIntro}
+                      className="pointer-events-auto text-[11px] font-semibold bg-[#102744] hover:bg-[#0097A7] text-white px-2.5 py-0.5 rounded-full transition-all cursor-pointer shadow-sm flex items-center gap-1 active:scale-95"
+                      title="Bỏ qua hiệu ứng mở vé để vào ngay trạng thái sẵn sàng"
+                    >
+                      Bỏ qua ▶
+                    </button>
+                  )}
+
                   {isDebug && (
                     <>
+                      <span
+                        className="pointer-events-auto text-[10px] font-mono bg-[#102744] text-[#00E5FF] px-2 py-0.5 rounded border border-[#00E5FF]/40"
+                        title="Trạng thái timeline tập trung"
+                      >
+                        {timelineState}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleReplayIntro}
+                        className="pointer-events-auto text-[11px] font-mono bg-[#0097A7] hover:bg-[#00838F] text-white px-2.5 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
+                        title="Phát lại toàn bộ intro 2.5s (mở vé, nổi cảnh, xe chạy, vẽ tuyến)"
+                      >
+                        Phát lại Intro ▶
+                      </button>
                       <button
                         type="button"
                         onClick={() => setCoachReplayKey((k) => k + 1)}
-                        className="pointer-events-auto text-[11px] font-mono bg-[#0097A7] hover:bg-[#00838F] text-white px-2.5 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
-                        title="Phát lại chuyển động xe chạy dọc đường và bánh quay theo vận tốc"
+                        className="pointer-events-auto text-[11px] font-mono bg-[#37474F] hover:bg-[#455A64] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
+                        title="Phát lại riêng xe chạy"
                       >
-                        Phát lại xe ▶
+                        Xe ▶
                       </button>
                       <button
                         type="button"
                         onClick={() => setDebugFlapAngle((prev) => (prev === 0 ? Math.PI : 0))}
-                        className="pointer-events-auto text-[11px] font-mono bg-[#102744] hover:bg-[#0097A7] text-white px-2.5 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
-                        title="Kiểm tra góc xoay bản lề flap quanh trục hingeX"
+                        className="pointer-events-auto text-[11px] font-mono bg-[#263238] hover:bg-[#37474F] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
+                        title="Góc xoay flap"
                       >
-                        Bản lề: {debugFlapAngle === 0 ? 'Mở phẳng (0°)' : 'Gập lại (180°)'}
+                        {debugFlapAngle === 0 ? 'Mở (0°)' : 'Gập (180°)'}
                       </button>
                     </>
                   )}
@@ -182,7 +268,12 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
         </div>
 
         {/* BOTTOM DOCK: SEARCH FORM & VALUE PROPS */}
-        <div className="relative z-20 mt-4 lg:-mt-14" id="hero-search">
+        <div
+          className="relative z-20 mt-4 lg:-mt-14"
+          id="hero-search"
+          onFocusCapture={handleFormInteraction}
+          onClickCapture={handleFormInteraction}
+        >
           <TripSearchForm
             variant="horizontal-bar"
             initialParams={{

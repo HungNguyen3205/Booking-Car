@@ -1,8 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
+import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
+import type { TimelineProgress } from './journeyTimeline';
 
 interface CentralPassTransitionProps {
   castShadow?: boolean;
   receiveShadow?: boolean;
+  popProgress?: number;
+  timelineRef?: React.RefObject<TimelineProgress | null>;
 }
 
 /**
@@ -13,7 +18,32 @@ interface CentralPassTransitionProps {
 export const CentralPassTransition: React.FC<CentralPassTransitionProps> = ({
   castShadow = true,
   receiveShadow = true,
+  popProgress = 1.0,
+  timelineRef,
 }) => {
+  const passGroupRef = useRef<THREE.Group>(null);
+  const treesGroupRef = useRef<THREE.Group>(null);
+
+  // Nhẹ nhàng lay động rặng thông sườn đèo Hải Vân và cập nhật nổi pop-up
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (treesGroupRef.current) {
+      treesGroupRef.current.rotation.z = Math.sin(t * 1.5 + 0.5) * 0.012;
+    }
+
+    if (passGroupRef.current && timelineRef?.current) {
+      const p = Math.max(0, timelineRef.current.passPopProgress);
+      passGroupRef.current.visible = p > 0.001;
+      passGroupRef.current.scale.set(p, p, p);
+      passGroupRef.current.position.y = 0.021 * Math.min(1.0, p);
+    }
+  });
+
+  const effectivePop = Math.max(0, popProgress);
+  const isHidden = effectivePop <= 0.001;
+
+  const currentScale: [number, number, number] = [effectivePop, effectivePop, effectivePop];
+  const currentPosY = 0.021 * Math.min(1.0, effectivePop);
   // Danh sách cây thông và cây rừng nhiệt đới trên sườn đèo Hải Vân
   const passTrees = useMemo(() => {
     return [
@@ -27,7 +57,13 @@ export const CentralPassTransition: React.FC<CentralPassTransitionProps> = ({
   }, []);
 
   return (
-    <group name="DANAVA_CENTRAL_PASS_TRANSITION" position={[0, 0.021, 0]}>
+    <group
+      ref={passGroupRef}
+      name="DANAVA_CENTRAL_PASS_TRANSITION"
+      position={[0, currentPosY, 0]}
+      scale={currentScale}
+      visible={!isHidden}
+    >
       {/* ---------------------------------------------------------------------
           1. ĐỒI XANH ĐÈO HẢI VÂN Ở HẬU CẢNH TRUNG TÂM (CENTRAL HILLS)
           Các ngọn đồi thoai thoải uốn lượn phía sau khúc cua đèo Z = -0.32
@@ -70,18 +106,20 @@ export const CentralPassTransition: React.FC<CentralPassTransitionProps> = ({
       {/* ---------------------------------------------------------------------
           2. RẶNG CÂY RỪNG ĐÈO HẢI VÂN (PASS RIDGE TREES)
           --------------------------------------------------------------------- */}
-      {passTrees.map((t, idx) => (
-        <group key={`pass-tree-${idx}`} position={[t.x, 0, t.z]}>
-          <mesh position={[0, t.scale * 0.35, 0]} castShadow>
-            <cylinderGeometry args={[0.01 * t.scale * 5, 0.014 * t.scale * 5, t.scale * 0.7, 5]} />
-            <meshStandardMaterial color="#5D4037" roughness={0.9} />
-          </mesh>
-          <mesh position={[0, t.scale * 0.85, 0]} castShadow>
-            <coneGeometry args={[t.scale * 0.48, t.scale * 0.75, 7]} />
-            <meshStandardMaterial color={t.color} roughness={0.82} />
-          </mesh>
-        </group>
-      ))}
+      <group ref={treesGroupRef}>
+        {passTrees.map((t, idx) => (
+          <group key={`pass-tree-${idx}`} position={[t.x, 0, t.z]}>
+            <mesh position={[0, t.scale * 0.35, 0]} castShadow>
+              <cylinderGeometry args={[0.01 * t.scale * 5, 0.014 * t.scale * 5, t.scale * 0.7, 5]} />
+              <meshStandardMaterial color="#5D4037" roughness={0.9} />
+            </mesh>
+            <mesh position={[0, t.scale * 0.85, 0]} castShadow>
+              <coneGeometry args={[t.scale * 0.48, t.scale * 0.75, 7]} />
+              <meshStandardMaterial color={t.color} roughness={0.82} />
+            </mesh>
+          </group>
+        ))}
+      </group>
 
       {/* ---------------------------------------------------------------------
           3. DẢI ĐẤT NỀN CHUYỂN TIẾP MỀM MẠI

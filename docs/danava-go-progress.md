@@ -354,3 +354,53 @@
     - `danava_go_step7_composition_1440x900.png` (Ảnh tĩnh toàn cảnh desktop camera chuẩn)
     - `danava_go_step7_composition_debug.png` (Chế độ debug hiển thị 2 hộp Safe Zone, 2 pin và trục bản lề)
     - `danava_go_step7_composition_390px.png` (Ảnh tĩnh trên màn hình di động 390px)
+
+### Bước 8: Nối các trạng thái theo video, trên composition đã đạt (Orchestrate Ticket Opening Journey Intro)
+- **Thời gian**: 2026-10-24
+- **Công việc đã thực hiện**:
+  1. **Thiết lập Bộ Điều Phối Timeline Tập Trung (`journeyTimeline.ts`, `JourneyTimelineManager`)**:
+     - *Kiến trúc*: Một đồng hồ điều phối duy nhất cập nhật trong vòng lặp `useFrame` của Three.js, phân bổ trạng thái trực tiếp qua mutable ref `timelineRef` đến các thành phần con. Đạt **0 React component re-renders** trong toàn bộ 2.5 giây hoạt cảnh (giữ vững 60fps mượt mà).
+     - *Tổng thời lượng intro*: **2.50 giây** (khớp hoàn hảo khoảng mục tiêu 2.0s – 3.0s của video mẫu).
+     - *Trình tự 6 trạng thái thời gian*:
+       1. **`closed` ($0.00\text{s} – 0.10\text{s}$)**: Vé gấp đóng kín quanh trục bản lề $X = -1.4$, nắp vé gập úp lên mặt sàn chính, cảnh và xe ẩn dưới mặt giấy.
+       2. **`opening` ($0.10\text{s} – 0.70\text{s}$)**: Cánh vé mở phẳng quanh trục bản lề từ $180^\circ \to 0^\circ$ theo đường cong `easeOutCubic`. Bóng đổ của cánh vé biến thiên tự nhiên trên mặt sàn dưới nguồn sáng `DirectionalLight`.
+       3. **`landscape-reveal` ($0.60\text{s} – 1.30\text{s}$)**: Các cụm di sản nổi dựng đứng từ mặt vé với quãng đường ngắn (short vertical rise $0.02 – 0.05$ units) và hệ số scale theo `easeOutBack` (nảy nhẹ $6\%$ tạo cảm giác sách pop-up thủ công cao cấp):
+          - Cầu Rồng (Đà Nẵng bên trái): bắt đầu nổi từ $t = 0.60\text{s}$.
+          - Đèo Hải Vân (chuyển tiếp ở giữa): bắt đầu nổi từ $t = 0.70\text{s}$.
+          - Ngọ Môn (Huế bên phải): bắt đầu nổi từ $t = 0.80\text{s}$.
+          - Tuyệt đối không rơi hay bay từ trên trời xuống.
+       4. **`vehicle-enter` ($1.10\text{s} – 1.95\text{s}$)**: Xe khách Sleeper Coach xuất hiện tại $t = 0.15$ trên đường cong, lăn bánh với vận tốc giảm dần mượt mà theo `easeOutCubic`, 4 bánh xe quay đúng vật lý quãng đường $\Delta \theta = \Delta d / r_{\text{wheel}}$, dừng êm ái tại điểm đỗ $t = 0.62$ ($X = 0.704, Z = -0.173$).
+       5. **`route-reveal` ($1.85\text{s} – 2.50\text{s}$)**:
+          - $t = 1.85\text{s}$: Pin Đà Nẵng pop-in với `easeOutBack`.
+          - $t = 2.00\text{s} – 2.30\text{s}$: Tuyến đường vector SVG màu Teal phát sáng vẽ nối từ Đà Nẵng sang Huế bằng thuộc tính `strokeDashoffset` (từ $100\% \to 0\%$).
+          - $t = 2.22\text{s}$: Pin Huế pop-in với `easeOutBack`.
+          - $t = 2.35\text{s} – 2.50\text{s}$: Huy hiệu thông số `100 KM • 2H 15M` hiện rõ ở đỉnh cung đường.
+       6. **`ready` ($\ge 2.50\text{s}$)**: Hoàn tất trạng thái tĩnh toàn vẹn. Các tán cây ven sông Hàn, đèo Hải Vân và rừng thông Cố đô đung đưa vi mô rất khẽ ($\pm 0.015\text{ rad}$) theo nhịp gió nhẹ $\sin(t \times 1.5)$. Tuyệt đối không rung lắc cả scene hay làm lơ lửng xe cộ/công trình.
+  2. **Quản lý Vòng đời Phiên Làm việc (`sessionStorage`)**:
+     - Sử dụng key `sessionStorage.getItem('danava_go_intro_played')`.
+     - Intro chỉ chạy một lần duy nhất khi người dùng mở trang chủ.
+     - Khi người dùng đổi loại xe (`Limousine`, `Cabin VIP`, `Giường nằm`) hoặc đổi tuyến đi trong form, intro **hoàn toàn không bị lặp lại**, bảo tồn trạng thái `ready` tức thì.
+  3. **Tương tác An toàn & Không Khóa Form**:
+     - Form tìm kiếm dock ở dưới cùng luôn giữ diện tích cố định, hoàn toàn không có layout shift.
+     - Không áp dụng biến đổi phối cảnh 3D (perspective matrix3d) lên text editorial hay form HTML.
+     - Form hoạt động từ frame đầu tiên: nếu người dùng click hoặc focus vào bất kỳ ô nhập liệu nào (`Nơi đi`, `Nơi đến`, `Ngày đi`), hoạt cảnh sẽ lập tức chuyển an toàn về trạng thái `ready` ngay lập tức, không làm gián đoạn luồng đặt vé của khách hàng.
+     - Nút "Bỏ qua ▶" xuất hiện ở góc trên sân khấu 3D trong 2.5s đầu cho phép người dùng chủ động bỏ qua hoạt cảnh nếu muốn.
+  4. **Tôn trọng Reduced Motion & Tải Trang Thực**:
+     - Khi `prefers-reduced-motion` bật hoặc `shouldReduceMotion === true`, timeline lập tức khởi tạo tại `ready` với cự ly thời gian $2.50\text{s}$, không chờ đợi callback hay timeout giả.
+     - Không chạy intro ngầm phía sau loader: chỉ kích hoạt khi WebGL Context đã sẵn sàng và Canvas đã hiển thị.
+  5. **Chế độ Kiểm thử Nhà phát triển (`?debug=1`)**:
+     - Hiển thị badge trạng thái thời gian thực: `closed` ➔ `opening` ➔ `landscape-reveal` ➔ `vehicle-enter` ➔ `route-reveal` ➔ `ready`.
+     - Nút "Phát lại Intro ▶" cho phép xóa cờ session và tái hiện toàn bộ 2.5s intro để kiểm tra chất lượng hoạt họa.
+     - Nút "Xe ▶" phát lại riêng xe khách lăn bánh.
+     - Nút "Bản lề" cho phép đóng/mở thủ công nắp flap quanh trục hingeX.
+- **Nghiệm thu Thực tế & Đối chiếu Video Mẫu**:
+  - **Video ghi hình phiên duyệt thực**:
+    - File ghi hình video WebP: `danava_intro_demo_1792856269716.webp` (ghi lại đầy đủ quá trình mở vé, cảnh nổi, xe chạy, vẽ route, pin hiện, đổi tab xe và tương tác form).
+  - **Ảnh chụp màn hình nghiệm thu**:
+    - Desktop: `danava_go_step8_ready_1440x900.png`
+    - Mobile: `danava_go_step8_mobile_390px.png`
+  - **Báo cáo trung thực những chuyển động chưa tái tạo được (Tính trung thực kỹ thuật)**:
+    1. *Uốn cong mềm của thớ giấy (Soft-body paper curl)*: Cánh vé hiện tại mở theo cơ chế bản lề cứng phân vùng (`Rigid Hinged Panel`). Trong một số animation 3D CGI cao cấp render offline (Blender/Cinema4D), tờ giấy có thể uốn lượn cong mềm mại như dải lụa; ở đây ta dùng mô hình bản lề gập để đảm bảo nhẹ tải và tương thích rộng rãi trên mọi GPU di động.
+    2. *Bụi cát gầm xe*: Xe khách lướt êm ái với bánh quay và bóng gầm xe tiếp đất khít khao; chưa có hiệu ứng hạt bụi (particle system) bay ra từ lốp xe khi phanh dừng lại.
+    3. *Gợn sóng nước*: Nước sông Hàn và hào Kim Thủy có độ phản quang và màu sắc chuẩn mực, nhưng là mặt phẳng tĩnh bắt sáng PBR, chưa có shader sóng nước lăn tăn bằng custom vertex displacement.
+

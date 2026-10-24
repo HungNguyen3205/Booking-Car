@@ -3,10 +3,15 @@ import * as THREE from 'three';
 import { DA_NANG_DESTINATION } from './destinationConfig';
 import { DragonBridge } from './DragonBridge';
 
+import { useFrame } from '@react-three/fiber';
+import type { TimelineProgress } from './journeyTimeline';
+
 interface DaNangLandmarkProps {
   castShadow?: boolean;
   receiveShadow?: boolean;
   isDebug?: boolean;
+  popProgress?: number;
+  timelineRef?: React.RefObject<TimelineProgress | null>;
 }
 
 /**
@@ -76,9 +81,45 @@ export const DaNangLandmark: React.FC<DaNangLandmarkProps> = ({
   castShadow = true,
   receiveShadow = true,
   isDebug = false,
+  popProgress = 1.0,
+  timelineRef,
 }) => {
   const { materials } = DA_NANG_DESTINATION.model;
   const { placement, labelAnchor, safeZone } = DA_NANG_DESTINATION;
+  const landmarkGroupRef = React.useRef<THREE.Group>(null);
+  const treesGroupRef = React.useRef<THREE.Group>(null);
+
+  // Cập nhật hoạt cảnh nổi pop-up và lay động lá cây trong useFrame (zero React re-renders)
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (treesGroupRef.current) {
+      treesGroupRef.current.rotation.z = Math.sin(t * 1.6) * 0.015;
+    }
+
+    if (landmarkGroupRef.current && timelineRef?.current) {
+      const p = Math.max(0, timelineRef.current.danangPopProgress);
+      landmarkGroupRef.current.visible = p > 0.001;
+      landmarkGroupRef.current.scale.set(
+        placement.scale[0] * p,
+        placement.scale[1] * p,
+        placement.scale[2] * p
+      );
+      landmarkGroupRef.current.position.y = placement.position[1] * Math.min(1.0, p);
+    }
+  });
+
+  // Tỷ lệ nổi từ mặt vé (pop-up) với quãng đường ngắn
+  const effectivePop = Math.max(0, popProgress);
+  const isHidden = effectivePop <= 0.001;
+
+  const currentScale: [number, number, number] = [
+    placement.scale[0] * effectivePop,
+    placement.scale[1] * effectivePop,
+    placement.scale[2] * effectivePop,
+  ];
+
+  // Cao độ Y nhô từ mặt vé lên (quãng đường ngắn 0.02 - 0.05 units)
+  const currentPosY = placement.position[1] * Math.min(1.0, effectivePop);
 
   // 1. Hình học mặt sông Hàn
   const riverGeometry = useMemo(() => createHanRiverGeometry(), []);
@@ -134,10 +175,12 @@ export const DaNangLandmark: React.FC<DaNangLandmarkProps> = ({
 
   return (
     <group
+      ref={landmarkGroupRef}
       name="DANAVA_DANANG_LANDMARK_MODULE"
-      position={placement.position}
+      position={[placement.position[0], currentPosY, placement.position[2]]}
       rotation={placement.rotation}
-      scale={placement.scale}
+      scale={currentScale}
+      visible={!isHidden}
     >
       {/* =====================================================================
           1. MẶT NƯỚC SÔNG HÀN (HAN RIVER WATER SURFACE)
@@ -214,25 +257,27 @@ export const DaNangLandmark: React.FC<DaNangLandmarkProps> = ({
           4. CỤM CÂY DIORAMA VEN SÔNG (RIVERSIDE DIORAMA TREES)
           Tán cây hình nón/cầu tròn ấm áp, phong cách thủ công tinh tế.
           ===================================================================== */}
-      {treeList.map((t, idx) => (
-        <group key={`tree-${idx}`} position={[t.x, 0.022, t.z]}>
-          {/* Thân cây gỗ mảnh */}
-          <mesh position={[0, t.scale * 0.35, 0]} castShadow>
-            <cylinderGeometry args={[0.008 * t.scale * 5, 0.012 * t.scale * 5, t.scale * 0.7, 6]} />
-            <meshStandardMaterial color="#6B5344" roughness={0.9} />
-          </mesh>
-          {/* Tầng tán lá dưới */}
-          <mesh position={[0, t.scale * 0.75, 0]} castShadow>
-            <coneGeometry args={[t.scale * 0.45, t.scale * 0.65, 7]} />
-            <meshStandardMaterial color={t.color} roughness={0.78} />
-          </mesh>
-          {/* Tầng tán lá trên */}
-          <mesh position={[0, t.scale * 1.05, 0]} castShadow>
-            <coneGeometry args={[t.scale * 0.32, t.scale * 0.55, 7]} />
-            <meshStandardMaterial color={t.color} roughness={0.78} />
-          </mesh>
-        </group>
-      ))}
+      <group ref={treesGroupRef}>
+        {treeList.map((t, idx) => (
+          <group key={`tree-${idx}`} position={[t.x, 0.022, t.z]}>
+            {/* Thân cây gỗ mảnh */}
+            <mesh position={[0, t.scale * 0.35, 0]} castShadow>
+              <cylinderGeometry args={[0.008 * t.scale * 5, 0.012 * t.scale * 5, t.scale * 0.7, 6]} />
+              <meshStandardMaterial color="#6B5344" roughness={0.9} />
+            </mesh>
+            {/* Tầng tán lá dưới */}
+            <mesh position={[0, t.scale * 0.75, 0]} castShadow>
+              <coneGeometry args={[t.scale * 0.45, t.scale * 0.65, 7]} />
+              <meshStandardMaterial color={t.color} roughness={0.78} />
+            </mesh>
+            {/* Tầng tán lá trên */}
+            <mesh position={[0, t.scale * 1.05, 0]} castShadow>
+              <coneGeometry args={[t.scale * 0.32, t.scale * 0.55, 7]} />
+              <meshStandardMaterial color={t.color} roughness={0.78} />
+            </mesh>
+          </group>
+        ))}
+      </group>
 
       {/* =====================================================================
           5. NÚI XA VỪA ĐỦ: BÁN ĐẢO SƠN TRÀ (SƠN TRÀ PENINSULA RIDGE)

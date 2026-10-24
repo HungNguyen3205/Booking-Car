@@ -4,6 +4,8 @@ import { useFrame } from '@react-three/fiber';
 import { COACH_CONFIG } from './coachConfig';
 import { ROAD_CONFIG, VEHICLE_PATH_CURVE, getVehicleTransformAt } from './roadConfig';
 
+import type { TimelineProgress } from './journeyTimeline';
+
 interface SleeperCoachProps {
   position?: [number, number, number];
   yawAngle?: number;
@@ -13,6 +15,8 @@ interface SleeperCoachProps {
   shouldReduceMotion?: boolean;
   replayKey?: number;
   onAnimationComplete?: () => void;
+  vehicleProgress?: number;
+  timelineRef?: React.RefObject<TimelineProgress | null>;
 }
 
 /**
@@ -108,6 +112,8 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
   shouldReduceMotion = false,
   replayKey = 0,
   onAnimationComplete,
+  vehicleProgress,
+  timelineRef,
 }) => {
   const { dimensions, materials, animation } = COACH_CONFIG;
 
@@ -152,6 +158,54 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
 
   // Frame update loop: mutates Three.js transforms directly (zero React setState calls)
   useFrame((_, delta) => {
+    // 1. Nếu được timeline tập trung điều khiển trực tiếp
+    const activeProgress = timelineRef?.current ? timelineRef.current.vehicleProgress : vehicleProgress;
+    if (activeProgress !== undefined) {
+      if (shouldReduceMotion) {
+        if (coachRootRef.current) {
+          coachRootRef.current.position.set(
+            defaultTransform.position.x,
+            defaultTransform.position.y,
+            defaultTransform.position.z
+          );
+          coachRootRef.current.rotation.y = defaultTransform.yawAngle;
+          coachRootRef.current.visible = true;
+        }
+        return;
+      }
+
+      const p = Math.max(0, Math.min(1.0, activeProgress));
+      if (p <= 0.001) {
+        if (coachRootRef.current) coachRootRef.current.visible = false;
+        return;
+      }
+      if (coachRootRef.current) coachRootRef.current.visible = true;
+
+      const currentT = animation.entryT + (animation.stopT - animation.entryT) * p;
+      const pt = VEHICLE_PATH_CURVE.getPointAt(currentT);
+      const tangent = VEHICLE_PATH_CURVE.getTangentAt(currentT).normalize();
+      const yaw = Math.atan2(tangent.x, tangent.z);
+
+      if (coachRootRef.current) {
+        coachRootRef.current.position.set(pt.x, pt.y, pt.z);
+        coachRootRef.current.rotation.y = yaw;
+      }
+
+      const distanceTraveled = animation.totalDistance * p;
+      const wheelAngle = distanceTraveled / dimensions.wheelRadius;
+
+      if (flWheelRef.current) flWheelRef.current.rotation.x = wheelAngle;
+      if (frWheelRef.current) frWheelRef.current.rotation.x = wheelAngle;
+      if (rlWheelRef.current) rlWheelRef.current.rotation.x = wheelAngle;
+      if (rrWheelRef.current) rrWheelRef.current.rotation.x = wheelAngle;
+
+      if (p >= 1.0 && !animStateRef.current.isComplete) {
+        animStateRef.current.isComplete = true;
+        onAnimationComplete?.();
+      }
+      return;
+    }
+
     if (!autoAnimate && !position) return;
 
     // Detect replay trigger from debug controls

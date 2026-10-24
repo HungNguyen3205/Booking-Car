@@ -1,12 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
 import { TICKET_CONFIG } from './ticketConfig';
+import type { TimelineProgress } from './journeyTimeline';
 
 interface PaperTicketProps {
   flapAngle?: number; // Góc mở nắp flap tính bằng radians (0: mở phẳng, Math.PI: đóng gập)
   isDebug?: boolean;
   fromCity?: string;
   toCity?: string;
+  timelineRef?: React.RefObject<TimelineProgress | null>;
 }
 
 /**
@@ -197,8 +200,21 @@ export const PaperTicket: React.FC<PaperTicketProps> = ({
   isDebug = false,
   fromCity = 'Đà Nẵng',
   toCity = 'Huế',
+  timelineRef,
 }) => {
   const { dimensions, panels, material } = TICKET_CONFIG;
+  const flapPivotRef = useRef<THREE.Group>(null);
+
+  // Cập nhật góc mở bản lề trực tiếp trên mesh (zero React re-renders)
+  useFrame(() => {
+    if (flapPivotRef.current) {
+      if (timelineRef?.current) {
+        flapPivotRef.current.rotation.z = -timelineRef.current.flapAngle;
+      } else {
+        flapPivotRef.current.rotation.z = -flapAngle;
+      }
+    }
+  });
 
   const ticketPrintTexture = useMemo(
     () => createTicketPrintTexture(fromCity, toCity),
@@ -285,9 +301,10 @@ export const PaperTicket: React.FC<PaperTicketProps> = ({
             Math.PI rad: Đóng gập lên mặt sàn chính
           ======================================================================= */}
       <group
+        ref={flapPivotRef}
         name="TICKET_HINGE_PIVOT_GROUP"
         position={[panels.hingeX, dimensions.paperThickness, 0]}
-        rotation={[0, 0, flapAngle]}
+        rotation={[0, 0, -flapAngle]}
       >
         <mesh
           geometry={flapGeometry}

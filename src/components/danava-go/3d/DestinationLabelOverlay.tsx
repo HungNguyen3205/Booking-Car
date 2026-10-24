@@ -7,6 +7,8 @@ import {
   DA_NANG_HUE_ROUTE,
 } from './destinationConfig';
 
+import type { TimelineProgress } from './journeyTimeline';
+
 /**
  * Three.js Inner Hook/Component: Chiếu tọa độ 3D của cả 2 địa danh Đà Nẵng & Huế
  * và vẽ đường cong route SVG nối liền hai điểm neo trực tiếp trên DOM (zero React re-renders)
@@ -18,6 +20,11 @@ export const DualLandmarkAnchorTracker: React.FC<{
   hueOverlayRef: React.RefObject<HTMLDivElement | null>;
   svgRoutePathRef: React.RefObject<SVGPathElement | null>;
   routeBadgeRef: React.RefObject<HTMLDivElement | null>;
+  danangPinProgress?: number;
+  routeDrawProgress?: number;
+  huePinProgress?: number;
+  badgeProgress?: number;
+  timelineRef?: React.RefObject<TimelineProgress | null>;
 }> = ({
   danang3D,
   hue3D,
@@ -25,12 +32,22 @@ export const DualLandmarkAnchorTracker: React.FC<{
   hueOverlayRef,
   svgRoutePathRef,
   routeBadgeRef,
+  danangPinProgress = 1.0,
+  routeDrawProgress = 1.0,
+  huePinProgress = 1.0,
+  badgeProgress = 1.0,
+  timelineRef,
 }) => {
   const { camera } = useThree();
   const vec1 = useRef(new THREE.Vector3());
   const vec2 = useRef(new THREE.Vector3());
 
   useFrame(() => {
+    // 1. Lấy giá trị tiến trình từ timeline tập trung
+    const rawDp = timelineRef?.current ? timelineRef.current.danangPinProgress : danangPinProgress;
+    const rawHp = timelineRef?.current ? timelineRef.current.huePinProgress : huePinProgress;
+    const rawRp = timelineRef?.current ? timelineRef.current.routeDrawProgress : routeDrawProgress;
+    const rawBp = timelineRef?.current ? timelineRef.current.badgeProgress : badgeProgress;
     // 1. Chiếu điểm neo Đà Nẵng
     vec1.current.set(danang3D[0], danang3D[1], danang3D[2]);
     vec1.current.project(camera);
@@ -38,10 +55,12 @@ export const DualLandmarkAnchorTracker: React.FC<{
     const x1 = ((vec1.current.x + 1) / 2) * 100;
     const y1 = ((-vec1.current.y + 1) / 2) * 100;
 
+    const dp = Math.max(0, rawDp);
     if (danangOverlayRef.current) {
       danangOverlayRef.current.style.left = `${x1}%`;
       danangOverlayRef.current.style.top = `${y1}%`;
-      danangOverlayRef.current.style.opacity = vis1 ? '1' : '0';
+      danangOverlayRef.current.style.transform = `translate(-50%, -100%) scale(${dp.toFixed(3)})`;
+      danangOverlayRef.current.style.opacity = vis1 && dp > 0.04 ? '1' : '0';
     }
 
     // 2. Chiếu điểm neo Huế
@@ -51,30 +70,37 @@ export const DualLandmarkAnchorTracker: React.FC<{
     const x2 = ((vec2.current.x + 1) / 2) * 100;
     const y2 = ((-vec2.current.y + 1) / 2) * 100;
 
+    const hp = Math.max(0, rawHp);
     if (hueOverlayRef.current) {
       hueOverlayRef.current.style.left = `${x2}%`;
       hueOverlayRef.current.style.top = `${y2}%`;
-      hueOverlayRef.current.style.opacity = vis2 ? '1' : '0';
+      hueOverlayRef.current.style.transform = `translate(-50%, -100%) scale(${hp.toFixed(3)})`;
+      hueOverlayRef.current.style.opacity = vis2 && hp > 0.04 ? '1' : '0';
     }
 
-    // 3. Tính toán đỉnh cung đường cong SVG nối 2 pin (vòng lên bầu trời trên mô hình vé)
+    // 3. Tính toán đỉnh cung đường cong SVG nối 2 pin (vồng lên bầu trời)
     const midX = (x1 + x2) / 2;
-    // Đỉnh cung vồng lên phía trên đỉnh 2 pin khoảng 12%
     const midY = Math.min(y1, y2) - 12;
 
+    const rp = Math.max(0, Math.min(1.0, rawRp));
     if (svgRoutePathRef.current) {
       // Đường cong bậc 2 nối từ Đà Nẵng (x1, y1) qua đỉnh (midX, midY) đến Huế (x2, y2)
       svgRoutePathRef.current.setAttribute(
         'd',
         `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`
       );
-      svgRoutePathRef.current.style.opacity = vis1 && vis2 ? '1' : '0';
+      // Hiệu ứng vẽ đường cong theo tiến trình timeline từ Đà Nẵng sang Huế
+      const dashOffset = (100 * (1 - rp)).toFixed(2);
+      svgRoutePathRef.current.style.strokeDashoffset = `${dashOffset}`;
+      svgRoutePathRef.current.style.opacity = vis1 && vis2 && rp > 0.02 ? '1' : '0';
     }
 
+    const bp = Math.max(0, Math.min(1.0, rawBp));
     if (routeBadgeRef.current) {
       routeBadgeRef.current.style.left = `${midX}%`;
       routeBadgeRef.current.style.top = `${midY}%`;
-      routeBadgeRef.current.style.opacity = vis1 && vis2 ? '1' : '0';
+      routeBadgeRef.current.style.transform = `translate(-50%, -100%) scale(${(0.6 + 0.4 * bp).toFixed(3)})`;
+      routeBadgeRef.current.style.opacity = vis1 && vis2 && bp > 0.05 ? String(bp.toFixed(2)) : '0';
     }
   });
 
@@ -133,17 +159,18 @@ export const DestinationLabelOverlay: React.FC<DestinationLabelOverlayProps> = (
           </filter>
         </defs>
 
-        {/* Nét bóng mờ phía dưới */}
+        {/* Tuyến đường vector SVG động vẽ nối từ Đà Nẵng sang Huế */}
         <path
           ref={svgRoutePathRef}
+          pathLength={100}
+          strokeDasharray="100 100"
           fill="none"
           stroke="url(#routeGradient)"
-          strokeWidth="0.45"
-          strokeDasharray="1.2 0.8"
+          strokeWidth="0.5"
           strokeLinecap="round"
           filter="url(#routeGlow)"
-          className="transition-opacity duration-300"
-          style={{ opacity: 0 }}
+          className="transition-opacity duration-200"
+          style={{ opacity: 0, strokeDashoffset: '100' }}
         />
       </svg>
 
