@@ -5,17 +5,21 @@ import {
   DA_NANG_DESTINATION,
   HUE_DESTINATION,
   DA_NANG_HUE_ROUTE,
+  type DestinationDefinition,
+  type JourneyRouteDefinition,
 } from './destinationConfig';
 
 import type { TimelineProgress } from './journeyTimeline';
 
 /**
- * Three.js Inner Hook/Component: Chiếu tọa độ 3D của cả 2 địa danh Đà Nẵng & Huế
+ * Three.js Inner Hook/Component: Chiếu tọa độ 3D của cả 2 địa danh Origin & Destination
  * và vẽ đường cong route SVG nối liền hai điểm neo trực tiếp trên DOM (zero React re-renders)
  */
 export const DualLandmarkAnchorTracker: React.FC<{
-  danang3D: [number, number, number];
-  hue3D: [number, number, number];
+  origin3D?: [number, number, number];
+  destination3D?: [number, number, number];
+  danang3D?: [number, number, number]; // Tương thích ngược
+  hue3D?: [number, number, number]; // Tương thích ngược
   danangOverlayRef: React.RefObject<HTMLDivElement | null>;
   hueOverlayRef: React.RefObject<HTMLDivElement | null>;
   svgRoutePathRef: React.RefObject<SVGPathElement | null>;
@@ -26,6 +30,8 @@ export const DualLandmarkAnchorTracker: React.FC<{
   badgeProgress?: number;
   timelineRef?: React.RefObject<TimelineProgress | null>;
 }> = ({
+  origin3D,
+  destination3D,
   danang3D,
   hue3D,
   danangOverlayRef,
@@ -42,14 +48,19 @@ export const DualLandmarkAnchorTracker: React.FC<{
   const vec1 = useRef(new THREE.Vector3());
   const vec2 = useRef(new THREE.Vector3());
 
+  // Xác định tọa độ 3D thực tế của 2 điểm neo
+  const posOrigin = origin3D || danang3D || DA_NANG_DESTINATION.labelAnchor.origin.worldPosition;
+  const posDest = destination3D || hue3D || HUE_DESTINATION.labelAnchor.destination.worldPosition;
+
   useFrame(() => {
     // 1. Lấy giá trị tiến trình từ timeline tập trung
     const rawDp = timelineRef?.current ? timelineRef.current.danangPinProgress : danangPinProgress;
     const rawHp = timelineRef?.current ? timelineRef.current.huePinProgress : huePinProgress;
     const rawRp = timelineRef?.current ? timelineRef.current.routeDrawProgress : routeDrawProgress;
     const rawBp = timelineRef?.current ? timelineRef.current.badgeProgress : badgeProgress;
-    // 1. Chiếu điểm neo Đà Nẵng
-    vec1.current.set(danang3D[0], danang3D[1], danang3D[2]);
+
+    // 1. Chiếu điểm neo Origin (Bên trái)
+    vec1.current.set(posOrigin[0], posOrigin[1], posOrigin[2]);
     vec1.current.project(camera);
     const vis1 = vec1.current.z < 1.0;
     const x1 = ((vec1.current.x + 1) / 2) * 100;
@@ -63,8 +74,8 @@ export const DualLandmarkAnchorTracker: React.FC<{
       danangOverlayRef.current.style.opacity = vis1 && dp > 0.04 ? '1' : '0';
     }
 
-    // 2. Chiếu điểm neo Huế
-    vec2.current.set(hue3D[0], hue3D[1], hue3D[2]);
+    // 2. Chiếu điểm neo Destination (Bên phải)
+    vec2.current.set(posDest[0], posDest[1], posDest[2]);
     vec2.current.project(camera);
     const vis2 = vec2.current.z < 1.0;
     const x2 = ((vec2.current.x + 1) / 2) * 100;
@@ -84,12 +95,10 @@ export const DualLandmarkAnchorTracker: React.FC<{
 
     const rp = Math.max(0, Math.min(1.0, rawRp));
     if (svgRoutePathRef.current) {
-      // Đường cong bậc 2 nối từ Đà Nẵng (x1, y1) qua đỉnh (midX, midY) đến Huế (x2, y2)
       svgRoutePathRef.current.setAttribute(
         'd',
         `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`
       );
-      // Hiệu ứng vẽ đường cong theo tiến trình timeline từ Đà Nẵng sang Huế
       const dashOffset = (100 * (1 - rp)).toFixed(2);
       svgRoutePathRef.current.style.strokeDashoffset = `${dashOffset}`;
       svgRoutePathRef.current.style.opacity = vis1 && vis2 && rp > 0.02 ? '1' : '0';
@@ -99,8 +108,8 @@ export const DualLandmarkAnchorTracker: React.FC<{
     if (routeBadgeRef.current) {
       routeBadgeRef.current.style.left = `${midX}%`;
       routeBadgeRef.current.style.top = `${midY}%`;
-      routeBadgeRef.current.style.transform = `translate(-50%, -100%) scale(${(0.6 + 0.4 * bp).toFixed(3)})`;
-      routeBadgeRef.current.style.opacity = vis1 && vis2 && bp > 0.05 ? String(bp.toFixed(2)) : '0';
+      routeBadgeRef.current.style.transform = `translate(-50%, -50%) scale(${bp.toFixed(3)})`;
+      routeBadgeRef.current.style.opacity = vis1 && vis2 && bp > 0.04 ? '1' : '0';
     }
   });
 
@@ -112,23 +121,26 @@ interface DestinationLabelOverlayProps {
   hueOverlayRef: React.RefObject<HTMLDivElement | null>;
   svgRoutePathRef: React.RefObject<SVGPathElement | null>;
   routeBadgeRef: React.RefObject<HTMLDivElement | null>;
+  fromDestination?: DestinationDefinition;
+  toDestination?: DestinationDefinition;
+  route?: JourneyRouteDefinition;
 }
 
 /**
- * Lớp phủ HTML/SVG hiển thị:
- * 1. Huy hiệu & Pin Đà Nẵng (Khởi hành)
- * 2. Huy hiệu & Pin Huế (Điểm đến)
- * 3. Tuyến đường vector SVG nối liền 2 điểm neo
- * 4. Huy hiệu thông số tuyến đường (100 km • 2h 15m)
- * Tuyệt đối không bake vào texture 3D, không có đường vẽ tĩnh chồng chéo.
+ * Lớp phủ HTML/SVG thuần túy (HTML/SVG Overlay Layer)
+ * Hiển thị huy hiệu Đà Nẵng, Huế, Nha Trang... và tuyến đường vector nối liền 2 điểm neo
  */
 export const DestinationLabelOverlay: React.FC<DestinationLabelOverlayProps> = ({
   danangOverlayRef,
   hueOverlayRef,
   svgRoutePathRef,
   routeBadgeRef,
+  fromDestination = DA_NANG_DESTINATION,
+  toDestination = HUE_DESTINATION,
+  route = DA_NANG_HUE_ROUTE,
 }) => {
-  const route = DA_NANG_HUE_ROUTE;
+  const originAnchor = fromDestination.labelAnchor.origin;
+  const destAnchor = toDestination.labelAnchor.destination;
 
   return (
     <div
@@ -136,7 +148,7 @@ export const DestinationLabelOverlay: React.FC<DestinationLabelOverlayProps> = (
       data-testid="danava-go-labels-and-route-overlay"
     >
       {/* =======================================================================
-          A. TUYẾN ĐƯỜNG SVG NỐI ĐÀ NẴNG → HUẾ (DYNAMIC VECTOR ROUTE PATH)
+          A. TUYẾN ĐƯỜNG SVG NỐI 2 ĐỊA DANH (DYNAMIC VECTOR ROUTE PATH)
           100% Vector SVG, không bake vào ảnh nền
           ======================================================================= */}
       <svg
@@ -145,21 +157,18 @@ export const DestinationLabelOverlay: React.FC<DestinationLabelOverlayProps> = (
         preserveAspectRatio="none"
       >
         <defs>
-          {/* Gradient màu teal dọc theo hành trình */}
           <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#0097A7" stopOpacity="0.85" />
             <stop offset="50%" stopColor="#00B4D8" stopOpacity="0.95" />
             <stop offset="100%" stopColor="#00796B" stopOpacity="0.85" />
           </linearGradient>
 
-          {/* Hiệu ứng bóng phát sáng cho nét vẽ tuyến đường */}
           <filter id="routeGlow" x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="0.4" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
         </defs>
 
-        {/* Tuyến đường vector SVG động vẽ nối từ Đà Nẵng sang Huế */}
         <path
           ref={svgRoutePathRef}
           pathLength={100}
@@ -191,19 +200,17 @@ export const DestinationLabelOverlay: React.FC<DestinationLabelOverlayProps> = (
       </div>
 
       {/* =======================================================================
-          C. HUY HIỆU & PIN ĐÀ NẴNG (KHỞI HÀNH)
+          C. HUY HIỆU & PIN ĐIỂM KHỞI HÀNH (ORIGIN SLOT - BÊN TRÁI)
           ======================================================================= */}
       <div
         ref={danangOverlayRef}
         className="absolute -translate-x-1/2 -translate-y-full pointer-events-none z-30 transition-opacity duration-300"
         style={{ left: '26%', top: '40%', opacity: 0 }}
-        data-testid="danang-destination-label"
-        aria-label={`${DA_NANG_DESTINATION.displayName} — ${DA_NANG_DESTINATION.tagline}`}
+        data-testid="origin-destination-label"
+        aria-label={`${fromDestination.displayName} — ${fromDestination.tagline}`}
       >
         <div className="flex flex-col items-center">
-          {/* Card huy hiệu HTML */}
           <div className="bg-[#FFFDF8]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#E5E3DC] shadow-[0_8px_24px_-4px_rgba(16,39,68,0.16)] flex items-center gap-2 mb-1.5 whitespace-nowrap">
-            {/* SVG Pin Icon */}
             <div className="w-5 h-5 rounded-full bg-[#E0F7FA] text-[#0097A7] flex items-center justify-center shrink-0">
               <svg
                 className="w-3 h-3 text-[#0097A7]"
@@ -222,19 +229,19 @@ export const DestinationLabelOverlay: React.FC<DestinationLabelOverlayProps> = (
             <div className="flex flex-col text-left leading-tight">
               <div className="flex items-center gap-1.5">
                 <span className="font-serif font-bold text-sm tracking-wide text-[#102744]">
-                  {DA_NANG_DESTINATION.displayName}
+                  {fromDestination.displayName}
                 </span>
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#0097A7] bg-[#E0F7FA] px-1.5 py-0.5 rounded-full">
                   Khởi hành
                 </span>
               </div>
               <span className="text-[10px] font-medium text-[#718096] tracking-tight">
-                {DA_NANG_DESTINATION.labelAnchor.badgeSubtitle}
+                {originAnchor.badgeSubtitle || fromDestination.tagline}
               </span>
             </div>
           </div>
 
-          {/* Đường dóng SVG & Điểm neo phát sáng vào đỉnh vòm Cầu Rồng */}
+          {/* Đường dóng SVG & Điểm neo phát sáng */}
           <div className="relative flex flex-col items-center">
             <div className="w-[1.5px] h-3 bg-gradient-to-b from-[#0097A7] to-[#0097A7]/40" />
             <div className="relative flex items-center justify-center">
@@ -246,19 +253,17 @@ export const DestinationLabelOverlay: React.FC<DestinationLabelOverlayProps> = (
       </div>
 
       {/* =======================================================================
-          D. HUY HIỆU & PIN HUẾ (ĐIỂM ĐẾN)
+          D. HUY HIỆU & PIN ĐIỂM ĐẾN (DESTINATION SLOT - BÊN PHẢI)
           ======================================================================= */}
       <div
         ref={hueOverlayRef}
         className="absolute -translate-x-1/2 -translate-y-full pointer-events-none z-30 transition-opacity duration-300"
         style={{ left: '74%', top: '40%', opacity: 0 }}
-        data-testid="hue-destination-label"
-        aria-label={`${HUE_DESTINATION.displayName} — ${HUE_DESTINATION.tagline}`}
+        data-testid="arrival-destination-label"
+        aria-label={`${toDestination.displayName} — ${toDestination.tagline}`}
       >
         <div className="flex flex-col items-center">
-          {/* Card huy hiệu HTML */}
           <div className="bg-[#FFFDF8]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#E5E3DC] shadow-[0_8px_24px_-4px_rgba(16,39,68,0.16)] flex items-center gap-2 mb-1.5 whitespace-nowrap">
-            {/* SVG Crown / Gate Icon */}
             <div className="w-5 h-5 rounded-full bg-[#FFF3E0] text-[#E65100] flex items-center justify-center shrink-0">
               <svg
                 className="w-3 h-3 text-[#E65100]"
@@ -269,26 +274,26 @@ export const DestinationLabelOverlay: React.FC<DestinationLabelOverlayProps> = (
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z" />
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             </div>
 
             <div className="flex flex-col text-left leading-tight">
               <div className="flex items-center gap-1.5">
                 <span className="font-serif font-bold text-sm tracking-wide text-[#102744]">
-                  {HUE_DESTINATION.displayName}
+                  {toDestination.displayName}
                 </span>
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#E65100] bg-[#FFF3E0] px-1.5 py-0.5 rounded-full">
                   Điểm đến
                 </span>
               </div>
               <span className="text-[10px] font-medium text-[#718096] tracking-tight">
-                {HUE_DESTINATION.labelAnchor.badgeSubtitle}
+                {destAnchor.badgeSubtitle || toDestination.tagline}
               </span>
             </div>
           </div>
 
-          {/* Đường dóng SVG & Điểm neo phát sáng vào đỉnh Lầu Ngũ Phụng */}
+          {/* Đường dóng SVG & Điểm neo phát sáng */}
           <div className="relative flex flex-col items-center">
             <div className="w-[1.5px] h-3 bg-gradient-to-b from-[#E65100] to-[#E65100]/40" />
             <div className="relative flex items-center justify-center">

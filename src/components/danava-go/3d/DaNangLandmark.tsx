@@ -12,6 +12,7 @@ interface DaNangLandmarkProps {
   isDebug?: boolean;
   popProgress?: number;
   timelineRef?: React.RefObject<TimelineProgress | null>;
+  slot?: 'origin' | 'destination';
 }
 
 /**
@@ -83,9 +84,12 @@ export const DaNangLandmark: React.FC<DaNangLandmarkProps> = ({
   isDebug = false,
   popProgress = 1.0,
   timelineRef,
+  slot = 'origin',
 }) => {
   const { materials } = DA_NANG_DESTINATION.model;
-  const { placement, labelAnchor, safeZone } = DA_NANG_DESTINATION;
+  const { safeZone } = DA_NANG_DESTINATION;
+  const placement = slot === 'destination' ? DA_NANG_DESTINATION.placements.destination : DA_NANG_DESTINATION.placements.origin;
+  const labelAnchor = slot === 'destination' ? DA_NANG_DESTINATION.labelAnchor.destination : DA_NANG_DESTINATION.labelAnchor.origin;
   const landmarkGroupRef = React.useRef<THREE.Group>(null);
   const treesGroupRef = React.useRef<THREE.Group>(null);
 
@@ -97,7 +101,12 @@ export const DaNangLandmark: React.FC<DaNangLandmarkProps> = ({
     }
 
     if (landmarkGroupRef.current && timelineRef?.current) {
-      const p = Math.max(0, timelineRef.current.danangPopProgress);
+      const p = Math.max(
+        0,
+        slot === 'destination'
+          ? timelineRef.current.huePopProgress
+          : timelineRef.current.danangPopProgress
+      );
       landmarkGroupRef.current.visible = p > 0.001;
       landmarkGroupRef.current.scale.set(
         placement.scale[0] * p,

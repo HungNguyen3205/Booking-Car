@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { DANAVA_3D_CONFIG } from './environmentConfig';
 import { Environment } from './Environment';
@@ -7,8 +7,10 @@ import { CurvedRoad } from './CurvedRoad';
 import { VehicleStage } from './VehicleStage';
 import { DaNangLandmark } from './DaNangLandmark';
 import { HueLandmark } from './HueLandmark';
+import { NhaTrangLandmark } from './NhaTrangLandmark';
+import { NeutralScenicLandscape } from './NeutralScenicLandscape';
 import { CentralPassTransition } from './CentralPassTransition';
-import { DA_NANG_DESTINATION, HUE_DESTINATION } from './destinationConfig';
+import { resolveDestination, resolveRoute } from './destinationConfig';
 import {
   DualLandmarkAnchorTracker,
   DestinationLabelOverlay,
@@ -167,6 +169,11 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
   const svgRoutePathRef = useRef<SVGPathElement>(null);
   const routeBadgeRef = useRef<HTMLDivElement>(null);
 
+  // Step 10: Phân giải cấu hình địa danh mở rộng và tuyến đường động (một nguồn duy nhất)
+  const fromDestination = useMemo(() => resolveDestination(fromCity, 'origin'), [fromCity]);
+  const toDestination = useMemo(() => resolveDestination(toCity, 'destination'), [toCity]);
+  const routeDef = useMemo(() => resolveRoute(fromCity, toCity), [fromCity, toCity]);
+
   if (!hasWebGL || hasRendererError) {
     return (
       <WebGLFallback
@@ -234,14 +241,41 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         {/* Curved Road: Real continuous ribbon, shoulders, and dashed centerline */}
         <CurvedRoad isDebug={isDebug} />
 
-        {/* Da Nang Landmark: Cầu Rồng, Sông Hàn, Bờ kè, Cây xanh, Núi Sơn Trà */}
-        <DaNangLandmark isDebug={isDebug} timelineRef={timelineRef} />
+        {/* =======================================================================
+            Step 10: VÙNG ORIGIN LANDMARK (MẠN TRÁI VÉ)
+            ======================================================================= */}
+        {fromDestination.id === 'da-nang' && (
+          <DaNangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
+        )}
+        {fromDestination.id === 'nha-trang' && (
+          <NhaTrangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
+        )}
+        {fromDestination.id === 'hue' && (
+          <HueLandmark isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
+        )}
+        {!fromDestination.hasDedicatedModel && (
+          <NeutralScenicLandscape isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
+        )}
 
         {/* Central Pass Transition: Đèo Hải Vân & Rặng đồi xanh kết nối 2 miền di sản */}
         <CentralPassTransition timelineRef={timelineRef} />
 
-        {/* Hue Landmark: Ngọ Môn Hoàng Thành, Lầu Ngũ Phụng, Hồ sen Kim Thủy, Rừng thông */}
-        <HueLandmark isDebug={isDebug} timelineRef={timelineRef} />
+        {/* =======================================================================
+            Step 10: VÙNG DESTINATION LANDMARK (MẠN PHẢI VÉ)
+            Tuyệt đối không gán tên Nha Trang lên Ngọ Môn hoặc ngược lại
+            ======================================================================= */}
+        {toDestination.id === 'hue' && (
+          <HueLandmark isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
+        )}
+        {toDestination.id === 'nha-trang' && (
+          <NhaTrangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
+        )}
+        {toDestination.id === 'da-nang' && (
+          <DaNangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
+        )}
+        {!toDestination.hasDedicatedModel && (
+          <NeutralScenicLandscape isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
+        )}
 
         {/* Step 9: Dynamic Vehicle Selection & Transitions (Sleeper Coach, Limousine Van, Cabin VIP) */}
         <VehicleStage
@@ -254,8 +288,8 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
 
         {/* Dual Landmark Anchor Tracker: Chiếu cả 2 điểm neo 3D và vẽ đường cong route SVG */}
         <DualLandmarkAnchorTracker
-          danang3D={DA_NANG_DESTINATION.labelAnchor.worldPosition}
-          hue3D={HUE_DESTINATION.labelAnchor.worldPosition}
+          origin3D={fromDestination.labelAnchor.origin.worldPosition}
+          destination3D={toDestination.labelAnchor.destination.worldPosition}
           danangOverlayRef={danangOverlayRef}
           hueOverlayRef={hueOverlayRef}
           svgRoutePathRef={svgRoutePathRef}
@@ -267,12 +301,15 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         {children}
       </Canvas>
 
-      {/* Lớp phủ HTML/SVG: Nhãn Đà Nẵng, Nhãn Huế và tuyến đường nối liền */}
+      {/* Lớp phủ HTML/SVG: Nhãn Origin, Nhãn Destination và tuyến đường nối liền */}
       <DestinationLabelOverlay
         danangOverlayRef={danangOverlayRef}
         hueOverlayRef={hueOverlayRef}
         svgRoutePathRef={svgRoutePathRef}
         routeBadgeRef={routeBadgeRef}
+        fromDestination={fromDestination}
+        toDestination={toDestination}
+        route={routeDef}
       />
     </div>
   );

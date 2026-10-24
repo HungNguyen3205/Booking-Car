@@ -11,6 +11,7 @@ const JourneyCanvas = React.lazy(() =>
 );
 
 import type { JourneyTimelineState } from './3d/journeyTimeline';
+import { resolveDestination } from './3d/destinationConfig';
 
 const SESSION_INTRO_KEY = 'danava_go_intro_played';
 
@@ -328,6 +329,21 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                       </button>
                       <button
                         type="button"
+                        onClick={() => {
+                          setCurrentRoute((prev) => {
+                            if (prev.to === 'Nha Trang') {
+                              return { from: 'Đà Nẵng', to: 'Huế' };
+                            }
+                            return { from: 'Đà Nẵng', to: 'Nha Trang' };
+                          });
+                        }}
+                        className="pointer-events-auto text-[11px] font-mono bg-[#00838F] hover:bg-[#0097A7] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
+                        title="Chuyển nhanh tuyến mẫu giữa Huế và Nha Trang để kiểm thử landmark 3D"
+                      >
+                        Đổi Tuyến: {currentRoute.to === 'Nha Trang' ? 'Nha Trang 🏖' : 'Huế ⛩'}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => setDebugFlapAngle((prev) => (prev === 0 ? Math.PI : 0))}
                         className="pointer-events-auto text-[11px] font-mono bg-[#263238] hover:bg-[#37474F] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
                         title="Góc xoay flap"
@@ -342,11 +358,12 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                 </div>
               </div>
 
-              {/* Stage Footer Meta */}
+              {/* Stage Footer Meta (Step 10: Hiển thị chính xác landmark độc bản của từng thành phố) */}
               <div className="relative z-10 flex items-center justify-between text-[11px] text-[#718096] px-5 py-2.5 border-t border-[#E5E3DC]/60 bg-gradient-to-t from-[#FFFDF8]/90 to-transparent">
                 <span>Tuyến mẫu: {currentRoute.from} — {currentRoute.to}</span>
                 <span className="italic">
-                  Cầu Rồng (Đà Nẵng) → Ngọ Môn (Huế) •{' '}
+                  {resolveDestination(currentRoute.from, 'origin').model.name.split('&')[0].trim()} ({resolveDestination(currentRoute.from, 'origin').displayName}) →{' '}
+                  {resolveDestination(currentRoute.to, 'destination').model.name.split('&')[0].trim()} ({resolveDestination(currentRoute.to, 'destination').displayName}) •{' '}
                   {selectedVehicle === 'limousine'
                     ? 'Xe Limousine VIP 9–11 Chỗ'
                     : selectedVehicle === 'cabin'

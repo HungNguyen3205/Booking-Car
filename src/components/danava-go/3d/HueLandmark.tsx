@@ -12,6 +12,7 @@ interface HueLandmarkProps {
   isDebug?: boolean;
   popProgress?: number;
   timelineRef?: React.RefObject<TimelineProgress | null>;
+  slot?: 'origin' | 'destination';
 }
 
 /**
@@ -40,9 +41,12 @@ export const HueLandmark: React.FC<HueLandmarkProps> = ({
   isDebug = false,
   popProgress = 1.0,
   timelineRef,
+  slot = 'destination',
 }) => {
   const { materials } = HUE_DESTINATION.model;
-  const { placement, labelAnchor, safeZone } = HUE_DESTINATION;
+  const { safeZone } = HUE_DESTINATION;
+  const placement = slot === 'origin' ? HUE_DESTINATION.placements.origin : HUE_DESTINATION.placements.destination;
+  const labelAnchor = slot === 'origin' ? HUE_DESTINATION.labelAnchor.origin : HUE_DESTINATION.labelAnchor.destination;
   const landmarkGroupRef = React.useRef<THREE.Group>(null);
   const treesGroupRef = React.useRef<THREE.Group>(null);
 
@@ -54,7 +58,12 @@ export const HueLandmark: React.FC<HueLandmarkProps> = ({
     }
 
     if (landmarkGroupRef.current && timelineRef?.current) {
-      const p = Math.max(0, timelineRef.current.huePopProgress);
+      const p = Math.max(
+        0,
+        slot === 'origin'
+          ? timelineRef.current.danangPopProgress
+          : timelineRef.current.huePopProgress
+      );
       landmarkGroupRef.current.visible = p > 0.001;
       landmarkGroupRef.current.scale.set(
         placement.scale[0] * p,
