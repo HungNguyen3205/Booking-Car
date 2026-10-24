@@ -301,6 +301,56 @@
     - `danava_go_step6_danang_debug.png` (Chế độ debug hiển thị hộp an toàn Safe Zone & điểm neo Anchor)
     - `danava_go_step6_danang_390px.png` (Hiển thị sắc nét trên di động 390px)
 
-
-
-
+### Bước 7: Thêm Huế và hoàn thiện trạng thái cuối tĩnh của tuyến mẫu (Da Nang — Hue Static Composition)
+- **Thời gian**: 2026-10-24
+- **Công việc đã thực hiện**:
+  1. **Đối chiếu Ảnh Tham khảo & Dựng Ngọ Môn Huế 3D Chuẩn Xác (`NgoMonGate.tsx`)**:
+     - *Nguồn đối chiếu đáng tin cậy*: `scene_hue.jpg`, `journey-pop-up.webp`, `diorama_ticket_danang_hue.webp`.
+     - *Đặc điểm nhận diện độc bản của Ngọ Môn*:
+       - **Đài thành khối đá chữ U (U-shaped Fortress Base)**: Đài thành gạch nung đỏ trầm cổ kính (`#7D3C32`, `roughness: 0.75`), hai cánh chữ U vươn ra phía trước ôm lấy sân tiền đường, mép trên có lan can đá thanh vọng cảnh (`#DDD6C9`).
+       - **3 cổng vòm xuyên thành (Arched Portals)**: Cửa chính giữa (dành cho Hoàng đế) cao rộng nổi bật, 2 cửa Tả Giáp Môn và Hữu Giáp Môn hai bên với hốc cửa sâu và vòm cuốn đá mài.
+       - **Lầu Ngũ Phụng 2 tầng mái đa sắc (Five-Phoenix Pavilion)**:
+         - Gian chính giữa: 2 tầng mái dốc cong góc lợp ngói **hoàng lưu ly vàng rực rỡ** (`#E5A93C`, `metalness: 0.35, roughness: 0.25`), bờ nóc chầu và cột cờ triều Nguyễn.
+         - Hai chái lầu cánh Tả - Hữu: 2 tầng mái lợp ngói **thanh lưu ly xanh ngọc bích** (`#246D4E`).
+         - Cột gỗ sơn son thếp vàng Cung đình (`#8C2518`) và lan can tầng lầu.
+       - **Cầu đá Trung Đạo (Trung Dao Stone Bridge)**: Cầu đá thanh bắc thẳng từ sân trước qua hào sen vào cổng chính, có lan can đá hoa sen hai bên.
+     - *Tuân thủ Rule 8*: Toàn bộ Ngọ Môn là mô hình 3D Procedural Mesh, không dùng ảnh phẳng dựng đứng.
+  2. **Tạo DestinationDefinition cho Huế (`destinationConfig.ts`)**:
+     - `id`: `'hue'`.
+     - `displayName`: `'Huế'`.
+     - `province`: `'Thừa Thiên Huế'`.
+     - `tagline`: `'Cố đô di sản • Ngọ Môn Hoàng Thành'`.
+     - `model`: Quy chuẩn mô hình 3D, vật liệu PBR, polycount < 2400 tris, cam kết `hasBakedText: false`.
+     - `labelAnchor`: Tọa độ neo 3D `[2.15, 0.92, -0.20]` tại đỉnh lầu Ngũ Phụng.
+     - `safeZone`: `minX: 0.9, maxX: 3.6, minZ: -1.3, maxZ: 0.45`, cách xa vùng headline bên trái, cách điểm đỗ xe $1.45$ units.
+     - `placement`: `position: [2.15, 0.0, -0.20]`, `rotation: [0, -0.10, 0]`, `scale: [1.32, 1.32, 1.32]`.
+     - `approvalStatus`: Trạng thái `'approved'`.
+  3. **Vùng Chuyển tiếp Trung tâm & Đèo Hải Vân (`CentralPassTransition.tsx`)**:
+     - Đặt tại $X \in [-0.85, +0.85]$, $Z \in [-1.2, -0.3]$: Rặng đồi xanh đèo Hải Vân thoai thoải (`#3E6B4E`, `#487B56`), rừng thông xanh ngát kết nối mượt mà từ biển Sông Hàn sang Cố đô Huế.
+     - Lòng đường cong uốn qua đỉnh đèo tại $X \approx 0.10, Z = -0.32$, không tạo bất kỳ viền cắt đột ngột nào.
+  4. **Tuyến đường Vector SVG & 2 Pin Động (`DestinationLabelOverlay.tsx`)**:
+     - Component `DualLandmarkAnchorTracker` chiếu đồng thời 2 điểm neo 3D sang tọa độ màn hình `%`.
+     - Nối 2 pin bằng một đường cong Parabol SVG màu Teal `#0097A7` vồng nhẹ qua bầu trời phía trên mô hình vé, kèm hiệu ứng phát sáng `filter: url(#routeGlow)`.
+     - Huy hiệu thông số tuyến đường ở đỉnh cung: `100 KM • 2H 15M`.
+     - **Không có đường vẽ tĩnh bake sẵn trong background**: Tuyến đường và pin 100% là vector SVG động, co giãn mượt mà theo kích thước màn hình.
+  5. **Nội dung Vé Chuẩn Mực & Dữ liệu Thật**:
+     - Cuống vé bên trái in thông tin du lịch chính thức bằng tiếng Việt: `ĐÀ NẴNG → HUẾ` (tuyệt đối không dùng mã sân bay DAD/HUI).
+     - Header sân khấu: `DANAVA GO • ĐÀ NẴNG → HUẾ`.
+     - Footer sân khấu: `Tuyến mẫu: Đà Nẵng — Huế • Cầu Rồng (Đà Nẵng) → Ngọ Môn (Huế) • Xe Giường Nằm`.
+     - Toàn bộ nhãn, tuyến và thông tin được liên kết động từ dữ liệu (`currentRoute`, `DA_NANG_HUE_ROUTE`, `DESTINATION_REGISTRY`).
+- **Nghiệm thu & So sánh Đối chiếu (Audit Analysis)**:
+  - **Tỷ lệ Vé / Cảnh / Xe**:
+    - Vé giấy cardstock ivory mở phẳng nằm làm nền móng sân khấu ổn định.
+    - Cầu Rồng (trái) và Ngọ Môn (phải) tạo thế đăng đối hài hòa hai miền di sản.
+    - Xe khách Giường nằm DANAVA GO đỗ vững chãi tại $t = 0.62$ trên mặt đường, đầu xe hướng về phía Huế, tỷ lệ 1:1 với lòng đường.
+  - **Vị trí Headline & Form tìm kiếm**:
+    - Headline "Đi một chuyến. Mở ngàn trải nghiệm" ở mạn trái hoàn toàn không bị 3D che khuất.
+    - Form tìm kiếm dạng thanh ngang dock ở dưới, click tương tác mượt mà.
+  - **Phần còn khác biệt so với video/ảnh concept tham khảo (Tính trung thực kỹ thuật)**:
+    - *Định dạng*: Ảnh concept là tranh minh họa 2.5D tĩnh; sản phẩm của chúng ta là sa bàn 3D WebGL tương tác thật thời gian thực có thể gập bản lề, quay bánh xe, và chiếu pin động.
+    - *Chi tiết mái ngói*: Mái ngói hoàng lưu ly và thanh lưu ly được tối ưu hóa đa giác hình học khối cách điệu (< 2.4k tris) để đảm bảo 60fps trên thiết bị di động, không chứa texture bitmap nặng nề.
+    - *Mặt nước*: Mặt nước sông Hàn và hào Kim Thủy có độ phản chiếu PBR mịn bắt sáng Sun Key Light; chưa có vi phân sóng động dynamic displacement.
+  - **Ảnh chụp nghiệm thu lưu trữ**:
+    - `danava_go_step7_composition_1440x900.png` (Ảnh tĩnh toàn cảnh desktop camera chuẩn)
+    - `danava_go_step7_composition_debug.png` (Chế độ debug hiển thị 2 hộp Safe Zone, 2 pin và trục bản lề)
+    - `danava_go_step7_composition_390px.png` (Ảnh tĩnh trên màn hình di động 390px)

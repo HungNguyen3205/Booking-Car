@@ -6,8 +6,13 @@ import { PaperTicket } from './PaperTicket';
 import { CurvedRoad } from './CurvedRoad';
 import { SleeperCoach } from './SleeperCoach';
 import { DaNangLandmark } from './DaNangLandmark';
-import { DA_NANG_DESTINATION } from './destinationConfig';
-import { LandmarkAnchorTracker, DestinationLabelOverlay } from './DestinationLabelOverlay';
+import { HueLandmark } from './HueLandmark';
+import { CentralPassTransition } from './CentralPassTransition';
+import { DA_NANG_DESTINATION, HUE_DESTINATION } from './destinationConfig';
+import {
+  DualLandmarkAnchorTracker,
+  DestinationLabelOverlay,
+} from './DestinationLabelOverlay';
 import { WebGLFallback } from './WebGLFallback';
 
 interface JourneyCanvasProps {
@@ -17,6 +22,8 @@ interface JourneyCanvasProps {
   isDebug?: boolean;
   shouldReduceMotion?: boolean;
   coachReplayKey?: number;
+  fromCity?: string;
+  toCity?: string;
 }
 
 // Robust check for WebGL support prior to mounting Three.js renderer
@@ -44,10 +51,17 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
   isDebug = false,
   shouldReduceMotion = false,
   coachReplayKey = 0,
+  fromCity = 'Đà Nẵng',
+  toCity = 'Huế',
 }) => {
   const [hasWebGL] = useState<boolean>(() => checkWebGLAvailability());
   const [hasRendererError, setHasRendererError] = useState(false);
-  const labelOverlayRef = useRef<HTMLDivElement>(null);
+
+  // Refs trực tiếp điều khiển các phần tử HTML/SVG trên DOM (zero React re-renders)
+  const danangOverlayRef = useRef<HTMLDivElement>(null);
+  const hueOverlayRef = useRef<HTMLDivElement>(null);
+  const svgRoutePathRef = useRef<SVGPathElement>(null);
+  const routeBadgeRef = useRef<HTMLDivElement>(null);
 
   if (!hasWebGL || hasRendererError) {
     return (
@@ -93,14 +107,25 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         {/* Core 3D Lighting & Environment */}
         <Environment />
 
-        {/* Paper Ticket: Thin ivory cardstock with precision hinge pivot and crease line */}
-        <PaperTicket flapAngle={flapAngle} isDebug={isDebug} />
+        {/* Paper Ticket: Thin ivory cardstock with precision hinge pivot, crease line and route imprint */}
+        <PaperTicket
+          flapAngle={flapAngle}
+          isDebug={isDebug}
+          fromCity={fromCity}
+          toCity={toCity}
+        />
 
         {/* Curved Road: Real continuous ribbon, shoulders, and dashed centerline */}
         <CurvedRoad isDebug={isDebug} />
 
-        {/* Da Nang Landmark Module: Cầu Rồng, Sông Hàn, Bờ kè, Cây xanh, Núi Sơn Trà */}
+        {/* Da Nang Landmark: Cầu Rồng, Sông Hàn, Bờ kè, Cây xanh, Núi Sơn Trà */}
         <DaNangLandmark isDebug={isDebug} />
+
+        {/* Central Pass Transition: Đèo Hải Vân & Rặng đồi xanh kết nối 2 miền di sản */}
+        <CentralPassTransition />
+
+        {/* Hue Landmark: Ngọ Môn Hoàng Thành, Lầu Ngũ Phụng, Hồ sen Kim Thủy, Rừng thông */}
+        <HueLandmark isDebug={isDebug} />
 
         {/* Sleeper Coach: Grounded 3D coach model animated along road curve with wheel rotation */}
         <SleeperCoach
@@ -108,18 +133,27 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
           replayKey={coachReplayKey}
         />
 
-        {/* 3D-to-2D Anchor Tracker: Cập nhật vị trí nhãn HTML/SVG bám vào Cầu Rồng */}
-        <LandmarkAnchorTracker
-          target3D={DA_NANG_DESTINATION.labelAnchor.worldPosition}
-          overlayRef={labelOverlayRef}
+        {/* Dual Landmark Anchor Tracker: Chiếu cả 2 điểm neo 3D và vẽ đường cong route SVG */}
+        <DualLandmarkAnchorTracker
+          danang3D={DA_NANG_DESTINATION.labelAnchor.worldPosition}
+          hue3D={HUE_DESTINATION.labelAnchor.worldPosition}
+          danangOverlayRef={danangOverlayRef}
+          hueOverlayRef={hueOverlayRef}
+          svgRoutePathRef={svgRoutePathRef}
+          routeBadgeRef={routeBadgeRef}
         />
 
         {/* Slot cho các phần tử 3D mở rộng */}
         {children}
       </Canvas>
 
-      {/* Nhãn HTML/SVG địa danh Đà Nẵng có neo 3D vào Cầu Rồng */}
-      <DestinationLabelOverlay overlayRef={labelOverlayRef} />
+      {/* Lớp phủ HTML/SVG: Nhãn Đà Nẵng, Nhãn Huế và tuyến đường nối liền */}
+      <DestinationLabelOverlay
+        danangOverlayRef={danangOverlayRef}
+        hueOverlayRef={hueOverlayRef}
+        svgRoutePathRef={svgRoutePathRef}
+        routeBadgeRef={routeBadgeRef}
+      />
     </div>
   );
 };
