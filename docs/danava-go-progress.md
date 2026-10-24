@@ -159,4 +159,47 @@
     - `danava_go_step3_debug_markers.png` (Đường dẫn xe, điểm vào t=0, điểm dừng t=0.62)
     - `danava_go_step3_flap_folded.png` (Xác thực góc xoay bản lề flap 180 độ)
 
+### Bước 4: Dựng xe Giường nằm hoàn chỉnh ở trạng thái đứng yên (Grounded Sleeper Coach Model)
+- **Thời gian**: 2026-10-24
+- **Công việc đã thực hiện**:
+  1. **Kiểm kê tài nguyên Model**:
+     - *Kết quả rà soát*: Trong kho lưu trữ không có bất kỳ file model 3D (`.glb`, `.gltf`, `.obj`, `.fbx`). Các file PNG sẵn có (`bus_coach_sleeper.png`, ...) là ảnh phẳng 2D cutout của giao diện cũ, không phải model 3D.
+     - *Giải pháp triển khai*: Xây dựng mô hình 3D Procedural Rig tham số hóa cao cấp (`SleeperCoach.tsx`, `coachConfig.ts`), tách riêng thân xe và 4 cụm bánh xe, chuẩn hóa gốc tọa độ và trục tiếp đất.
+     - *Yêu cầu tài nguyên GLB bổ sung trong tương lai (nếu muốn nâng cấp ultra-high-poly)*: File `sleeper_coach.glb` (< 2.5MB), 15k-25k tris, PBR texture (Albedo, Normal, Roughness, Metallic 1024x1024), tách rời 4 node bánh xe.
+  2. **Chuẩn hóa Gốc tọa độ & Trục tiếp đất (Standardized Vehicle Rig)**:
+     - Gốc tọa độ cục bộ `[0, 0, 0]` đặt tại mặt tiếp đất giữa hai trục bánh xe.
+     - Cao độ tâm trục bánh xe: $Y_{axle} = R_{wheel} = 0.078$.
+     - Đáy lốp xe nằm chuẩn xác tại $Y = 0.0$ trong hệ tọa độ cục bộ.
+     - Khi đặt xe tại cao độ $Y_{road} = 0.020$, 4 lốp xe tiếp đất 100% hoàn hảo trên mặt đường, không bị lún, không lơ lửng, không phụ thuộc vào bounding box ngẫu nhiên.
+     - Khoảng sáng gầm xe: `0.038` đơn vị (~28cm thực tế).
+  3. **Chi tiết Hình học & Tỷ lệ Chuẩn**:
+     - Tỷ lệ: Dài `1.15`, Rộng `0.33` (chiếm 48% bề rộng lòng đường `0.68`), Cao `0.35`.
+     - *Thân xe*: Vát góc khí động học, sơn xanh Navy thương hiệu `#102744`, độ nhám satin `0.38`, độ ánh kim `0.22`.
+     - *Cửa sổ 2 tầng*: Dải kính hai tầng xe giường nằm sẫm màu `#18202C`, độ phản xạ cao (`roughness: 0.12, metalness: 0.88`). Kính chắn gió trước vát nghiêng 25° và kính hậu sau.
+     - *Mui xe*: Cụm điều hòa làm mát mui xe (Roof AC Pod).
+     - *Bánh xe*: 4 cụm bánh tách rời (lốp cao su mờ `#1A1D20` và mâm đúc hợp kim bạc `#D8DCE2` có trục tâm).
+     - *Hệ thống đèn*: Đèn pha xenon LED ấm `#FFFDF0`, đèn gầm phá sương `#FFB300`, đèn hậu LED đỏ `#E53935`.
+     - *Branding DANAVA GO*: Dải decal eo màu Teal `#0097A7` và chữ nổi "DANAVA GO" sạch sẽ, tuyệt đối không có logo của hãng xe bên thứ ba.
+  4. **Bóng gầm xe tiếp xúc (Ambient Occlusion Contact Shadow)**:
+     - Mặt phẳng bóng gầm tiếp xúc đặt tại $Y = 0.0208$ (ngay trên mặt đường $0.8$mm, triệt tiêu Z-fighting), đổ bóng đậm dưới 4 vệt lốp xe và nhạt dần ra ngoài viền gầm xe.
+     - Kết hợp cùng bóng đổ Three.js `castShadow` từ Sun Key Light tạo chiều sâu cơ học vững chãi.
+  5. **Vị trí và Góc đỗ xe**:
+     - Đặt tại điểm dừng đỗ chuẩn $t = 0.62$ trên `VEHICLE_PATH_CURVE`.
+     - Góc quay `yawAngle ≈ 68.2°` theo hướng tiếp tuyến đường, quay đầu xe chếch đón góc nhìn 3/4 camera giống hệt frame kết video.
+     - Không che khuất vùng hậu cảnh núi đèo/landmark dự kiến ($Z < -0.4$).
+- **Kết quả nghiệm thu**:
+  - **Browser thật (Headless Edge CDP test)**:
+    - Canvas tải mượt mà với Sleeper Coach 3D, không có lỗi console (`Total console error count: 0`).
+    - Bánh xe chạm khít mặt đường, bóng gầm tiếp xúc tự nhiên.
+    - Form tìm kiếm click được và chuyển trang kết quả chuyến đi thành công.
+    - Desktop 1440×900: body width 1425px (không tràn).
+    - Mobile 390px: body width 390px (không tràn).
+  - **Linter & Typecheck**:
+    - `npx oxlint`: 0 warnings, 0 errors.
+    - `npm run build`: Thành công 100%, chunk `JourneyCanvas-*.js` độc lập.
+  - **Ảnh chụp nghiệm thu**:
+    - `danava_go_step4_1440x900.png` (Xe Giường nằm tĩnh góc 3/4 trên đường cong, bóng gầm vững chãi)
+    - `danava_go_step4_390px.png` (Hiển thị sắc nét trên màn hình di động)
+
+
 

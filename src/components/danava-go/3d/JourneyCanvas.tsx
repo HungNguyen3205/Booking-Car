@@ -4,6 +4,7 @@ import { DANAVA_3D_CONFIG } from './environmentConfig';
 import { Environment } from './Environment';
 import { PaperTicket } from './PaperTicket';
 import { CurvedRoad } from './CurvedRoad';
+import { SleeperCoach } from './SleeperCoach';
 import { WebGLFallback } from './WebGLFallback';
 
 interface JourneyCanvasProps {
@@ -90,7 +91,10 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         {/* Curved Road: Real continuous ribbon, shoulders, and dashed centerline */}
         <CurvedRoad isDebug={isDebug} />
 
-        {/* Future 3D elements (Landmarks, Bus) slot in here */}
+        {/* Sleeper Coach: Grounded 3D coach model positioned at static stop point */}
+        <SleeperCoach />
+
+        {/* Future 3D elements (Landmarks) slot in here */}
         {children}
       </Canvas>
     </div>
