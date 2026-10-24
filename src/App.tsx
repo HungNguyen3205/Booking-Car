@@ -4,6 +4,7 @@ import { BusPreloader } from './components/motion/BusPreloader';
 import { SiteHeader } from './components/layout/SiteHeader';
 import { SiteFooter } from './components/layout/SiteFooter';
 import { AnimatedBusHero } from './components/home/AnimatedBusHero';
+import { DanavaGoHero } from './components/danava-go/DanavaGoHero';
 import { FeaturedRoutes } from './components/home/FeaturedRoutes';
 import { VehicleExperience } from './components/home/VehicleExperience';
 import { BookingSteps } from './components/home/BookingSteps';
@@ -288,12 +289,21 @@ export const App: React.FC = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
               >
-                <AnimatedBusHero
-                  initialParams={searchParams}
-                  onSearch={handleSearch}
-                  isSearching={false}
-                  introReady={heroIntroReady}
-                />
+                {/* Hero Variant: DANAVA GO (default) or Legacy Hero (?hero=legacy) for dev comparison */}
+                {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('hero') === 'legacy' ? (
+                  <AnimatedBusHero
+                    initialParams={searchParams}
+                    onSearch={handleSearch}
+                    isSearching={false}
+                    introReady={heroIntroReady}
+                  />
+                ) : (
+                  <DanavaGoHero
+                    initialParams={searchParams}
+                    onSearch={handleSearch}
+                    isSearching={false}
+                  />
+                )}
                 <FeaturedRoutes
                   onSelectRoute={(from, to) => {
                     handleSearch({
