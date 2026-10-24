@@ -10,6 +10,7 @@ import {
 } from './destinationConfig';
 
 import type { TimelineProgress } from './journeyTimeline';
+import type { RouteTransitionController } from './routeTransition';
 
 /**
  * Three.js Inner Hook/Component: Chiếu tọa độ 3D của cả 2 địa danh Origin & Destination
@@ -29,6 +30,8 @@ export const DualLandmarkAnchorTracker: React.FC<{
   huePinProgress?: number;
   badgeProgress?: number;
   timelineRef?: React.RefObject<TimelineProgress | null>;
+  transitionProgress?: number;
+  controller?: RouteTransitionController;
 }> = ({
   origin3D,
   destination3D,
@@ -43,6 +46,8 @@ export const DualLandmarkAnchorTracker: React.FC<{
   huePinProgress = 1.0,
   badgeProgress = 1.0,
   timelineRef,
+  transitionProgress = 1.0,
+  controller,
 }) => {
   const { camera } = useThree();
   const vec1 = useRef(new THREE.Vector3());
@@ -58,6 +63,7 @@ export const DualLandmarkAnchorTracker: React.FC<{
     const rawHp = timelineRef?.current ? timelineRef.current.huePinProgress : huePinProgress;
     const rawRp = timelineRef?.current ? timelineRef.current.routeDrawProgress : routeDrawProgress;
     const rawBp = timelineRef?.current ? timelineRef.current.badgeProgress : badgeProgress;
+    const tp = controller ? Math.max(0, Math.min(1.0, controller.progress)) : Math.max(0, Math.min(1.0, transitionProgress));
 
     // 1. Chiếu điểm neo Origin (Bên trái)
     vec1.current.set(posOrigin[0], posOrigin[1], posOrigin[2]);
@@ -70,8 +76,9 @@ export const DualLandmarkAnchorTracker: React.FC<{
     if (danangOverlayRef.current) {
       danangOverlayRef.current.style.left = `${x1}%`;
       danangOverlayRef.current.style.top = `${y1}%`;
-      danangOverlayRef.current.style.transform = `translate(-50%, -100%) scale(${dp.toFixed(3)})`;
-      danangOverlayRef.current.style.opacity = vis1 && dp > 0.04 ? '1' : '0';
+      danangOverlayRef.current.style.transform = `translate(-50%, -100%) scale(${(dp * tp).toFixed(3)})`;
+      const op1 = vis1 && dp > 0.04 ? tp : 0;
+      danangOverlayRef.current.style.opacity = op1 > 0.005 ? op1.toFixed(3) : '0';
     }
 
     // 2. Chiếu điểm neo Destination (Bên phải)
@@ -85,8 +92,9 @@ export const DualLandmarkAnchorTracker: React.FC<{
     if (hueOverlayRef.current) {
       hueOverlayRef.current.style.left = `${x2}%`;
       hueOverlayRef.current.style.top = `${y2}%`;
-      hueOverlayRef.current.style.transform = `translate(-50%, -100%) scale(${hp.toFixed(3)})`;
-      hueOverlayRef.current.style.opacity = vis2 && hp > 0.04 ? '1' : '0';
+      hueOverlayRef.current.style.transform = `translate(-50%, -100%) scale(${(hp * tp).toFixed(3)})`;
+      const op2 = vis2 && hp > 0.04 ? tp : 0;
+      hueOverlayRef.current.style.opacity = op2 > 0.005 ? op2.toFixed(3) : '0';
     }
 
     // 3. Tính toán đỉnh cung đường cong SVG nối 2 pin (vồng lên bầu trời)
@@ -101,15 +109,17 @@ export const DualLandmarkAnchorTracker: React.FC<{
       );
       const dashOffset = (100 * (1 - rp)).toFixed(2);
       svgRoutePathRef.current.style.strokeDashoffset = `${dashOffset}`;
-      svgRoutePathRef.current.style.opacity = vis1 && vis2 && rp > 0.02 ? '1' : '0';
+      const opRoute = vis1 && vis2 && rp > 0.02 ? tp : 0;
+      svgRoutePathRef.current.style.opacity = opRoute > 0.005 ? opRoute.toFixed(3) : '0';
     }
 
     const bp = Math.max(0, Math.min(1.0, rawBp));
     if (routeBadgeRef.current) {
       routeBadgeRef.current.style.left = `${midX}%`;
       routeBadgeRef.current.style.top = `${midY}%`;
-      routeBadgeRef.current.style.transform = `translate(-50%, -50%) scale(${bp.toFixed(3)})`;
-      routeBadgeRef.current.style.opacity = vis1 && vis2 && bp > 0.04 ? '1' : '0';
+      routeBadgeRef.current.style.transform = `translate(-50%, -50%) scale(${(bp * tp).toFixed(3)})`;
+      const opBadge = vis1 && vis2 && bp > 0.04 ? tp : 0;
+      routeBadgeRef.current.style.opacity = opBadge > 0.005 ? opBadge.toFixed(3) : '0';
     }
   });
 
@@ -124,6 +134,7 @@ interface DestinationLabelOverlayProps {
   fromDestination?: DestinationDefinition;
   toDestination?: DestinationDefinition;
   route?: JourneyRouteDefinition;
+  transitionProgress?: number;
 }
 
 /**
@@ -138,6 +149,7 @@ export const DestinationLabelOverlay: React.FC<DestinationLabelOverlayProps> = (
   fromDestination = DA_NANG_DESTINATION,
   toDestination = HUE_DESTINATION,
   route = DA_NANG_HUE_ROUTE,
+  transitionProgress = 1.0,
 }) => {
   const originAnchor = fromDestination.labelAnchor.origin;
   const destAnchor = toDestination.labelAnchor.destination;
@@ -146,6 +158,10 @@ export const DestinationLabelOverlay: React.FC<DestinationLabelOverlayProps> = (
     <div
       className="absolute inset-0 w-full h-full pointer-events-none select-none overflow-hidden z-20"
       data-testid="danava-go-labels-and-route-overlay"
+      style={{
+        opacity: transitionProgress < 0.01 ? 0 : 1,
+        transition: 'opacity 0.15s ease-out',
+      }}
     >
       {/* =======================================================================
           A. TUYẾN ĐƯỜNG SVG NỐI 2 ĐỊA DANH (DYNAMIC VECTOR ROUTE PATH)

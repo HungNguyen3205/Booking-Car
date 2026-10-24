@@ -98,7 +98,11 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
     }
   };
 
-  // Step 9: Tự động đóng thông báo lỗi tải xe sau 4.5 giây
+  // Thông báo lỗi nhẹ khi tải asset (Step 9 xe, Step 12 cảnh)
+  const [sceneToast, setSceneToast] = useState<{ text: string; id: number } | null>(null);
+  const [simulateSceneErrorTrigger, setSimulateSceneErrorTrigger] = useState<boolean>(false);
+
+  // Step 9 & 12: Tự động đóng thông báo lỗi sau 4.5 giây
   useEffect(() => {
     if (!vehicleToast) return;
     const timer = setTimeout(() => {
@@ -106,6 +110,14 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
     }, 4500);
     return () => clearTimeout(timer);
   }, [vehicleToast]);
+
+  useEffect(() => {
+    if (!sceneToast) return;
+    const timer = setTimeout(() => {
+      setSceneToast(null);
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, [sceneToast]);
 
   // Step 9: Xử lý sự cố tải model xe - giữ nguyên xe trước đó và hiện thông báo trạng thái nhẹ
   const handleVehicleError = (failedCategory: VehicleCategory, fallbackCategory: VehicleCategory) => {
@@ -121,10 +133,28 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
     });
   };
 
-  // Step 9: Giả lập lỗi tải mô hình để kiểm thử nghiệm thu kịch bản asset lỗi
+  // Step 9: Giả lập lỗi tải mô hình để kiểm thử nghiệm thu kịch bản asset xe lỗi
   const handleSimulateVehicleError = () => {
     const targetError: VehicleCategory = selectedVehicle === 'cabin' ? 'limousine' : 'cabin';
     handleVehicleError(targetError, selectedVehicle);
+  };
+
+  // Step 12: Xử lý sự cố tải cảnh - không commit broken scene, giữ cảnh trước đó và hiện thông báo
+  const handleSceneError = (targetRoute: { from: string; to: string }, errorMsg: string) => {
+    setSceneToast({
+      text: errorMsg || `Không thể tải cảnh quan cho tuyến ${targetRoute.from} → ${targetRoute.to}. Giữ cảnh trước đó.`,
+      id: Date.now(),
+    });
+    setSimulateSceneErrorTrigger(false);
+  };
+
+  // Step 12: Giả lập lỗi tải cảnh để kiểm thử nghiệm thu kịch bản asset cảnh lỗi
+  const handleSimulateSceneError = () => {
+    setSimulateSceneErrorTrigger(true);
+    handleSceneError(
+      currentRoute,
+      `Giả lập sự cố tải mô hình 3D cho ${currentRoute.to}. Giữ cảnh trước đó an toàn.`
+    );
   };
 
   const vehicleOptions: { id: VehicleCategory; label: string; icon: React.ReactNode }[] = [
@@ -208,7 +238,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                 )}
               </div>
 
-              {/* Thông báo trạng thái nhẹ khi có lỗi tải asset xe */}
+              {/* Thông báo trạng thái nhẹ khi có lỗi tải asset xe hoặc cảnh quan */}
               <AnimatePresence>
                 {vehicleToast && (
                   <motion.div
@@ -229,6 +259,32 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                       type="button"
                       onClick={() => setVehicleToast(null)}
                       className="text-[#8D6E63] hover:text-[#3E2723] text-sm font-bold px-1.5 py-0.5 rounded hover:bg-[#FFE082]/40 transition-colors cursor-pointer"
+                      aria-label="Đóng thông báo"
+                    >
+                      ✕
+                    </button>
+                  </motion.div>
+                )}
+
+                {sceneToast && (
+                  <motion.div
+                    key={sceneToast.id}
+                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center justify-between gap-3 mt-3 px-3.5 py-2.5 rounded-xl text-xs font-medium bg-[#E0F2F1] text-[#004D40] border border-[#80CBC4] shadow-sm max-w-[480px] pointer-events-auto"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-[#00897B] shrink-0" />
+                      <span>{sceneToast.text}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSceneToast(null)}
+                      className="text-[#004D40] hover:text-[#00251A] text-sm font-bold px-1.5 py-0.5 rounded hover:bg-[#80CBC4]/40 transition-colors cursor-pointer"
                       aria-label="Đóng thông báo"
                     >
                       ✕
@@ -270,6 +326,8 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                     onTimelineComplete={handleIntroComplete}
                     selectedVehicle={selectedVehicle}
                     onVehicleError={handleVehicleError}
+                    simulateSceneError={simulateSceneErrorTrigger}
+                    onSceneError={handleSceneError}
                   />
                 </Suspense>
               </div>
@@ -323,9 +381,17 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                         type="button"
                         onClick={handleSimulateVehicleError}
                         className="pointer-events-auto text-[11px] font-mono bg-[#E65100] hover:bg-[#F57C00] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
-                        title="Giả lập lỗi tải mô hình để kiểm thử fallback và thông báo nhẹ"
+                        title="Giả lập lỗi tải xe để kiểm thử fallback và thông báo nhẹ"
                       >
                         Test Lỗi Xe ⚠
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSimulateSceneError}
+                        className="pointer-events-auto text-[11px] font-mono bg-[#00695C] hover:bg-[#00897B] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
+                        title="Giả lập lỗi tải cảnh để kiểm thử không commit broken scene"
+                      >
+                        Test Lỗi Cảnh ⚠
                       </button>
                       <button
                         type="button"

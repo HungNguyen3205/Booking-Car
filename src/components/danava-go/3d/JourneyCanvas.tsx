@@ -1,17 +1,16 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { DANAVA_3D_CONFIG } from './environmentConfig';
 import { Environment } from './Environment';
 import { PaperTicket } from './PaperTicket';
 import { CurvedRoad } from './CurvedRoad';
 import { VehicleStage } from './VehicleStage';
-import { DaNangLandmark } from './DaNangLandmark';
-import { HueLandmark } from './HueLandmark';
-import { NhaTrangLandmark } from './NhaTrangLandmark';
-import { HoChiMinhLandmark } from './HoChiMinhLandmark';
-import { NeutralScenicLandscape } from './NeutralScenicLandscape';
 import { CentralPassTransition } from './CentralPassTransition';
-import { resolveDestination, resolveRoute } from './destinationConfig';
+import { LandmarkSlotStage } from './LandmarkSlotStage';
+import {
+  useRouteTransitionController,
+  type RouteTransitionController,
+} from './routeTransition';
 import {
   DualLandmarkAnchorTracker,
   DestinationLabelOverlay,
@@ -34,16 +33,36 @@ interface JourneyCanvasProps {
   coachReplayKey?: number;
   fromCity?: string;
   toCity?: string;
-  // Step 8: Intro Timeline Orchestration Props
   isIntroPlayed?: boolean;
   introReplayKey?: number;
   isSkipped?: boolean;
   onTimelineStateChange?: (state: JourneyTimelineState) => void;
   onTimelineComplete?: () => void;
-  // Step 9: Dynamic Vehicle Selection & Transitions
   selectedVehicle?: VehicleCategory;
   onVehicleError?: (failedCategory: VehicleCategory, fallbackCategory: VehicleCategory) => void;
+  simulateSceneError?: boolean;
+  onSceneError?: (targetRoute: { from: string; to: string }, errorMsg: string) => void;
+  onSceneChangeStart?: () => void;
+  onSceneChangeComplete?: (from: string, to: string) => void;
 }
+
+/**
+ * Điều phối viên chuyển cảnh 60fps trong useFrame
+ * Kích hoạt re-render 1 lần duy nhất đúng thời điểm cụm cũ đã hạ hẳn để đổi landmark mới
+ */
+const TransitionTicker: React.FC<{
+  controller: RouteTransitionController;
+  onSwitch: () => void;
+}> = ({ controller, onSwitch }) => {
+  useFrame((_, delta) => {
+    const oldPhase = controller.phase;
+    controller.update(delta);
+    if (oldPhase === 'exiting' && controller.phase === 'entering') {
+      onSwitch();
+    }
+  });
+  return null;
+};
 
 /**
  * Điều phối viên Timeline chạy trong vòng lặp useFrame của Three.js
@@ -152,6 +171,10 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
   onTimelineComplete,
   selectedVehicle = 'sleeper',
   onVehicleError,
+  simulateSceneError = false,
+  onSceneError,
+  onSceneChangeStart,
+  onSceneChangeComplete,
 }) => {
   const [hasWebGL] = useState<boolean>(() => checkWebGLAvailability());
   const [hasRendererError, setHasRendererError] = useState(false);
@@ -170,10 +193,26 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
   const svgRoutePathRef = useRef<SVGPathElement>(null);
   const routeBadgeRef = useRef<HTMLDivElement>(null);
 
-  // Step 10: Phân giải cấu hình địa danh mở rộng và tuyến đường động (một nguồn duy nhất)
-  const fromDestination = useMemo(() => resolveDestination(fromCity, 'origin'), [fromCity]);
-  const toDestination = useMemo(() => resolveDestination(toCity, 'destination'), [toCity]);
-  const routeDef = useMemo(() => resolveRoute(fromCity, toCity), [fromCity, toCity]);
+  // Step 12: Bộ điều phối chuyển cảnh thông minh giữa Form, Scene và Route (Latest Choice Wins)
+  const { controller, requestRoute } = useRouteTransitionController(
+    fromCity,
+    toCity,
+    shouldReduceMotion
+  );
+  const [, setRenderEpoch] = useState<number>(0);
+
+  // Kích hoạt request đổi tuyến (Latest Choice Wins)
+  useEffect(() => {
+    if (simulateSceneError) {
+      onSceneError?.(
+        { from: fromCity, to: toCity },
+        `Không thể tải cảnh quan cho tuyến ${fromCity} → ${toCity}. Giữ cảnh trước đó an toàn.`
+      );
+      return;
+    }
+    onSceneChangeStart?.();
+    requestRoute(fromCity, toCity);
+  }, [fromCity, toCity, simulateSceneError, requestRoute, onSceneError, onSceneChangeStart]);
 
   if (!hasWebGL || hasRendererError) {
     return (
@@ -230,12 +269,21 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
           onTimelineComplete={onTimelineComplete}
         />
 
+        {/* Step 12: Bộ điều phối chuyển cảnh 60fps đồng bộ trong useFrame */}
+        <TransitionTicker
+          controller={controller}
+          onSwitch={() => {
+            setRenderEpoch((e) => e + 1);
+            onSceneChangeComplete?.(controller.current.fromCity, controller.current.toCity);
+          }}
+        />
+
         {/* Paper Ticket: Thin ivory cardstock with precision hinge pivot, crease line and route imprint */}
         <PaperTicket
           flapAngle={flapAngle}
           isDebug={isDebug}
-          fromCity={fromCity}
-          toCity={toCity}
+          fromCity={controller.current.fromCity}
+          toCity={controller.current.toCity}
           timelineRef={timelineRef}
         />
 
@@ -243,48 +291,33 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         <CurvedRoad isDebug={isDebug} />
 
         {/* =======================================================================
-            Step 10: VÙNG ORIGIN LANDMARK (MẠN TRÁI VÉ)
+            Step 12: VÙNG ORIGIN LANDMARK (MẠN TRÁI VÉ)
+            Quản lý trồi sụt chuyển cảnh nhịp nhàng khi đổi tuyến hoặc đảo chiều
             ======================================================================= */}
-        {fromDestination.id === 'da-nang' && (
-          <DaNangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
-        )}
-        {fromDestination.id === 'nha-trang' && (
-          <NhaTrangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
-        )}
-        {fromDestination.id === 'ho-chi-minh' && (
-          <HoChiMinhLandmark isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
-        )}
-        {fromDestination.id === 'hue' && (
-          <HueLandmark isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
-        )}
-        {!fromDestination.hasDedicatedModel && (
-          <NeutralScenicLandscape isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
-        )}
+        <LandmarkSlotStage
+          destination={controller.current.fromDest}
+          slot="origin"
+          controller={controller}
+          timelineRef={timelineRef}
+          isDebug={isDebug}
+        />
 
         {/* Central Pass Transition: Đèo Hải Vân & Rặng đồi xanh kết nối 2 miền di sản */}
         <CentralPassTransition timelineRef={timelineRef} />
 
         {/* =======================================================================
-            Step 10: VÙNG DESTINATION LANDMARK (MẠN PHẢI VÉ)
-            Tuyệt đối không gán tên Nha Trang lên Ngọ Môn hoặc ngược lại
+            Step 12: VÙNG DESTINATION LANDMARK (MẠN PHẢI VÉ)
+            Tuyệt đối không gán tên mới đè lên công trình cũ trong bất kỳ frame nào
             ======================================================================= */}
-        {toDestination.id === 'hue' && (
-          <HueLandmark isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
-        )}
-        {toDestination.id === 'nha-trang' && (
-          <NhaTrangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
-        )}
-        {toDestination.id === 'ho-chi-minh' && (
-          <HoChiMinhLandmark isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
-        )}
-        {toDestination.id === 'da-nang' && (
-          <DaNangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
-        )}
-        {!toDestination.hasDedicatedModel && (
-          <NeutralScenicLandscape isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
-        )}
+        <LandmarkSlotStage
+          destination={controller.current.toDest}
+          slot="destination"
+          controller={controller}
+          timelineRef={timelineRef}
+          isDebug={isDebug}
+        />
 
-        {/* Step 9: Dynamic Vehicle Selection & Transitions (Sleeper Coach, Limousine Van, Cabin VIP) */}
+        {/* Step 9 & 12: Dynamic Vehicle Selection & Safe Vehicle Transitions */}
         <VehicleStage
           currentVehicle={selectedVehicle}
           shouldReduceMotion={shouldReduceMotion}
@@ -295,13 +328,14 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
 
         {/* Dual Landmark Anchor Tracker: Chiếu cả 2 điểm neo 3D và vẽ đường cong route SVG */}
         <DualLandmarkAnchorTracker
-          origin3D={fromDestination.labelAnchor.origin.worldPosition}
-          destination3D={toDestination.labelAnchor.destination.worldPosition}
+          origin3D={controller.current.fromDest.labelAnchor.origin.worldPosition}
+          destination3D={controller.current.toDest.labelAnchor.destination.worldPosition}
           danangOverlayRef={danangOverlayRef}
           hueOverlayRef={hueOverlayRef}
           svgRoutePathRef={svgRoutePathRef}
           routeBadgeRef={routeBadgeRef}
           timelineRef={timelineRef}
+          controller={controller}
         />
 
         {/* Slot cho các phần tử 3D mở rộng */}
@@ -314,9 +348,10 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         hueOverlayRef={hueOverlayRef}
         svgRoutePathRef={svgRoutePathRef}
         routeBadgeRef={routeBadgeRef}
-        fromDestination={fromDestination}
-        toDestination={toDestination}
-        route={routeDef}
+        fromDestination={controller.current.fromDest}
+        toDestination={controller.current.toDest}
+        route={controller.current.routeDef}
+        transitionProgress={controller.progress}
       />
     </div>
   );
