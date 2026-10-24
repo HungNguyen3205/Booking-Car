@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { TripSearchForm } from '../home/TripSearchForm';
 import type { SearchParams, VehicleCategory } from '../../types';
-import { Armchair, BedDouble, Crown, QrCode, Sparkles, MapPin } from 'lucide-react';
+import { Armchair, BedDouble, Crown, QrCode, Sparkles } from 'lucide-react';
+import { WebGLFallback } from './3d/WebGLFallback';
+
+// Lazy-load isolated 3D Three.js Canvas to keep booking/checkout bundles lightweight
+const JourneyCanvas = React.lazy(() =>
+  import('./3d/JourneyCanvas').then((m) => ({ default: m.JourneyCanvas }))
+);
 
 interface DanavaGoHeroProps {
   initialParams: SearchParams;
@@ -94,22 +100,29 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
 
           {/* 3D TICKET SCENE STAGE (RIGHT / CENTER-RIGHT)
               Stable geometry scaffold: exact aspect ratio to prevent layout shifts.
-              In Step 2-4, this will host the folding paper ticket, pop-up diorama, and animated bus.
+              Seamlessly renders the Three.js 3D Canvas with soft lighting & cream background.
           */}
           <div
             className="w-full lg:absolute lg:inset-0 lg:left-0 pointer-events-none z-[5] flex items-center justify-end"
             aria-hidden="true"
           >
             <div
-              className="w-full lg:w-[62%] aspect-[1376/720] max-h-[570px] relative rounded-2xl overflow-hidden pointer-events-auto border border-[#E5E3DC]/80 bg-gradient-to-br from-[#FFFDF8] via-[#F9F6EE] to-[#EFECE2] shadow-[0_16px_40px_-12px_rgba(16,39,68,0.08)] flex flex-col justify-between p-4 sm:p-6"
+              className="w-full lg:w-[62%] aspect-[1376/720] max-h-[570px] relative rounded-2xl overflow-hidden pointer-events-none border border-[#E5E3DC]/80 bg-[#F7F4EC] shadow-[0_16px_40px_-12px_rgba(16,39,68,0.08)] flex flex-col justify-between"
               data-testid="danava-go-stage-scaffold"
             >
-              {/* Paper Ticket Header Strip */}
-              <div className="flex items-center justify-between border-b border-[#E5E3DC] pb-3">
+              {/* Lazy-loaded 3D WebGL Canvas Layer */}
+              <div className="absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-hidden">
+                <Suspense fallback={<WebGLFallback message="Đang khởi tạo không gian 3D Three.js..." />}>
+                  <JourneyCanvas />
+                </Suspense>
+              </div>
+
+              {/* Stage Header Strip */}
+              <div className="relative z-10 flex items-center justify-between border-b border-[#E5E3DC]/60 px-5 pt-3.5 pb-2.5 bg-gradient-to-b from-[#FFFDF8]/90 to-transparent">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#0097A7]" />
                   <span className="font-serif text-sm font-bold text-[#102744] tracking-wider">
-                    DANAVA GO • TICKET POP-UP DIORAMA
+                    DANAVA GO • 3D ENVIRONMENT
                   </span>
                 </div>
                 <span className="text-[11px] font-semibold text-[#718096] bg-[#FFF9ED] px-2.5 py-0.5 rounded-md border border-[#E5E3DC]">
@@ -117,49 +130,10 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                 </span>
               </div>
 
-              {/* Scenery Stage Canvas Placeholder (Stable dimensions) */}
-              <div className="relative flex-1 my-3 rounded-xl border border-dashed border-[#D8D4C9] bg-[#F7F4EC]/60 flex flex-col items-center justify-center p-4 text-center overflow-hidden">
-                <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#102744_1px,transparent_1px)] [background-size:16px_16px]" />
-
-                {/* Landmark Anchors Preview */}
-                <div className="flex items-center justify-around w-full max-w-md z-10 my-auto">
-                  {/* Origin Landmark Anchor (Đà Nẵng / Cầu Rồng) */}
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div className="w-10 h-10 rounded-full bg-[#FFFEFA] border border-[#0097A7] shadow-xs flex items-center justify-center text-[#0097A7]">
-                      <MapPin className="w-5 h-5" />
-                    </div>
-                    <span className="text-xs font-bold text-[#102744]">{currentRoute.from}</span>
-                    <span className="text-[10px] text-[#718096]">Cầu Rồng</span>
-                  </div>
-
-                  {/* Connecting Route Dash */}
-                  <div className="flex-1 px-4">
-                    <div className="h-[2px] w-full bg-gradient-to-r from-[#0097A7] via-[#D97706] to-[#0097A7] border-t-2 border-dotted border-[#0097A7]" />
-                  </div>
-
-                  {/* Destination Landmark Anchor (Huế / Ngọ Môn) */}
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div className="w-10 h-10 rounded-full bg-[#FFFEFA] border border-[#D97706] shadow-xs flex items-center justify-center text-[#D97706]">
-                      <MapPin className="w-5 h-5" />
-                    </div>
-                    <span className="text-xs font-bold text-[#102744]">{currentRoute.to}</span>
-                    <span className="text-[10px] text-[#718096]">Ngọ Môn</span>
-                  </div>
-                </div>
-
-                {/* Grounding Vehicle Anchor Preview */}
-                <div className="z-10 mt-2 px-3 py-1 rounded-full bg-[#102744]/5 text-[#102744] text-[11px] font-medium flex items-center gap-1.5">
-                  <span>Mô hình xe tiếp xúc mặt đường:</span>
-                  <strong className="font-semibold text-[#0097A7]">
-                    {vehicleOptions.find((v) => v.id === selectedVehicle)?.label}
-                  </strong>
-                </div>
-              </div>
-
-              {/* Ticket Footer Meta */}
-              <div className="flex items-center justify-between text-[11px] text-[#718096] pt-2 border-t border-[#E5E3DC]">
+              {/* Stage Footer Meta */}
+              <div className="relative z-10 flex items-center justify-between text-[11px] text-[#718096] px-5 py-2.5 border-t border-[#E5E3DC]/60 bg-gradient-to-t from-[#FFFDF8]/90 to-transparent">
                 <span>Tuyến mẫu: Đà Nẵng — Huế</span>
-                <span className="italic">Sân khấu vé mở 3D (sẽ dựng ở các bước tiếp theo)</span>
+                <span className="italic">Góc nhìn 3/4 • Ánh sáng mềm • Nền nhận bóng</span>
               </div>
             </div>
           </div>
