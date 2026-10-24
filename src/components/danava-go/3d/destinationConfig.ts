@@ -446,6 +446,120 @@ export const NHA_TRANG_DESTINATION: DestinationDefinition = {
 };
 
 // ============================================================================
+// 4. ĐỊNH NGHĨA CHÍNH THỨC: TP. HỒ CHÍ MINH (BƯỚC 11 / LANDMARK 81 & SÔNG SÀI GÒN)
+// ============================================================================
+const HOCHIMINH_DEST_PLACEMENT: DestinationPlacement = {
+  position: [2.15, 0.0, -0.15],
+  rotation: [0, -0.10, 0],
+  scale: [1.32, 1.32, 1.32],
+};
+
+const HOCHIMINH_ORIGIN_PLACEMENT: DestinationPlacement = {
+  position: [-2.15, 0.0, 0.0],
+  rotation: [0, 0.08, 0],
+  scale: [1.35, 1.35, 1.35],
+};
+
+const HOCHIMINH_DEST_ANCHOR: DestinationLabelAnchor = {
+  worldPosition: [2.15, 1.05, -0.15],
+  offset2D: [0, -18],
+  badgeTitle: 'TP. Hồ Chí Minh',
+  badgeSubtitle: 'Landmark 81 • Bến Bạch Đằng',
+  icon: 'sparkles',
+};
+
+const HOCHIMINH_ORIGIN_ANCHOR: DestinationLabelAnchor = {
+  worldPosition: [-2.15, 1.05, 0.05],
+  offset2D: [0, -18],
+  badgeTitle: 'TP. Hồ Chí Minh',
+  badgeSubtitle: 'Landmark 81 • Bến Bạch Đằng',
+  icon: 'sparkles',
+};
+
+export const HO_CHI_MINH_DESTINATION: DestinationDefinition = {
+  id: 'ho-chi-minh',
+  searchLocationId: 'ho-chi-minh',
+  displayName: 'TP. Hồ Chí Minh',
+  administrativeArea: 'Thành phố Hồ Chí Minh',
+  sceneLandmarkId: 'hcm-landmark81-saigon',
+  tagline: 'Landmark 81 sừng sững bên sông Sài Gòn • Đô thị phồn hoa Bến Bạch Đằng',
+  hasDedicatedModel: true,
+  supportedSlots: ['destination', 'origin'],
+
+  model: {
+    type: 'procedural-3d',
+    name: 'Landmark 81, Bitexco & Bến Bạch Đằng Sông Sài Gòn',
+    landmarkName: 'Landmark 81 & Tòa Bitexco (TP. Hồ Chí Minh)',
+    description:
+      'Mô hình 3D Landmark 81 với kiến trúc bó tre truyền thống 9 khối vươn cao lộng lẫy, kim tháp anten nhọn trên đỉnh. Bên cạnh là Tháp Bitexco búp sen với sân đỗ trực thăng chìa ra ở tầng 52, uốn lượn bên bờ sông Sài Gòn xanh ngọc, công viên Bến Bạch Đằng rợp bóng mát và tàu buýt sông Saigon Waterbus vàng cam rực rỡ.',
+    geometrySummary:
+      'Cấu trúc bó tre 9 khối hộp lăng trụ 3 tầng bậc thang; kim tháp spire nhọn; tháp Bitexco búp sen có sân trực thăng cantiliver; dải sông Sài Gòn uốn cong mềm mại; kè đá bến Bạch Đằng; tàu buýt sông Saigon Waterbus.',
+    materials: {
+      towerGlassSky: '#90CAF9',       // Kính xanh lam bóng phản chiếu bầu trời
+      towerGlassDeep: '#42A5F5',      // Lam đậm lõi tháp
+      towerGlassNight: '#1565C0',     // Kính góc nghiêng đậm
+      towerFrameSilver: '#ECEFF1',    // Viền khung nhôm composite bạc
+      spireAntenna: '#FFF9C4',        // Kim tháp kim loại sáng
+      bitexcoBody: '#78909C',         // Thân tháp Bitexco búp sen
+      bitexcoHelipad: '#FF7043',      // Sân đỗ trực thăng viền cam
+      riverWater: '#00838F',          // Sông Sài Gòn xanh ngọc
+      riverFoam: '#80DEEA',           // Gợn sóng bến Bạch Đằng
+      quaysideStone: '#CFD8DC',       // Bờ kè đá granite bến Bạch Đằng
+      waterbusHull: '#FFA000',        // Thân tàu Saigon Waterbus vàng cam
+      waterbusRoof: '#FFFFFF',        // Mui tàu buýt sông trắng
+      parkTrees: '#2E7D32',           // Cây xanh công viên ven sông
+      skylineBuildings: '#B0BEC5',    // Các tòa cao ốc đô thị phụ trợ
+    },
+    hasBakedText: false,
+    triangleBudget: 2800,
+  },
+
+  labelAnchor: Object.assign({}, HOCHIMINH_DEST_ANCHOR, {
+    origin: HOCHIMINH_ORIGIN_ANCHOR,
+    destination: HOCHIMINH_DEST_ANCHOR,
+  }),
+
+  safeZone: {
+    bounds: { minX: 0.9, maxX: 3.6, minY: 0.0, maxY: 1.15, minZ: -1.3, maxZ: 0.45 },
+    headlineClearance: {
+      description: 'Nằm trọn ở mạn phải của sân khấu vé 3D, không che khuất headline bên trái.',
+      stageLeftMarginPct: 58.0,
+    },
+    vehicleClearance: {
+      minDistanceToRoad: 0.40,
+      minDistanceToCoachStop: 1.45,
+      description: 'Tòa Landmark 81 và sông Sài Gòn nằm mạn phải, xe khách dừng ở t=0.62 quay đầu nhìn về skyline.',
+    },
+  },
+
+  placements: {
+    origin: HOCHIMINH_ORIGIN_PLACEMENT,
+    destination: HOCHIMINH_DEST_PLACEMENT,
+  },
+  placement: HOCHIMINH_DEST_PLACEMENT,
+
+  approvalStatus: {
+    isApproved: true,
+    status: 'approved',
+    approvalDate: '2026-10-24',
+    version: '1.0.0',
+    referenceImages: [
+      'public/assets/images/scenes/scene_hcm.jpg',
+      'public/assets/images/scenes/journey-pop-up.webp',
+    ],
+    verifiedCriteria: {
+      recognizableWithoutLabel: true,    // Kiến trúc bó tre Landmark 81 & Bitexco nhận diện ngay
+      noOverlapHeadline: true,
+      noOverlapVehicle: true,
+      noRectangularHardEdges: true,
+      zeroBakedProvinceText: true,       // Tuyệt đối không bake chữ TP. Hồ Chí Minh trên model
+      htmlSvgLabelAttached: true,
+      standardCameraCompatibility: true,
+    },
+  },
+};
+
+// ============================================================================
 // 4. FALLBACK PHONG CẢNH TRUNG TÍNH (DÀNH CHO CÁC ĐỊA ĐIỂM CHƯA CÓ 3D CHUYÊN BIỆT)
 // Tránh tuyệt đối việc gán nhãn sai tên tỉnh lên Ngọ Môn hay Cầu Rồng!
 // ============================================================================
@@ -633,10 +747,83 @@ export const SUPPORTED_ROUTES: Record<string, JourneyRouteDefinition> = {
     description: 'Từ Cố đô Huế xuôi về phương Nam đón nắng gió vịnh biển Nha Trang',
     transitionType: 'coastal',
   },
+  'da-nang:ho-chi-minh': {
+    id: 'da-nang:ho-chi-minh',
+    title: 'ĐÀ NẴNG → TP. HỒ CHÍ MINH',
+    fromId: 'da-nang',
+    toId: 'ho-chi-minh',
+    distanceKm: 960,
+    estimatedDuration: '18h 30m',
+    departureLabel: 'Đà Nẵng',
+    arrivalLabel: 'TP. Hồ Chí Minh',
+    description: 'Từ Cầu Rồng sông Hàn xuôi về phương Nam đến đô thị phồn hoa Bến Bạch Đằng & Landmark 81',
+    transitionType: 'coastal',
+  },
+  'ho-chi-minh:da-nang': {
+    id: 'ho-chi-minh:da-nang',
+    title: 'TP. HỒ CHÍ MINH → ĐÀ NẴNG',
+    fromId: 'ho-chi-minh',
+    toId: 'da-nang',
+    distanceKm: 960,
+    estimatedDuration: '18h 30m',
+    departureLabel: 'TP. Hồ Chí Minh',
+    arrivalLabel: 'Đà Nẵng',
+    description: 'Từ thành phố mang tên Bác hướng về miền Trung thân yêu, đón bình minh Cầu Rồng sông Hàn',
+    transitionType: 'coastal',
+  },
+  'nha-trang:ho-chi-minh': {
+    id: 'nha-trang:ho-chi-minh',
+    title: 'NHA TRANG → TP. HỒ CHÍ MINH',
+    fromId: 'nha-trang',
+    toId: 'ho-chi-minh',
+    distanceKm: 430,
+    estimatedDuration: '7h 45m',
+    departureLabel: 'Nha Trang',
+    arrivalLabel: 'TP. Hồ Chí Minh',
+    description: 'Từ vịnh biển ngọc Nha Trang về trung tâm tài chính sầm uất Bến Bạch Đằng TP. Hồ Chí Minh',
+    transitionType: 'coastal',
+  },
+  'ho-chi-minh:nha-trang': {
+    id: 'ho-chi-minh:nha-trang',
+    title: 'TP. HỒ CHÍ MINH → NHA TRANG',
+    fromId: 'ho-chi-minh',
+    toId: 'nha-trang',
+    distanceKm: 430,
+    estimatedDuration: '7h 45m',
+    departureLabel: 'TP. Hồ Chí Minh',
+    arrivalLabel: 'Nha Trang',
+    description: 'Từ Sài Gòn hoa lệ thẳng tiến cao tốc về thiên đường biển xanh cát trắng Tháp Trầm Hương Nha Trang',
+    transitionType: 'coastal',
+  },
+  'hue:ho-chi-minh': {
+    id: 'hue:ho-chi-minh',
+    title: 'HUẾ → TP. HỒ CHÍ MINH',
+    fromId: 'hue',
+    toId: 'ho-chi-minh',
+    distanceKm: 1050,
+    estimatedDuration: '20h 15m',
+    departureLabel: 'Huế',
+    arrivalLabel: 'TP. Hồ Chí Minh',
+    description: 'Hành trình xuyên Việt nối liền Cố đô trầm mặc và đô thị hiện đại năng động bậc nhất phương Nam',
+    transitionType: 'coastal',
+  },
+  'ho-chi-minh:hue': {
+    id: 'ho-chi-minh:hue',
+    title: 'TP. HỒ CHÍ MINH → HUẾ',
+    fromId: 'ho-chi-minh',
+    toId: 'hue',
+    distanceKm: 1050,
+    estimatedDuration: '20h 15m',
+    departureLabel: 'TP. Hồ Chí Minh',
+    arrivalLabel: 'Huế',
+    description: 'Từ bến Bạch Đằng hoa lệ trở về miền di sản Hoàng Thành Ngọ Môn Cố Đô Huế',
+    transitionType: 'coastal',
+  },
 };
 
 export const DA_NANG_HUE_ROUTE = SUPPORTED_ROUTES['da-nang:hue'];
 export const DA_NANG_NHA_TRANG_ROUTE = SUPPORTED_ROUTES['da-nang:nha-trang'];
+export const DA_NANG_HO_CHI_MINH_ROUTE = SUPPORTED_ROUTES['da-nang:ho-chi-minh'];
 
 // ============================================================================
 // 6. BẢNG TRA CỨU ALIAS CHUẨN XÁC TỪ FORM TÌM KIẾM
@@ -689,15 +876,18 @@ export const LOCATION_CANONICAL_MAP: Record<string, string> = {
   'hồ chí minh': 'ho-chi-minh',
   'sài gòn': 'ho-chi-minh',
   'tphcm': 'ho-chi-minh',
+  'sgn': 'ho-chi-minh',
+  'thành phố hồ chí minh': 'ho-chi-minh',
 };
 
 // ============================================================================
-// 7. REGISTRY CÔNG KHAI CÁC ĐỊA ĐIỂM (BƯỚC 10)
+// 7. REGISTRY CÔNG KHAI CÁC ĐỊA ĐIỂM (BƯỚC 11: BỔ SUNG TP. HỒ CHÍ MINH)
 // ============================================================================
 export const DESTINATION_REGISTRY: Record<string, DestinationDefinition> = {
   'da-nang': DA_NANG_DESTINATION,
   'hue': HUE_DESTINATION,
   'nha-trang': NHA_TRANG_DESTINATION,
+  'ho-chi-minh': HO_CHI_MINH_DESTINATION,
 };
 
 /**
@@ -857,9 +1047,9 @@ export function getPublicDestinationRegistryReport(): {
       searchId: 'ho-chi-minh',
       city: 'TP. Hồ Chí Minh',
       province: 'Thành phố Hồ Chí Minh',
-      landmark: 'Phong cảnh liên tỉnh (Dự kiến)',
-      status: 'fallback' as const,
-      hasDedicatedModel: false,
+      landmark: 'Landmark 81, Bitexco & Bến Bạch Đằng Sông Sài Gòn',
+      status: 'approved' as const,
+      hasDedicatedModel: true,
     },
   ];
 

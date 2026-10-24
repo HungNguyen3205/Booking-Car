@@ -8,6 +8,7 @@ import { VehicleStage } from './VehicleStage';
 import { DaNangLandmark } from './DaNangLandmark';
 import { HueLandmark } from './HueLandmark';
 import { NhaTrangLandmark } from './NhaTrangLandmark';
+import { HoChiMinhLandmark } from './HoChiMinhLandmark';
 import { NeutralScenicLandscape } from './NeutralScenicLandscape';
 import { CentralPassTransition } from './CentralPassTransition';
 import { resolveDestination, resolveRoute } from './destinationConfig';
@@ -250,6 +251,9 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         {fromDestination.id === 'nha-trang' && (
           <NhaTrangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
         )}
+        {fromDestination.id === 'ho-chi-minh' && (
+          <HoChiMinhLandmark isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
+        )}
         {fromDestination.id === 'hue' && (
           <HueLandmark isDebug={isDebug} timelineRef={timelineRef} slot="origin" />
         )}
@@ -269,6 +273,9 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         )}
         {toDestination.id === 'nha-trang' && (
           <NhaTrangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
+        )}
+        {toDestination.id === 'ho-chi-minh' && (
+          <HoChiMinhLandmark isDebug={isDebug} timelineRef={timelineRef} slot="destination" />
         )}
         {toDestination.id === 'da-nang' && (
           <DaNangLandmark isDebug={isDebug} timelineRef={timelineRef} slot="destination" />

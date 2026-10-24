@@ -331,16 +331,25 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                         type="button"
                         onClick={() => {
                           setCurrentRoute((prev) => {
-                            if (prev.to === 'Nha Trang') {
-                              return { from: 'Đà Nẵng', to: 'Huế' };
+                            if (prev.from === 'Đà Nẵng' && prev.to === 'Huế') {
+                              return { from: 'Đà Nẵng', to: 'Nha Trang' };
                             }
-                            return { from: 'Đà Nẵng', to: 'Nha Trang' };
+                            if (prev.from === 'Đà Nẵng' && prev.to === 'Nha Trang') {
+                              return { from: 'Đà Nẵng', to: 'TP. Hồ Chí Minh' };
+                            }
+                            if (prev.from === 'Đà Nẵng' && prev.to === 'TP. Hồ Chí Minh') {
+                              return { from: 'TP. Hồ Chí Minh', to: 'Đà Nẵng' };
+                            }
+                            if (prev.from === 'TP. Hồ Chí Minh' && prev.to === 'Đà Nẵng') {
+                              return { from: 'Đà Nẵng', to: 'Đà Lạt' };
+                            }
+                            return { from: 'Đà Nẵng', to: 'Huế' };
                           });
                         }}
                         className="pointer-events-auto text-[11px] font-mono bg-[#00838F] hover:bg-[#0097A7] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
-                        title="Chuyển nhanh tuyến mẫu giữa Huế và Nha Trang để kiểm thử landmark 3D"
+                        title="Chuyển nhanh tuyến mẫu để kiểm thử landmark 3D (Huế, Nha Trang, TP. HCM đến/đi, Fallback)"
                       >
-                        Đổi Tuyến: {currentRoute.to === 'Nha Trang' ? 'Nha Trang 🏖' : 'Huế ⛩'}
+                        Đổi Tuyến: {currentRoute.from === 'TP. Hồ Chí Minh' ? 'TP. HCM (Đi) 🏙' : currentRoute.to === 'TP. Hồ Chí Minh' ? 'TP. HCM (Đến) 🏙' : currentRoute.to === 'Nha Trang' ? 'Nha Trang 🏖' : currentRoute.to === 'Đà Lạt' ? 'Đà Lạt (Fallback) 🌲' : 'Huế ⛩'}
                       </button>
                       <button
                         type="button"
