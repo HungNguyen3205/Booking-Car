@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { DANAVA_3D_CONFIG } from './environmentConfig';
 import { Environment } from './Environment';
 import { PaperTicket } from './PaperTicket';
 import { CurvedRoad } from './CurvedRoad';
 import { SleeperCoach } from './SleeperCoach';
+import { DaNangLandmark } from './DaNangLandmark';
+import { DA_NANG_DESTINATION } from './destinationConfig';
+import { LandmarkAnchorTracker, DestinationLabelOverlay } from './DestinationLabelOverlay';
 import { WebGLFallback } from './WebGLFallback';
 
 interface JourneyCanvasProps {
@@ -44,6 +47,7 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
 }) => {
   const [hasWebGL] = useState<boolean>(() => checkWebGLAvailability());
   const [hasRendererError, setHasRendererError] = useState(false);
+  const labelOverlayRef = useRef<HTMLDivElement>(null);
 
   if (!hasWebGL || hasRendererError) {
     return (
@@ -95,15 +99,27 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         {/* Curved Road: Real continuous ribbon, shoulders, and dashed centerline */}
         <CurvedRoad isDebug={isDebug} />
 
+        {/* Da Nang Landmark Module: Cầu Rồng, Sông Hàn, Bờ kè, Cây xanh, Núi Sơn Trà */}
+        <DaNangLandmark isDebug={isDebug} />
+
         {/* Sleeper Coach: Grounded 3D coach model animated along road curve with wheel rotation */}
         <SleeperCoach
           shouldReduceMotion={shouldReduceMotion}
           replayKey={coachReplayKey}
         />
 
-        {/* Future 3D elements (Landmarks) slot in here */}
+        {/* 3D-to-2D Anchor Tracker: Cập nhật vị trí nhãn HTML/SVG bám vào Cầu Rồng */}
+        <LandmarkAnchorTracker
+          target3D={DA_NANG_DESTINATION.labelAnchor.worldPosition}
+          overlayRef={labelOverlayRef}
+        />
+
+        {/* Slot cho các phần tử 3D mở rộng */}
         {children}
       </Canvas>
+
+      {/* Nhãn HTML/SVG địa danh Đà Nẵng có neo 3D vào Cầu Rồng */}
+      <DestinationLabelOverlay overlayRef={labelOverlayRef} />
     </div>
   );
 };

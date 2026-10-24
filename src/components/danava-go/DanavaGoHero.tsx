@@ -140,7 +140,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#0097A7]" />
                   <span className="font-serif text-sm font-bold text-[#102744] tracking-wider">
-                    DANAVA GO • VEHICLE MOTION
+                    DANAVA GO • ĐÀ NẴNG LANDMARK
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
               {/* Stage Footer Meta */}
               <div className="relative z-10 flex items-center justify-between text-[11px] text-[#718096] px-5 py-2.5 border-t border-[#E5E3DC]/60 bg-gradient-to-t from-[#FFFDF8]/90 to-transparent">
                 <span>Tuyến mẫu: Đà Nẵng — Huế</span>
-                <span className="italic">Xe chạy dọc đường • Bánh quay theo vận tốc • Dừng xe bánh dừng</span>
+                <span className="italic">Cầu Rồng • Sông Hàn • Xe Giường Nằm cao cấp</span>
               </div>
             </div>
           </div>

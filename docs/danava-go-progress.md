@@ -244,6 +244,63 @@
     - `danava_go_step5_stopped.png` (Xe dừng đỗ tĩnh vững chãi tại $t = 0.62$, bánh dừng hoàn toàn)
     - `danava_go_step5_replaying.png` (Xác thực công cụ phát lại dev debug)
 
+### Bước 6: Bổ sung bộ địa điểm Đà Nẵng (Da Nang Landmark & Dragon Bridge Module)
+- **Thời gian**: 2026-10-24
+- **Công việc đã thực hiện**:
+  1. **Đối chiếu Ảnh Tham khảo & Dựng Cầu Rồng Nhận diện được (Dragon Bridge 3D Rig)**:
+     - *Nguồn đối chiếu đáng tin cậy*: `scene_danang.jpg`, `journey-pop-up.webp`, `diorama_ticket_danang_hue.webp` trong kho tài nguyên.
+     - *Đặc điểm nhận diện độc bản của Cầu Rồng*:
+       - **Thân rồng 3 nhịp vòm hình sin uốn lượn**: Hệ thống vòm ống thép giàn không gian gồm 1 ống chính ($\varnothing = 0.068$) và 2 ống phụ ($\varnothing = 0.036$) màu vàng óng ánh kim (`#F59E0B`, `metalness: 0.42, roughness: 0.22`), vươn cao nhất tại vòm chính nhịp giữa.
+       - **Hàng vây lưng rồng (Dorsal Fins / Scales)**: 14 cặp vây nhọn hình ngọn lửa vàng đặc trưng chạy dọc sống lưng các nhịp vòm, tạo silhouette không thể nhầm lẫn với bất kỳ cây cầu nào trên thế giới.
+       - **Đầu rồng thời Lý vươn cao (Sculpted Dragon Head)**: Đặt ở mố cầu phía Đông hướng ra biển (+X), há hàm uy nghi, bờm/sừng lửa 3 lớp cuộn về sau, mũi mây và mắt ngọc sáng ấm.
+       - **Đuôi rồng hoa sen (Lotus Tail)**: Xòe 3 cánh hoa sen cách điệu tại mố cầu phía Tây (-X).
+       - **Bản mặt cầu dầm thẳng & Cáp treo**: Mặt đường nhựa xám đậm `#374151`, vạch sơn tim đường, vỉa hè đi bộ hai bên và 22 thanh cáp treo đứng kết nối từ vòm rồng xuống dầm cầu.
+       - **Trụ cầu bê tông bo tròn**: 4 trụ bê tông đá mài ấm `#E5E0D8` bo tròn cản nước cắm xuống lòng sông.
+     - *Tuân thủ Rule 8*: Tuyệt đối không dùng ảnh 2D vuông dựng đứng giả danh 3D billboard. Toàn bộ Cầu Rồng là hình học 3D Procedural Mesh chuẩn Three.js.
+  2. **Dựng Cảnh quan Sông Hàn, Bờ Kè, Cây Xanh & Núi Sơn Trà Vừa Đủ**:
+     - *Sông Hàn (Han River)*: Dòng chảy uốn lượn hình học đa giác tự nhiên (`ShapeGeometry`), mở rộng dần từ thượng lưu ra vịnh. Màu xanh ngọc trong mát `#1E7B98` (`opacity: 0.92, roughness: 0.12, metalness: 0.48`), nhận bóng đổ và bắt sáng specular từ Sun Key Light.
+     - *Bờ kè đá (Stone Embankments)*: Dải kè đá ngà `#DDD6C9` uốn cong ôm sát hai bờ sông, mép ngoài tiếp giáp phẳng êm với mặt vé giấy, **triệt tiêu hoàn toàn viền khung chữ nhật thô cứng** ("Không lộ mép chữ nhật").
+     - *Cây xanh diorama ven sông*: 12 cụm cây diorama tán tròn/nón đa tầng mang phong cách thủ công tinh tế với các sắc độ xanh lá ấm `#2D5A3D`, `#3A6B4C`, `#4E835E` dọc tuyến đường dạo bộ bờ sông.
+     - *Núi xa vừa đủ (Bán đảo Sơn Trà)*: Cụm 3 đỉnh núi thoai thoải ở hậu cảnh xa phía bắc vịnh, màu xanh đá phiến nhạt `#4A6B5B` hòa trộn êm dịu vào sương khí quyển (`fog`), tạo chiều sâu bờ biển Đà Nẵng mà không làm nặng scene.
+  3. **Đồng nhất Hệ Quy chiếu (Camera, Tỷ lệ, Ánh sáng, Vật liệu)**:
+     - Giữ nguyên Camera chuẩn: `fov: 36`, `position: [0, 4.8, 9.2]`, `target: [0, 0.35, 0]`.
+     - Tỷ lệ nhóm cảnh quan: scale `[1.38, 1.38, 1.38]`, chiều dài cầu ~2.8 units, tương quan cân đối tuyệt đẹp với bề rộng mặt đường `0.68` và xe khách `1.15`.
+     - Dùng chung hệ thống chiếu sáng Sun Key Light `[-4.2, 7.5, 5.0]` và Sky Fill `[4.5, 3.8, -2.5]`.
+  4. **Thiết lập Khung Cấu hình Chuẩn `DestinationDefinition` (`destinationConfig.ts`)**:
+     - `id`: Định danh ổn định `'da-nang'`.
+     - `displayName`: Tên hiển thị chuẩn `'Đà Nẵng'`.
+     - `model`: Đặc tả mô hình 3D procedural, vật liệu PBR, polycount budget < 2400 tris, cam kết `hasBakedText: false`.
+     - `labelAnchor`: Tọa độ neo 3D `[-2.15, 0.92, 0.05]` tại đỉnh vòm chính Cầu Rồng.
+     - `safeZone`: Ranh giới an toàn 3D `minX: -3.5, maxX: -0.8, minZ: -1.4, maxZ: 0.40`.
+       - Cách tim đường gần nhất $\ge 0.42$ units.
+       - Cách điểm dừng xe $t=0.62$ tới $2.25$ units.
+       - Nằm trọn trong khung 3D 62%, cách biệt hoàn toàn khỏi 54% vùng text editorial bên trái.
+     - `placement`: Tọa độ gốc `[-2.15, 0.0, 0.0]`, góc xoay `[0, 0.06, 0]`, scale `[1.38, 1.38, 1.38]`.
+     - `approvalStatus`: Trạng thái `'approved'`, ngày kiểm định `2026-10-24`, đáp ứng 100% checklist tiêu chí nghiệm thu.
+  5. **Model 3D Sạch & Nhãn HTML/SVG Neo Độc Lập**:
+     - Model 3D hoàn toàn không chứa chữ tỉnh thành bake sẵn vào texture hoặc hình học.
+     - Chữ "Đà Nẵng" được hiển thị bằng DOM HTML/SVG độc lập (`DestinationLabelOverlay.tsx`):
+       - Component `LandmarkAnchorTracker` nằm trong R3F loop sử dụng `camera.project()` chiếu tọa độ 3D thành tọa độ màn hình `%`.
+       - Cập nhật trực tiếp `style.left` và `style.top` qua `useRef` (zero React `setState` re-renders, 60fps).
+       - Thẻ huy hiệu pill bo tròn sang trọng: Tiêu đề `Noto Serif` bold "Đà Nẵng", chip "Khởi hành", phụ đề `Be Vietnam Pro` "Cầu Rồng • Sông Hàn".
+       - Đường dóng SVG thanh mảnh và điểm tròn xung nhịp cyan neo chuẩn xác vào sống lưng Cầu Rồng.
+  6. **Tuân thủ Phạm vi**:
+     - **Chưa thêm Huế**: Giữ nguyên vị trí phía Đông ($X > 1.8$) cho đợt triển khai bước kế tiếp, tuyệt đối không thêm Ngọ Môn trước khi được yêu cầu.
+- **Kết quả nghiệm thu**:
+  - **Browser thật (Headless Edge CDP test)**:
+    - Cầu Rồng nhìn từ xa nhận diện được ngay lập tức với dáng rồng vàng uốn lượn, đầu rồng và vây lưng đặc trưng.
+    - Không che headline `Đi một chuyến. Mở ngàn trải nghiệm.` bên trái (`stageLeftMarginPct` an toàn).
+    - Không che xe khách Sleeper Coach (xe đỗ phía trước bên phải, Cầu Rồng ở phía sau bên trái).
+    - Không lộ bất kỳ mép chữ nhật nào: Bờ kè đá và mặt sông cong hữu cơ hòa tan vào mặt vé giấy.
+    - Lỗi console renderer: **0 lỗi** (`Total console error count: 0`).
+  - **Linter & Typecheck**:
+    - `npx oxlint`: 0 warnings, 0 errors.
+    - `npm run build`: Thành công 100%, chunk `JourneyCanvas-*.js` tách riêng 894 kB.
+  - **Ảnh chụp nghiệm thu lưu trữ**:
+    - `danava_go_step6_danang_1440x900.png` (Góc nhìn camera chuẩn 1440x900)
+    - `danava_go_step6_danang_debug.png` (Chế độ debug hiển thị hộp an toàn Safe Zone & điểm neo Anchor)
+    - `danava_go_step6_danang_390px.png` (Hiển thị sắc nét trên di động 390px)
+
 
 
 
