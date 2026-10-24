@@ -1,8 +1,8 @@
-import React, { useState, Suspense } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import React, { useState, useEffect, Suspense } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { TripSearchForm } from '../home/TripSearchForm';
 import type { SearchParams, VehicleCategory } from '../../types';
-import { Armchair, BedDouble, Crown, QrCode, Sparkles } from 'lucide-react';
+import { Armchair, BedDouble, Crown, QrCode, Sparkles, AlertCircle } from 'lucide-react';
 import { WebGLFallback } from './3d/WebGLFallback';
 
 // Lazy-load isolated 3D Three.js Canvas to keep booking/checkout bundles lightweight
@@ -27,6 +27,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
 }) => {
   const shouldReduceMotion = useReducedMotion();
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleCategory>('sleeper');
+  const [vehicleToast, setVehicleToast] = useState<{ text: string; id: number } | null>(null);
   const [currentRoute, setCurrentRoute] = useState({
     from: initialParams.from || 'Đà Nẵng',
     to: initialParams.to || 'Huế',
@@ -96,6 +97,35 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
     }
   };
 
+  // Step 9: Tự động đóng thông báo lỗi tải xe sau 4.5 giây
+  useEffect(() => {
+    if (!vehicleToast) return;
+    const timer = setTimeout(() => {
+      setVehicleToast(null);
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, [vehicleToast]);
+
+  // Step 9: Xử lý sự cố tải model xe - giữ nguyên xe trước đó và hiện thông báo trạng thái nhẹ
+  const handleVehicleError = (failedCategory: VehicleCategory, fallbackCategory: VehicleCategory) => {
+    const nameMap: Record<VehicleCategory, string> = {
+      sleeper: 'Giường nằm',
+      limousine: 'Limousine',
+      cabin: 'Cabin VIP',
+    };
+    setSelectedVehicle(fallbackCategory);
+    setVehicleToast({
+      text: `Mô hình ${nameMap[failedCategory] || failedCategory} gặp sự cố khi tải. Giữ hiển thị xe ${nameMap[fallbackCategory] || fallbackCategory}.`,
+      id: Date.now(),
+    });
+  };
+
+  // Step 9: Giả lập lỗi tải mô hình để kiểm thử nghiệm thu kịch bản asset lỗi
+  const handleSimulateVehicleError = () => {
+    const targetError: VehicleCategory = selectedVehicle === 'cabin' ? 'limousine' : 'cabin';
+    handleVehicleError(targetError, selectedVehicle);
+  };
+
   const vehicleOptions: { id: VehicleCategory; label: string; icon: React.ReactNode }[] = [
     { id: 'sleeper', label: 'Giường nằm', icon: <BedDouble size={16} /> },
     { id: 'limousine', label: 'Limousine', icon: <Armchair size={16} /> },
@@ -142,7 +172,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
 
             {/* Vehicle Selection Chips */}
             <div className="mb-4" role="group" aria-label="Chọn loại xe">
-              <div className="flex flex-wrap gap-2.5">
+              <div className="flex flex-wrap items-center gap-2.5">
                 {vehicleOptions.map((v) => {
                   const isActive = selectedVehicle === v.id;
                   return (
@@ -162,7 +192,49 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                     </button>
                   );
                 })}
+
+                {/* Nút giả lập lỗi tải xe kiểm thử nghiệm thu khi bật debug */}
+                {isDebug && (
+                  <button
+                    type="button"
+                    onClick={handleSimulateVehicleError}
+                    className="inline-flex items-center gap-1.5 h-11 sm:h-12 px-3.5 rounded-full text-xs font-mono bg-[#FFF3E0] hover:bg-[#FFE0B2] text-[#E65100] border border-[#FFB74D] cursor-pointer transition-colors shadow-sm"
+                    title="Giả lập lỗi tải mô hình để kiểm thử fallback và thông báo nhẹ"
+                  >
+                    <AlertCircle size={14} />
+                    <span>Test Lỗi Xe ⚠</span>
+                  </button>
+                )}
               </div>
+
+              {/* Thông báo trạng thái nhẹ khi có lỗi tải asset xe */}
+              <AnimatePresence>
+                {vehicleToast && (
+                  <motion.div
+                    key={vehicleToast.id}
+                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center justify-between gap-3 mt-3 px-3.5 py-2.5 rounded-xl text-xs font-medium bg-[#FFF8E1] text-[#6D4C41] border border-[#FFE082] shadow-sm max-w-[480px] pointer-events-auto"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-[#F57C00] shrink-0" />
+                      <span>{vehicleToast.text}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setVehicleToast(null)}
+                      className="text-[#8D6E63] hover:text-[#3E2723] text-sm font-bold px-1.5 py-0.5 rounded hover:bg-[#FFE082]/40 transition-colors cursor-pointer"
+                      aria-label="Đóng thông báo"
+                    >
+                      ✕
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
 
@@ -172,14 +244,16 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
           */}
           <div
             className="w-full lg:absolute lg:inset-0 lg:left-0 pointer-events-none z-[5] flex items-center justify-end"
-            aria-hidden="true"
           >
             <div
               className="w-full lg:w-[62%] aspect-[1376/720] max-h-[570px] relative rounded-2xl overflow-hidden pointer-events-none border border-[#E5E3DC]/80 bg-[#F7F4EC] shadow-[0_16px_40px_-12px_rgba(16,39,68,0.08)] flex flex-col justify-between"
               data-testid="danava-go-stage-scaffold"
             >
               {/* Lazy-loaded 3D WebGL Canvas Layer */}
-              <div className="absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-hidden">
+              <div
+                className="absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-hidden"
+                aria-hidden="true"
+              >
                 <Suspense fallback={<WebGLFallback message="Đang khởi tạo không gian 3D Three.js..." />}>
                   <JourneyCanvas
                     isDebug={isDebug}
@@ -193,12 +267,14 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                     isSkipped={isSkipped}
                     onTimelineStateChange={setTimelineState}
                     onTimelineComplete={handleIntroComplete}
+                    selectedVehicle={selectedVehicle}
+                    onVehicleError={handleVehicleError}
                   />
                 </Suspense>
               </div>
 
               {/* Stage Header Strip */}
-              <div className="relative z-10 flex items-center justify-between border-b border-[#E5E3DC]/60 px-5 pt-3.5 pb-2.5 bg-gradient-to-b from-[#FFFDF8]/90 to-transparent">
+              <div className="relative z-10 flex items-center justify-between border-b border-[#E5E3DC]/60 px-5 pt-3.5 pb-2.5 bg-gradient-to-b from-[#FFFDF8]/90 to-transparent pointer-events-auto">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#0097A7]" />
                   <span className="font-serif text-sm font-bold text-[#102744] tracking-wider">
@@ -244,6 +320,14 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                       </button>
                       <button
                         type="button"
+                        onClick={handleSimulateVehicleError}
+                        className="pointer-events-auto text-[11px] font-mono bg-[#E65100] hover:bg-[#F57C00] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
+                        title="Giả lập lỗi tải mô hình để kiểm thử fallback và thông báo nhẹ"
+                      >
+                        Test Lỗi Xe ⚠
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => setDebugFlapAngle((prev) => (prev === 0 ? Math.PI : 0))}
                         className="pointer-events-auto text-[11px] font-mono bg-[#263238] hover:bg-[#37474F] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
                         title="Góc xoay flap"
@@ -261,7 +345,14 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
               {/* Stage Footer Meta */}
               <div className="relative z-10 flex items-center justify-between text-[11px] text-[#718096] px-5 py-2.5 border-t border-[#E5E3DC]/60 bg-gradient-to-t from-[#FFFDF8]/90 to-transparent">
                 <span>Tuyến mẫu: {currentRoute.from} — {currentRoute.to}</span>
-                <span className="italic">Cầu Rồng (Đà Nẵng) → Ngọ Môn (Huế) • Xe Giường Nằm</span>
+                <span className="italic">
+                  Cầu Rồng (Đà Nẵng) → Ngọ Môn (Huế) •{' '}
+                  {selectedVehicle === 'limousine'
+                    ? 'Xe Limousine VIP 9–11 Chỗ'
+                    : selectedVehicle === 'cabin'
+                    ? 'Xe Cabin VIP (Cung Điện Di Động)'
+                    : 'Xe Giường Nằm'}
+                </span>
               </div>
             </div>
           </div>

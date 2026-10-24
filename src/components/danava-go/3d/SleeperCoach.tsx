@@ -576,7 +576,7 @@ const WheelAssembly: React.FC<WheelAssemblyProps> = ({
   return (
     <group position={position}>
       {/* Inner spin group quay quanh trục bánh xe X theo quãng đường thực tế */}
-      <group ref={spinRef}>
+      <group ref={spinRef} name="WHEEL_SPIN">
         {/* Lốp xe cao su mờ (Tire) */}
         <mesh
           rotation={[0, 0, Math.PI / 2]}

@@ -4,7 +4,7 @@ import { DANAVA_3D_CONFIG } from './environmentConfig';
 import { Environment } from './Environment';
 import { PaperTicket } from './PaperTicket';
 import { CurvedRoad } from './CurvedRoad';
-import { SleeperCoach } from './SleeperCoach';
+import { VehicleStage } from './VehicleStage';
 import { DaNangLandmark } from './DaNangLandmark';
 import { HueLandmark } from './HueLandmark';
 import { CentralPassTransition } from './CentralPassTransition';
@@ -20,6 +20,7 @@ import {
   TIMELINE_CONFIG,
   calculateTimelineProgress,
 } from './journeyTimeline';
+import type { VehicleCategory } from '../../../types';
 
 interface JourneyCanvasProps {
   children?: React.ReactNode;
@@ -36,6 +37,9 @@ interface JourneyCanvasProps {
   isSkipped?: boolean;
   onTimelineStateChange?: (state: JourneyTimelineState) => void;
   onTimelineComplete?: () => void;
+  // Step 9: Dynamic Vehicle Selection & Transitions
+  selectedVehicle?: VehicleCategory;
+  onVehicleError?: (failedCategory: VehicleCategory, fallbackCategory: VehicleCategory) => void;
 }
 
 /**
@@ -143,6 +147,8 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
   isSkipped = false,
   onTimelineStateChange,
   onTimelineComplete,
+  selectedVehicle = 'sleeper',
+  onVehicleError,
 }) => {
   const [hasWebGL] = useState<boolean>(() => checkWebGLAvailability());
   const [hasRendererError, setHasRendererError] = useState(false);
@@ -237,11 +243,13 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         {/* Hue Landmark: Ngọ Môn Hoàng Thành, Lầu Ngũ Phụng, Hồ sen Kim Thủy, Rừng thông */}
         <HueLandmark isDebug={isDebug} timelineRef={timelineRef} />
 
-        {/* Sleeper Coach: Grounded 3D coach model animated along road curve with wheel rotation */}
-        <SleeperCoach
+        {/* Step 9: Dynamic Vehicle Selection & Transitions (Sleeper Coach, Limousine Van, Cabin VIP) */}
+        <VehicleStage
+          currentVehicle={selectedVehicle}
           shouldReduceMotion={shouldReduceMotion}
-          replayKey={coachReplayKey}
           timelineRef={timelineRef}
+          replayKey={coachReplayKey}
+          onVehicleError={onVehicleError}
         />
 
         {/* Dual Landmark Anchor Tracker: Chiếu cả 2 điểm neo 3D và vẽ đường cong route SVG */}
