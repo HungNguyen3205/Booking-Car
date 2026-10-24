@@ -61,11 +61,11 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
       <header
         className={`sticky top-0 z-40 w-full transition-all duration-200 border-b ${
           isCompact || isScrolled
-            ? 'h-[68px] sm:h-[76px] bg-[#FFFEFA]/95 backdrop-blur-md shadow-xs border-[#E5E3DC]'
-            : 'h-[76px] sm:h-[82px] bg-[#F7F4EC] border-[#E5E3DC]/70'
+            ? 'h-[64px] sm:h-[68px] lg:h-[70px] bg-[#FFFEFA]/95 backdrop-blur-md shadow-xs border-[#E5E3DC]'
+            : 'h-[64px] sm:h-[70px] lg:h-[72px] bg-[#F7F4EC] border-[#E5E3DC]/60'
         }`}
       >
-        <div className="max-w-[1340px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="max-w-[1380px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo Brand (Clean, single line title without bulky subtitle) */}
           <button
             type="button"

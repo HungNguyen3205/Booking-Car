@@ -40,9 +40,9 @@ export const App: React.FC = () => {
   // 1. criticalAssetsReady: Default vehicle & initial route scenes loaded & decoded
   // 2. loaderExitComplete: Preloader has fully faded out and unmounted
   // 3. heroIntroReady: Signal for hero bus to begin smooth entrance
-  const [criticalAssetsReady, setCriticalAssetsReady] = useState(false);
-  const [loaderExitComplete, setLoaderExitComplete] = useState(false);
-  const [heroIntroReady, setHeroIntroReady] = useState(false);
+  const [criticalAssetsReady, setCriticalAssetsReady] = useState(() => !!shouldReduceMotion);
+  const [loaderExitComplete, setLoaderExitComplete] = useState(() => !!shouldReduceMotion);
+  const [heroIntroReady, setHeroIntroReady] = useState(() => !!shouldReduceMotion);
 
   // Navigation Step with URL restoration support
   const [currentStep, setCurrentStep] = useState<BookingStep>(() => {
@@ -102,20 +102,25 @@ export const App: React.FC = () => {
   const [completedBooking, setCompletedBooking] = useState<Booking | null>(null);
   const initialParamsRef = useRef({ from: searchParams.from, to: searchParams.to });
 
-  // Parallel preload critical hero assets immediately on mount
+  // Preload critical hero assets immediately on mount without fake waiting
   useEffect(() => {
+    if (shouldReduceMotion) return;
+
     let isMounted = true;
     const defaultVehicle = VEHICLE_MODELS['sleeper']?.image || '';
     const { from, to } = initialParamsRef.current;
 
-    // Fast safety timeout to avoid hanging indefinitely
+    // Fast safety fallback in case network hangs
     const safetyTimer = setTimeout(() => {
       if (isMounted) {
         setCriticalAssetsReady(true);
       }
-    }, 1200);
+    }, 600);
 
-    Promise.all([preloadCriticalHeroAssets(from, to, defaultVehicle), sceneService.preloadAsset('/assets/images/scenes/journey-pop-up.webp')])
+    Promise.all([
+      preloadCriticalHeroAssets(from, to, defaultVehicle),
+      sceneService.preloadAsset('/assets/images/scenes/journey-pop-up.webp'),
+    ])
       .then(() => {
         if (isMounted) {
           clearTimeout(safetyTimer);
@@ -133,11 +138,11 @@ export const App: React.FC = () => {
       isMounted = false;
       clearTimeout(safetyTimer);
     };
-  }, []); // Run strictly once on initial mount
+  }, [shouldReduceMotion]); // Run strictly once on initial mount
 
   const handleLoaderExitComplete = () => {
     setLoaderExitComplete(true);
-    // Trigger hero bus entrance smoothly as soon as preloader finishes exit
+    // Trigger hero intro entrance smoothly only after preloader is completely unmounted
     setHeroIntroReady(true);
   };
 
