@@ -28,6 +28,16 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
     to: initialParams.to || 'Huế',
   });
 
+  // Developer debug mode enabled via ?debug=1 or ?debug3d=true
+  const [isDebug] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const s = window.location.search;
+    return s.includes('debug=1') || s.includes('debug3d=true');
+  });
+
+  // Debug flap fold angle (0 = flat open, Math.PI = folded over)
+  const [debugFlapAngle, setDebugFlapAngle] = useState<number>(0.0);
+
   const vehicleOptions: { id: VehicleCategory; label: string; icon: React.ReactNode }[] = [
     { id: 'sleeper', label: 'Giường nằm', icon: <BedDouble size={16} /> },
     { id: 'limousine', label: 'Limousine', icon: <Armchair size={16} /> },
@@ -113,7 +123,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
               {/* Lazy-loaded 3D WebGL Canvas Layer */}
               <div className="absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-hidden">
                 <Suspense fallback={<WebGLFallback message="Đang khởi tạo không gian 3D Three.js..." />}>
-                  <JourneyCanvas />
+                  <JourneyCanvas isDebug={isDebug} flapAngle={debugFlapAngle} />
                 </Suspense>
               </div>
 
@@ -122,18 +132,30 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#0097A7]" />
                   <span className="font-serif text-sm font-bold text-[#102744] tracking-wider">
-                    DANAVA GO • 3D ENVIRONMENT
+                    DANAVA GO • TICKET & ROADWAY
                   </span>
                 </div>
-                <span className="text-[11px] font-semibold text-[#718096] bg-[#FFF9ED] px-2.5 py-0.5 rounded-md border border-[#E5E3DC]">
-                  {currentRoute.from} → {currentRoute.to}
-                </span>
+                <div className="flex items-center gap-2">
+                  {isDebug && (
+                    <button
+                      type="button"
+                      onClick={() => setDebugFlapAngle((prev) => (prev === 0 ? Math.PI : 0))}
+                      className="pointer-events-auto text-[11px] font-mono bg-[#102744] hover:bg-[#0097A7] text-white px-2.5 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
+                      title="Kiểm tra góc xoay bản lề flap quanh trục hingeX"
+                    >
+                      Bản lề: {debugFlapAngle === 0 ? 'Mở phẳng (0°)' : 'Gập lại (180°)'}
+                    </button>
+                  )}
+                  <span className="text-[11px] font-semibold text-[#718096] bg-[#FFF9ED] px-2.5 py-0.5 rounded-md border border-[#E5E3DC]">
+                    {currentRoute.from} → {currentRoute.to}
+                  </span>
+                </div>
               </div>
 
               {/* Stage Footer Meta */}
               <div className="relative z-10 flex items-center justify-between text-[11px] text-[#718096] px-5 py-2.5 border-t border-[#E5E3DC]/60 bg-gradient-to-t from-[#FFFDF8]/90 to-transparent">
                 <span>Tuyến mẫu: Đà Nẵng — Huế</span>
-                <span className="italic">Góc nhìn 3/4 • Ánh sáng mềm • Nền nhận bóng</span>
+                <span className="italic">Vé mở tĩnh • Nếp gấp bản lề • Làn đường cong thực</span>
               </div>
             </div>
           </div>

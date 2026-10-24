@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { DANAVA_3D_CONFIG } from './environmentConfig';
 import { Environment } from './Environment';
+import { PaperTicket } from './PaperTicket';
+import { CurvedRoad } from './CurvedRoad';
 import { WebGLFallback } from './WebGLFallback';
 
 interface JourneyCanvasProps {
   children?: React.ReactNode;
   className?: string;
+  flapAngle?: number;
+  isDebug?: boolean;
 }
 
 // Robust check for WebGL support prior to mounting Three.js renderer
@@ -30,6 +34,8 @@ function checkWebGLAvailability(): boolean {
 export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
   children,
   className = '',
+  flapAngle = 0.0,
+  isDebug = false,
 }) => {
   const [hasWebGL] = useState<boolean>(() => checkWebGLAvailability());
   const [hasRendererError, setHasRendererError] = useState(false);
@@ -78,7 +84,13 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         {/* Core 3D Lighting & Environment */}
         <Environment />
 
-        {/* Future 3D elements (Ticket, Route, Bus) slot in here */}
+        {/* Paper Ticket: Thin ivory cardstock with precision hinge pivot and crease line */}
+        <PaperTicket flapAngle={flapAngle} isDebug={isDebug} />
+
+        {/* Curved Road: Real continuous ribbon, shoulders, and dashed centerline */}
+        <CurvedRoad isDebug={isDebug} />
+
+        {/* Future 3D elements (Landmarks, Bus) slot in here */}
         {children}
       </Canvas>
     </div>

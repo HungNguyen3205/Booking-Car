@@ -109,3 +109,54 @@
     - `danava_go_3d_1440x900.png`
     - `danava_go_3d_390px.png`
 
+### Bước 3: Dựng trạng thái cuối tĩnh của vé giấy và đường (Paper Ticket & Curved Road)
+- **Thời gian**: 2026-10-24
+- **Công việc đã thực hiện**:
+  1. **Dựng vé giấy Ivory mỏng & Bản lề cơ học chính xác**:
+     - *Phân loại vật lý*: Mô hình giấy gấp cứng có bản lề cơ học (`Rigid Folded Paper Panels with Hinge Pivots`), mô tả trung thực không tuyên bố mô phỏng biến dạng giấy mềm (soft-body deformation).
+     - *Độ dày giấy*: `0.016` đơn vị (thanh mảnh, cạnh sắc nét, tuyệt đối không giống đế gỗ dày).
+     - *Cấu trúc 2 phân vùng*:
+       - Sàn vé chính (`Base Deck`): $X \in [-1.4, 3.8]$, chiều sâu $Z = 3.8$, chứa sa bàn và làn đường cong.
+       - Cánh vé nắp (`Folding Flap`): $X \in [-3.8, -1.4]$, chiều sâu $Z = 3.8$.
+       - Trục bản lề (`Hinge Pivot`): Đặt chính xác tại $[X: -1.4, Y: 0.016, Z: 0]$, cho phép flap quay từ $0^\circ$ (mở phẳng tĩnh) tới $180^\circ$ (gập kín lên sàn chính).
+     - *Nếp gấp & Khuyết vé (Notches)*:
+       - Rãnh dập chìm (`Crease indentation`) màu `#D8D1C0` chạy dọc trục bản lề.
+       - Khuyết bán nguyệt (`Ticket notches`, bán kính `0.09`) ở hai đầu mép biên ngoài và hai đầu nếp gấp.
+     - *Vật liệu giấy*: Màu ivory ấm `#FFFDF8`, roughness `0.88`, metalness `0.02`, nhận bóng mềm (`castShadow`, `receiveShadow`).
+  2. **Dựng làn đường cong thực (Curved Road Ribbon)**:
+     - Nằm êm trên mặt vé tại cao độ $Y = 0.020$ (không lơ lửng, không xuyên giấy, không Z-fighting).
+     - Gồm 3 lớp hình học độc lập được tính toán chuẩn xác từ giải thuật Ribbon Mesh:
+       - Mặt đường nhựa xám than đậm `#2B303A` bề rộng `0.68`.
+       - Hai gờ vỉa lề đường ngà nhạt `#E2DCD0` bề rộng `0.05` mỗi bên (tổng bề rộng `0.78`).
+       - Vạch tim đường ngắt quãng màu vàng ấm `#F4D06F` (dài `0.18`, khoảng cách `0.14`, rộng `0.035`) tại cao độ $Y = 0.022$.
+  3. **Khai báo đường dẫn xe riêng (Vehicle Guidance Curve)**:
+     - *Hệ tọa độ*: Three.js Right-Handed (X: Trái sang Phải, Y: Dưới lên Trên, Z: Sau ra Trước).
+     - *Hướng tuyến*: Đà Nẵng (South-West $X \approx -3.45$) → Đèo Hải Vân ($X \approx 0.1, Z \approx -0.32$) → Huế ($X \approx 3.25$).
+     - Khởi tạo `THREE.CatmullRomCurve3` với 7 điểm chốt khớp 100% tim làn đường.
+     - Điểm vào xe: $t = 0.0$ tại `[-3.45, 0.020, 0.92]`.
+     - Điểm dừng xe: $t = 0.62$ tại `[1.45, 0.020, 0.12]`, góc yaw angle đón góc nhìn 3/4.
+     - Hàm `getVehicleTransformAt(t)` trả về vị trí, tiếp tuyến, pháp tuyến và góc quay yaw.
+  4. **Chế độ Debug Nhà phát triển (`?debug=1`)**:
+     - Khi truy cập với tham số `?debug=1`:
+       - Hiển thị trục bản lề (Hinge axis cylinder màu hồng `#FF007F`).
+       - Hiển thị marker điểm xuất phát (Sphere xanh cyan `#00E5FF`).
+       - Hiển thị marker điểm dừng xe (Sphere cam `#FF9100` và wireframe box mô phỏng góc đỗ xe).
+       - Hiển thị đường tim đường nối tiếp (Line cyan `#00B4D8`).
+       - Nút dev "Bản lề: Mở phẳng / Gập lại" để kiểm tra trực quan góc quay bản lề flap.
+     - Chế độ thường: Hoàn toàn không hiển thị marker debug, không có barcode/mã sân bay giả, giữ giao diện khách tinh tế và chuẩn mực.
+- **Kết quả nghiệm thu**:
+  - **Browser thật (Headless Edge CDP test)**:
+    - Canvas, vé giấy và làn đường tải hoàn hảo, không có lỗi renderer (`Total console error count: 0`).
+    - Flap xoay quanh bản lề chính xác $180^\circ$ khi kích hoạt toggle kiểm thử.
+    - Desktop 1440×900: body width 1425px (không tràn).
+    - Mobile 390px: body width 390px (không tràn).
+  - **Linter & Typecheck**:
+    - `npx oxlint`: 0 warnings, 0 errors.
+    - `npm run build`: Thành công 100%, chunk `JourneyCanvas-*.js` độc lập.
+  - **Ảnh chụp nghiệm thu**:
+    - `danava_go_step3_1440x900.png` (Góc nhìn camera chuẩn, vé mở tĩnh và làn đường cong)
+    - `danava_go_step3_390px.png` (Đáp ứng di động hoàn hảo)
+    - `danava_go_step3_debug_markers.png` (Đường dẫn xe, điểm vào t=0, điểm dừng t=0.62)
+    - `danava_go_step3_flap_folded.png` (Xác thực góc xoay bản lề flap 180 độ)
+
+
