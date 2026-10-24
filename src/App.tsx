@@ -13,7 +13,7 @@ import { TripResultsView } from './components/search/TripResultsView';
 import type { Booking, BookingStep, PassengerInfo, SearchParams, Seat, Trip } from './types';
 import { bookingService } from './services/bookingService';
 import { VEHICLE_MODELS } from './data/mockData';
-import { preloadCriticalHeroAssets } from './data/sceneData';
+import { preloadCriticalHeroAssets, sceneService } from './data/sceneData';
 import { getVietnamTodayDateStr, isValidBookingDate } from './utils/dateUtils';
 
 // Code-split dynamic booking steps and ticket lookup to optimize initial bundle
@@ -105,7 +105,7 @@ export const App: React.FC = () => {
   // Parallel preload critical hero assets immediately on mount
   useEffect(() => {
     let isMounted = true;
-    const defaultVehicle = VEHICLE_MODELS['limousine']?.image || VEHICLE_MODELS['sleeper']?.image || '';
+    const defaultVehicle = VEHICLE_MODELS['sleeper']?.image || '';
     const { from, to } = initialParamsRef.current;
 
     // Fast safety timeout to avoid hanging indefinitely
@@ -115,7 +115,7 @@ export const App: React.FC = () => {
       }
     }, 1200);
 
-    preloadCriticalHeroAssets(from, to, defaultVehicle)
+    Promise.all([preloadCriticalHeroAssets(from, to, defaultVehicle), sceneService.preloadAsset('/assets/images/scenes/journey-pop-up.webp')])
       .then(() => {
         if (isMounted) {
           clearTimeout(safetyTimer);

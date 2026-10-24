@@ -47,12 +47,12 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
   const [prevParams, setPrevParams] = useState(initialParams);
   if (initialParams && initialParams !== prevParams) {
     setPrevParams(initialParams);
-    if (initialParams.from && initialParams.from !== from) setFrom(initialParams.from);
-    if (initialParams.to && initialParams.to !== to) setTo(initialParams.to);
-    if (initialParams.date && isValidBookingDate(initialParams.date) && initialParams.date !== date) {
+    if (initialParams.from && initialParams.from !== prevParams?.from) setFrom(initialParams.from);
+    if (initialParams.to && initialParams.to !== prevParams?.to) setTo(initialParams.to);
+    if (initialParams.date && isValidBookingDate(initialParams.date) && initialParams.date !== prevParams?.date) {
       setDate(initialParams.date);
     }
-    if (initialParams.passengers && initialParams.passengers !== passengers) {
+    if (initialParams.passengers && initialParams.passengers !== prevParams?.passengers) {
       setPassengers(Math.min(5, Math.max(1, initialParams.passengers)));
     }
   }

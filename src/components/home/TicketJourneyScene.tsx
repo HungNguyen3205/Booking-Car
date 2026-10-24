@@ -1,375 +1,123 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useEffect, useId, useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { VehicleCategory } from '../../types';
-import { VehicleVisual } from './VehicleVisual';
 import { sceneService } from '../../data/sceneData';
-import type { DestinationScene, RoutePairOverride } from '../../data/sceneData';
-import { MapPin } from 'lucide-react';
+import { VEHICLE_MODELS } from '../../data/mockData';
 
-interface TicketJourneySceneProps {
+export const JOURNEY_ART = '/assets/images/scenes/journey-pop-up.webp';
+
+interface Props {
   fromCity: string;
   toCity: string;
   vehicleCategory: VehicleCategory;
   introReady?: boolean;
 }
 
-/**
- * TicketJourneyScene Component:
- * Strict single-coordinate 3D Pop-up Diorama stage based on 5-step keyframes:
- * 1. 0–350ms: Closed ticket booklet resting on cream desk surface (#F7F4EC)
- * 2. 150–850ms: Paper flap hinges open in 3D along crease line
- * 3. 400–1100ms: Pop-up miniature landscape diorama emerges (Cầu Rồng left, Ngọ Môn right)
- * 4. 700–1700ms: Coach bus advances into foreground along the curved asphalt road
- * 5. 1100–1800ms: Route SVG line draws from origin to destination with landmark pins
- * 
- * - Fixed intrinsic aspect ratio matching composition (1313 x 609)
- * - 100% transparent alpha outside the silhouette — no rectangular box, no card border
- * - Geographically accurate landmark mapping (Đà Nẵng = Cầu Rồng, Huế = Ngọ Môn)
- * - Tab switching crossfades vehicle (250-400ms) without restarting intro
- * - Reduced motion support (immediate static display)
- */
-export const TicketJourneyScene: React.FC<TicketJourneySceneProps> = ({
-  fromCity,
-  toCity,
-  vehicleCategory,
-  introReady = true,
-}) => {
-  const shouldReduceMotion = useReducedMotion();
-  const [hasPlayedIntro, setHasPlayedIntro] = useState(false);
-
-  // Synchronized scene state
-  const [activeScene, setActiveScene] = useState<{
-    origin: DestinationScene;
-    dest: DestinationScene;
-    pair: RoutePairOverride | null;
-  }>(() => {
-    return {
-      origin: sceneService.getScene(fromCity),
-      dest: sceneService.getScene(toCity),
-      pair: sceneService.getPairOverride(fromCity, toCity),
-    };
-  });
-
-  const seqRef = useRef(0);
-
+/** All anchors use the same 1000 × 750 artboard. UI never inherits paper perspective. */
+export function TicketJourneyScene({ fromCity, toCity, vehicleCategory, introReady = true }: Props) {
+  const reduce = useReducedMotion();
+  const id = useId().replace(/:/g, '');
+  const [readyArt, setReadyArt] = useState<{ key: string; src: string | null }>({ key: '', src: null });
+  const sequence = useRef(0);
+  const [introDone, setIntroDone] = useState(introReady);
   useEffect(() => {
-    const seq = ++seqRef.current;
-    const targetOrigin = sceneService.getScene(fromCity);
-    const targetDest = sceneService.getScene(toCity);
-    const targetPair = sceneService.getPairOverride(fromCity, toCity);
-
-    const preloads: Promise<unknown>[] = [];
-    if (targetPair?.pairAsset) {
-      preloads.push(sceneService.preloadAsset(targetPair.pairAsset));
-    } else {
-      if (targetOrigin.sceneAsset) preloads.push(sceneService.preloadAsset(targetOrigin.sceneAsset));
-      if (targetDest.sceneAsset) preloads.push(sceneService.preloadAsset(targetDest.sceneAsset));
-    }
-
-    Promise.all(preloads).then(() => {
-      if (seq === seqRef.current) {
-        setActiveScene({
-          origin: targetOrigin,
-          dest: targetDest,
-          pair: targetPair,
-        });
-      }
-    });
-  }, [fromCity, toCity]);
-
-  // Mark intro as complete once triggered so user interactions never re-play it
-  useEffect(() => {
-    if (introReady && !hasPlayedIntro) {
-      const timer = setTimeout(() => {
-        setHasPlayedIntro(true);
-      }, shouldReduceMotion ? 50 : 1900);
-      return () => clearTimeout(timer);
-    }
-  }, [introReady, hasPlayedIntro, shouldReduceMotion]);
-
-  // City IDs normalized
+    if (!introReady || introDone) return;
+    const timer = window.setTimeout(() => setIntroDone(true), reduce ? 0 : 2100);
+    return () => window.clearTimeout(timer);
+  }, [introReady, introDone, reduce]);
   const originId = sceneService.getCanonicalCityId(fromCity);
-  const destId = sceneService.getCanonicalCityId(toCity);
+  const destinationId = sceneService.getCanonicalCityId(toCity);
+  const pair = [originId, destinationId].sort().join('|') === 'da-nang|hue';
+  const routeKey = `${originId}:${destinationId}`;
+  const vehicle = VEHICLE_MODELS[vehicleCategory];
+  const active = introReady;
 
-  const isDadHuePair =
-    (originId === 'da-nang' && destId === 'hue') ||
-    (originId === 'hue' && destId === 'da-nang');
+  useEffect(() => {
+    const seq = ++sequence.current;
+    let cancelled = false;
+    if (!pair) return;
+    sceneService.preloadAsset(JOURNEY_ART).then(result => {
+      if (!cancelled && sequence.current === seq) setReadyArt({ key: routeKey, src: result.success ? JOURNEY_ART : null });
+    });
+    return () => { cancelled = true; };
+  }, [pair, routeKey]);
 
-  const isReversed = originId === 'hue' && destId === 'da-nang';
-
-  // Artwork asset source
-  const artworkSrc = activeScene.pair?.pairAsset || activeScene.origin.sceneAsset;
+  const artwork = pair ? readyArt.src : null;
+  const reveal = (delay: number, duration = 0.6) => ({ duration: reduce ? 0 : duration, delay: reduce || introDone ? 0 : delay, ease: 'easeOut' as const });
+  const reversed = originId === 'hue';
 
   return (
-    <div
-      className="relative w-full max-w-[720px] aspect-[1313/609] select-none mx-auto isolate"
-      aria-hidden="true"
-    >
-      {/* ============================================================
-          LAYER 1: CONTACT SHADOW ON DESK SURFACE (#F7F4EC)
-          Soft elliptical contact shadow anchoring the paper base
-          ============================================================ */}
-      <motion.div
-        initial={shouldReduceMotion ? { opacity: 0.85, scaleX: 1 } : { opacity: 0.5, scaleX: 0.8 }}
-        animate={{ opacity: 0.85, scaleX: 1 }}
-        transition={{ duration: shouldReduceMotion ? 0.04 : 0.8, ease: 'easeOut' }}
-        className="absolute inset-x-[4%] bottom-[-2%] h-[16%] pointer-events-none z-[1]"
-        style={{
-          background:
-            'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(16, 39, 68, 0.22) 0%, rgba(16, 39, 68, 0.08) 50%, transparent 80%)',
-          filter: 'blur(4px)',
-        }}
-      />
+    <div className="journey-stage" data-testid="journey-stage" aria-hidden="true">
+      <motion.svg className="journey-paper" viewBox="0 0 1000 750" fill="none" animate={{ opacity: artwork && active ? 0 : 1 }} transition={reveal(.65, .3)}>
+        <defs>
+          <linearGradient id={`${id}-paper`} x1="200" y1="420" x2="780" y2="680" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#fffdf7" /><stop offset="1" stopColor="#e8dfcb" />
+          </linearGradient>
+          <filter id={`${id}-shadow`} x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="13" /></filter>
+        </defs>
+        <motion.ellipse cx="532" cy="640" rx="355" ry="35" fill="#665845" opacity=".14" filter={`url(#${id}-shadow)`}
+          initial={{ opacity: 0 }} animate={{ opacity: active ? 0.14 : 0 }} transition={reveal(0)} />
+        <motion.g initial={{ opacity: reduce ? 1 : 0, y: 12 }} animate={{ opacity: active ? 1 : 0, y: active ? 0 : 12 }} transition={reveal(0, .35)}>
+          <path d="M100 534 672 420 931 586 365 703Z" fill="#c6baa3" />
+          <path d="M100 526 672 412 931 578 365 695Z" fill="#eee6d7" stroke="#d2c5ae" strokeWidth="2" />
+          <path d="M100 518 672 404 931 570 365 687Z" fill={`url(#${id}-paper)`} stroke="#ddd3be" strokeWidth="2" />
+          <path d="m126 523 242 147 535-106" stroke="#d5c7ac" strokeDasharray="5 7" strokeWidth="1.5" />
+        </motion.g>
+      </motion.svg>
 
-      {/* ============================================================
-          LAYER 2: 3D POP-UP DIORAMA COMPOSITION
-          Contains:
-          - 2.5D paper ticket base lying in perspective
-          - Miniature pop-up Dragon Bridge (left) and Ngọ Môn (right)
-          - Curving coastal highway road winding from bridge to foreground
-          - Natural silhouette with 100% transparent alpha outside
-          - NO white rectangular frame, NO card border, NO fake text
-          ============================================================ */}
-      <motion.div
-        initial={
-          shouldReduceMotion || hasPlayedIntro
-            ? { opacity: 1, y: 0, scale: 1 }
-            : { opacity: 0, y: 18, scale: 0.97 }
-        }
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={
-          shouldReduceMotion || hasPlayedIntro
-            ? { duration: 0.04 }
-            : { duration: 0.75, delay: 0.35, ease: [0.16, 1, 0.3, 1] }
-        }
-        className="absolute inset-0 w-full h-full pointer-events-none z-[2]"
-      >
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={artworkSrc}
-            src={artworkSrc}
-            alt="DANAVA Pop-up Journey Diorama"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduceMotion ? 0.04 : 0.35 }}
-            className="w-full h-full object-contain pointer-events-none select-none"
-            loading="eager"
-          />
-        </AnimatePresence>
-      </motion.div>
+      {/* Paper hinge exists independently of the landscape and opens around its rear crease. */}
+      {!introDone && <div className="journey-flap-plane">
+        <motion.div className="journey-flap" initial={false}
+          animate={reduce ? { opacity: 0 } : active ? { rotateX: [0, -22, -105], opacity: [1, 1, 0] } : { rotateX: 0, opacity: 1 }}
+          transition={reduce ? { duration: 0 } : { duration: .8, delay: .12, times: [0, .45, 1], ease: [.22, 1, .36, 1] }} />
+      </div>}
 
-      {/* ============================================================
-          LAYER 3: 3D PAPER FLAP (HINGES OPEN IN 3D ALONG BACK CREASE)
-          Simulates booklet opening from 01-ve-dong to 02-ve-dang-mo
-          ============================================================ */}
-      {!hasPlayedIntro && !shouldReduceMotion && (
-        <div
-          className="absolute inset-x-[12%] bottom-[20%] h-[38%] z-[3] pointer-events-none flex items-center justify-center"
-          style={{ perspective: 900 }}
-        >
-          <motion.div
-            initial={{ rotateX: 0, opacity: 0.95 }}
-            animate={{ rotateX: -98, opacity: 0 }}
-            transition={{ duration: 0.75, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            style={{ transformOrigin: 'top center', backfaceVisibility: 'hidden' }}
-            className="w-full h-full rounded-t-[18px] bg-gradient-to-b from-[#FAF8F3] to-[#EDE7D9] border border-[#DDD8CA] shadow-md flex items-center justify-center"
-          >
-            <span className="font-serif italic text-xs text-[#8A95A5] tracking-widest">
-              Hành trình Việt Nam...
-            </span>
-          </motion.div>
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        <motion.div key={artwork || `neutral-${routeKey}`} className="journey-art-layer"
+          initial={{ opacity: 0 }} animate={{ opacity: active ? 1 : 0 }} exit={{ opacity: 0 }} transition={reveal(artwork ? .35 : 0, .55)}>
+          {artwork ? (
+            <>
+              {/* Upper landscape and lower road share the exact same image coordinates. */}
+              <motion.img className="journey-art journey-landscape" src={artwork} alt="" width="1536" height="1024"
+                initial={{ y: reduce ? 0 : 20 }} animate={{ y: active ? 0 : 20 }} transition={reveal(.35, .7)} />
+              <motion.img className="journey-art journey-road" src={artwork} alt="" width="1536" height="1024"
+                initial={{ opacity: 0 }} animate={{ opacity: active ? 1 : 0 }} transition={reveal(.32, .5)} />
+            </>
+          ) : (
+            <svg viewBox="0 0 1000 750" className="journey-neutral">
+              <path d="M180 485 355 275 467 419 625 239 850 477Z" fill="#a9bcb1" />
+              <path d="M205 506Q390 390 545 455T860 480L859 583 386 665Z" fill="#a7cdd0" />
+              <path d="M310 645C340 550 810 568 770 475S700 390 650 414" fill="none" stroke="#e3dcc9" strokeWidth="104" />
+              <path d="M310 645C340 550 810 568 770 475S700 390 650 414" fill="none" stroke="#59616a" strokeWidth="86" />
+              <path d="M310 645C340 550 810 568 770 475S700 390 650 414" fill="none" stroke="#dcca8b" strokeWidth="3" strokeDasharray="14 12" />
+            </svg>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
-      {/* ============================================================
-          LAYER 4: ROUTE SVG ARC & GEOGRAPHICALLY ACCURATE PINS
-          In 1313 x 609 unified coordinate system:
-          - Dragon Bridge (Cầu Rồng, Đà Nẵng): x = 280 (21.3%), y = 310 (50.9%)
-          - Ngọ Môn Gate (Huế): x = 1060 (80.7%), y = 260 (42.7%)
-          ============================================================ */}
-      <div className="absolute inset-0 pointer-events-none z-[5]">
-        <svg
-          viewBox="0 0 1313 609"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full overflow-visible"
-        >
-          <defs>
-            <linearGradient id="routeGlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#0097A7" stopOpacity="0.95" />
-              <stop offset="50%" stopColor="#00E5FF" stopOpacity="1" />
-              <stop offset="100%" stopColor="#F3B54A" stopOpacity="0.95" />
-            </linearGradient>
-
-            {/* Glowing marker dot filter */}
-            <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
-
-          {/* Route path halo */}
-          <motion.path
-            d={
-              isReversed
-                ? 'M 1060,260 Q 670,140 280,310'
-                : 'M 280,310 Q 670,140 1060,260'
-            }
-            stroke="#00E5FF"
-            strokeWidth="5"
-            strokeLinecap="round"
-            className="opacity-30 filter blur-xs"
-            initial={shouldReduceMotion || hasPlayedIntro ? { pathLength: 1 } : { pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={
-              shouldReduceMotion || hasPlayedIntro
-                ? { duration: 0.04 }
-                : { duration: 0.8, delay: 1.05, ease: 'easeOut' }
-            }
-          />
-
-          {/* Foreground glowing dashed route line */}
-          <motion.path
-            d={
-              isReversed
-                ? 'M 1060,260 Q 670,140 280,310'
-                : 'M 280,310 Q 670,140 1060,260'
-            }
-            stroke="url(#routeGlowGrad)"
-            strokeWidth="2.8"
-            strokeLinecap="round"
-            strokeDasharray="8 6"
-            initial={shouldReduceMotion || hasPlayedIntro ? { pathLength: 1 } : { pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={
-              shouldReduceMotion || hasPlayedIntro
-                ? { duration: 0.04 }
-                : { duration: 0.8, delay: 1.05, ease: 'easeOut' }
-            }
-          />
-        </svg>
-
-        {/* ----------------------------------------------------------
-            GEOGRAPHICALLY ACCURATE LANDMARK LABELS:
-            - Left Anchor (Cầu Rồng) is ALWAYS Đà Nẵng!
-            - Right Anchor (Ngọ Môn) is ALWAYS Huế!
-            Direction reflects origin/dest without swapping geography!
-            ---------------------------------------------------------- */}
-        {isDadHuePair ? (
-          <>
-            {/* LEFT PIN (Cầu Rồng - Đà Nẵng) */}
-            <motion.div
-              initial={shouldReduceMotion || hasPlayedIntro ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={
-                shouldReduceMotion || hasPlayedIntro
-                  ? { duration: 0.04 }
-                  : { duration: 0.35, delay: 1.25, ease: 'backOut' }
-              }
-              className="absolute -translate-x-1/2 -translate-y-full mb-1 flex flex-col items-center pointer-events-auto"
-              style={{ left: '21.3%', top: '50.9%' }}
-            >
-              <div className="bg-[#102744]/90 backdrop-blur-md text-white px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-teal-400/40 shadow-md flex items-center gap-1.5 whitespace-nowrap">
-                {!isReversed ? (
-                  <span className="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse shrink-0" />
-                ) : (
-                  <MapPin className="w-3 h-3 text-[#F3B54A] shrink-0" />
-                )}
-                <span className="text-[10px] sm:text-xs font-bold leading-none">
-                  Đà Nẵng
-                </span>
-              </div>
-            </motion.div>
-
-            {/* RIGHT PIN (Ngọ Môn - Huế) */}
-            <motion.div
-              initial={shouldReduceMotion || hasPlayedIntro ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={
-                shouldReduceMotion || hasPlayedIntro
-                  ? { duration: 0.04 }
-                  : { duration: 0.35, delay: 1.4, ease: 'backOut' }
-              }
-              className="absolute -translate-x-1/2 -translate-y-full mb-1 flex flex-col items-center pointer-events-auto"
-              style={{ left: '80.7%', top: '42.7%' }}
-            >
-              <div className="bg-[#102744]/90 backdrop-blur-md text-white px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-amber-400/40 shadow-md flex items-center gap-1.5 whitespace-nowrap">
-                {!isReversed ? (
-                  <MapPin className="w-3 h-3 text-[#F3B54A] shrink-0" />
-                ) : (
-                  <span className="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse shrink-0" />
-                )}
-                <span className="text-[10px] sm:text-xs font-bold leading-none">
-                  Huế
-                </span>
-              </div>
-            </motion.div>
-          </>
-        ) : (
-          /* Fallback for other single destinations */
-          <motion.div
-            initial={shouldReduceMotion || hasPlayedIntro ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={
-              shouldReduceMotion || hasPlayedIntro
-                ? { duration: 0.04 }
-                : { duration: 0.35, delay: 1.25, ease: 'backOut' }
-            }
-            className="absolute -translate-x-1/2 -translate-y-full mb-1 flex flex-col items-center pointer-events-auto"
-            style={{ left: '78%', top: '44%' }}
-          >
-            <div className="bg-[#102744]/90 backdrop-blur-md text-white px-3 py-1 rounded-full border border-amber-400/40 shadow-md flex items-center gap-1.5">
-              <MapPin className="w-3 h-3 text-[#F3B54A] shrink-0" />
-              <span className="text-[10px] sm:text-xs font-bold leading-none">
-                {activeScene.dest.label || toCity}
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </div>
-
-      {/* ============================================================
-          LAYER 5: COACH BUS (ADVANCES ALONG ROAD IN INTRO)
-          Positioned in the exact same normalized stage coordinate system:
-          - Left: 50%
-          - Top: 55%
-          - Width: 44%
-          - Wheels make realistic contact with the asphalt roadway
-          - Multi-point contact shadows & chassis ambient shadow
-          ============================================================ */}
-      <motion.div
-        initial={
-          shouldReduceMotion || hasPlayedIntro
-            ? { opacity: 1, x: 0, y: 0, scale: 1 }
-            : { opacity: 0, x: 45, y: 14, scale: 0.92 }
-        }
-        animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-        transition={
-          shouldReduceMotion || hasPlayedIntro
-            ? { duration: 0.04 }
-            : { duration: 0.85, delay: 0.7, ease: [0.16, 1, 0.3, 1] }
-        }
-        className="absolute pointer-events-none z-[8]"
-        style={{
-          left: '50%',
-          top: '55%',
-          width: '44%',
-        }}
-      >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={vehicleCategory}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduceMotion ? 0.04 : 0.3 }}
-            className="w-full"
-          >
-            <VehicleVisual category={vehicleCategory} />
+      <motion.div className={`journey-bus-entry journey-bus-${vehicleCategory}`}
+        initial={introDone ? false : { opacity: 0, x: reduce ? 0 : 55, y: reduce ? 0 : -9, scale: reduce ? 1 : .88 }}
+        animate={{ opacity: active ? 1 : 0, x: 0, y: 0, scale: 1 }} transition={reveal(.68, .95)}>
+        <AnimatePresence initial={false}>
+          <motion.div key={vehicleCategory} className="journey-bus-switch" initial={{ opacity: 0, x: reduce ? 0 : 12 }}
+            animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: reduce ? 0 : -12 }} transition={{ duration: reduce ? 0 : .3 }}>
+            <div className="journey-bus-shadow" />
+            <img src={vehicle.image} alt="" width="1376" height="768" className="journey-bus-image" />
           </motion.div>
         </AnimatePresence>
       </motion.div>
+
+      <motion.svg viewBox="0 0 1000 750" className="journey-route" key={routeKey} initial={{ opacity: 0 }}
+        animate={{ opacity: active ? 1 : 0 }} transition={reveal(1.1, .2)}>
+        <defs><linearGradient id={`${id}-route`}><stop stopColor="#0097a7" /><stop offset="1" stopColor="#5ec9bc" /></linearGradient></defs>
+        <motion.path d={reversed ? 'M790 250Q620 150 320 320' : 'M320 320Q620 150 790 250'} fill="none"
+          stroke={`url(#${id}-route)`} strokeWidth="3" initial={{ pathLength: reduce ? 1 : 0 }} animate={{ pathLength: active ? 1 : 0 }} transition={reveal(1.1, .65)} />
+        <circle cx="320" cy="320" r="7" fill="#0097a7" stroke="#fffefb" strokeWidth="3" />
+        <circle cx="790" cy="250" r="7" fill="#e2ae58" stroke="#fffefb" strokeWidth="3" />
+      </motion.svg>
+      <motion.div className="journey-place journey-place-left" initial={{ opacity: 0 }} animate={{ opacity: active ? 1 : 0 }} transition={reveal(1.2, .3)}>{pair ? 'Đà Nẵng' : fromCity}</motion.div>
+      <motion.div className="journey-place journey-place-right" initial={{ opacity: 0 }} animate={{ opacity: active ? 1 : 0 }} transition={reveal(1.3, .3)}>{pair ? 'Huế' : toCity}</motion.div>
+      {!pair && <span className="journey-neutral-note">Minh họa hành trình</span>}
     </div>
   );
-};
+}
