@@ -1,13 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
 import { COACH_CONFIG } from './coachConfig';
-import { ROAD_CONFIG, getVehicleTransformAt } from './roadConfig';
+import { ROAD_CONFIG, VEHICLE_PATH_CURVE, getVehicleTransformAt } from './roadConfig';
 
 interface SleeperCoachProps {
   position?: [number, number, number];
   yawAngle?: number;
   scale?: number;
   castShadow?: boolean;
+  autoAnimate?: boolean;
+  shouldReduceMotion?: boolean;
+  replayKey?: number;
+  onAnimationComplete?: () => void;
 }
 
 /**
@@ -99,30 +104,127 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
   yawAngle,
   scale = 1.0,
   castShadow = true,
+  autoAnimate = true,
+  shouldReduceMotion = false,
+  replayKey = 0,
+  onAnimationComplete,
 }) => {
-  const { dimensions, materials } = COACH_CONFIG;
+  const { dimensions, materials, animation } = COACH_CONFIG;
 
-  // Lấy vị trí và góc quay mặc định tại điểm dừng đỗ chuẩn (t = 0.62)
+  const coachRootRef = useRef<THREE.Group>(null);
+  const flWheelRef = useRef<THREE.Group>(null);
+  const frWheelRef = useRef<THREE.Group>(null);
+  const rlWheelRef = useRef<THREE.Group>(null);
+  const rrWheelRef = useRef<THREE.Group>(null);
+
+  // Animation state tracking without calling React setState (zero re-renders)
+  const animStateRef = useRef({
+    elapsed: shouldReduceMotion || !autoAnimate ? animation.duration : 0,
+    isComplete: shouldReduceMotion || !autoAnimate,
+    prevReplayKey: replayKey,
+  });
+
+  // Calculate default final stop state
   const defaultTransform = useMemo(() => {
     return getVehicleTransformAt(ROAD_CONFIG.vehicleKeyframes.stopT);
   }, []);
 
-  const finalPos: [number, number, number] = position || [
-    defaultTransform.position.x,
-    defaultTransform.position.y,
-    defaultTransform.position.z,
-  ];
+  // Initial starting transform (entry point if animated, or stop point if reduced motion/manual pos)
+  const initialTransform = useMemo(() => {
+    if (position) {
+      return {
+        pos: position,
+        yaw: yawAngle !== undefined ? yawAngle : defaultTransform.yawAngle,
+      };
+    }
+    if (shouldReduceMotion || !autoAnimate) {
+      return {
+        pos: [defaultTransform.position.x, defaultTransform.position.y, defaultTransform.position.z] as [number, number, number],
+        yaw: defaultTransform.yawAngle,
+      };
+    }
+    const entryTrans = getVehicleTransformAt(animation.entryT);
+    return {
+      pos: [entryTrans.position.x, entryTrans.position.y, entryTrans.position.z] as [number, number, number],
+      yaw: entryTrans.yawAngle,
+    };
+  }, [position, yawAngle, shouldReduceMotion, autoAnimate, defaultTransform, animation.entryT]);
 
-  const finalYaw: number = yawAngle !== undefined ? yawAngle : defaultTransform.yawAngle;
+  // Frame update loop: mutates Three.js transforms directly (zero React setState calls)
+  useFrame((_, delta) => {
+    if (!autoAnimate && !position) return;
+
+    // Detect replay trigger from debug controls
+    if (replayKey !== animStateRef.current.prevReplayKey) {
+      animStateRef.current.prevReplayKey = replayKey;
+      animStateRef.current.elapsed = 0;
+      animStateRef.current.isComplete = false;
+    }
+
+    if (shouldReduceMotion) {
+      if (!animStateRef.current.isComplete && coachRootRef.current) {
+        coachRootRef.current.position.set(
+          defaultTransform.position.x,
+          defaultTransform.position.y,
+          defaultTransform.position.z
+        );
+        coachRootRef.current.rotation.y = defaultTransform.yawAngle;
+        const finalDist = animation.totalDistance;
+        const finalAngle = finalDist / dimensions.wheelRadius;
+        if (flWheelRef.current) flWheelRef.current.rotation.x = finalAngle;
+        if (frWheelRef.current) frWheelRef.current.rotation.x = finalAngle;
+        if (rlWheelRef.current) rlWheelRef.current.rotation.x = finalAngle;
+        if (rrWheelRef.current) rrWheelRef.current.rotation.x = finalAngle;
+        animStateRef.current.isComplete = true;
+      }
+      return;
+    }
+
+    if (animStateRef.current.isComplete) return;
+
+    // Advance elapsed time smoothly
+    animStateRef.current.elapsed += Math.min(delta, 0.04);
+    const u = Math.min(1.0, animStateRef.current.elapsed / animation.duration);
+
+    // Cubic ease-out deceleration curve: 1 - (1 - u)^3
+    // Enters with smooth cruising speed, continuously decelerates to a whisper-quiet stop with zero spring/vibration
+    const eased = 1 - Math.pow(1 - u, 3);
+    const currentT = animation.entryT + (animation.stopT - animation.entryT) * eased;
+
+    const pt = VEHICLE_PATH_CURVE.getPointAt(currentT);
+    const tangent = VEHICLE_PATH_CURVE.getTangentAt(currentT).normalize();
+    const yaw = Math.atan2(tangent.x, tangent.z);
+
+    if (coachRootRef.current) {
+      coachRootRef.current.position.set(pt.x, pt.y, pt.z);
+      coachRootRef.current.rotation.y = yaw;
+    }
+
+    // Wheel rotation physics: distance / radius
+    // Exactly matches distance traveled along the curve
+    const distanceTraveled = animation.totalDistance * eased;
+    const wheelAngle = distanceTraveled / dimensions.wheelRadius;
+
+    if (flWheelRef.current) flWheelRef.current.rotation.x = wheelAngle;
+    if (frWheelRef.current) frWheelRef.current.rotation.x = wheelAngle;
+    if (rlWheelRef.current) rlWheelRef.current.rotation.x = wheelAngle;
+    if (rrWheelRef.current) rrWheelRef.current.rotation.x = wheelAngle;
+
+    if (u >= 1.0) {
+      animStateRef.current.isComplete = true;
+      onAnimationComplete?.();
+    }
+  });
 
   const shadowTexture = useMemo(() => createContactShadowTexture(), []);
   const decalTexture = useMemo(() => createDanavaGoDecalTexture(), []);
 
   return (
     <group
+      ref={coachRootRef}
       name="DANAVA_SLEEPER_COACH_RIG"
-      position={finalPos}
-      rotation={[0, finalYaw, 0]}
+      position={initialTransform.pos}
+      rotation={[0, initialTransform.yaw, 0]}
       scale={scale}
     >
       {/* =======================================================================
@@ -150,6 +252,7 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
       <group name="WHEEL_ASSEMBLIES">
         {/* Trước Trái (Front Left) */}
         <WheelAssembly
+          spinRef={flWheelRef}
           position={[-dimensions.trackWidth / 2, dimensions.axleHeight, dimensions.wheelBase / 2]}
           radius={dimensions.wheelRadius}
           width={dimensions.wheelWidth}
@@ -158,6 +261,7 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
         />
         {/* Trước Phải (Front Right) */}
         <WheelAssembly
+          spinRef={frWheelRef}
           position={[dimensions.trackWidth / 2, dimensions.axleHeight, dimensions.wheelBase / 2]}
           radius={dimensions.wheelRadius}
           width={dimensions.wheelWidth}
@@ -166,6 +270,7 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
         />
         {/* Sau Trái (Rear Left) */}
         <WheelAssembly
+          spinRef={rlWheelRef}
           position={[-dimensions.trackWidth / 2, dimensions.axleHeight, -dimensions.wheelBase / 2]}
           radius={dimensions.wheelRadius}
           width={dimensions.wheelWidth}
@@ -174,6 +279,7 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
         />
         {/* Sau Phải (Rear Right) */}
         <WheelAssembly
+          spinRef={rrWheelRef}
           position={[dimensions.trackWidth / 2, dimensions.axleHeight, -dimensions.wheelBase / 2]}
           radius={dimensions.wheelRadius}
           width={dimensions.wheelWidth}
@@ -397,54 +503,83 @@ interface WheelAssemblyProps {
   width: number;
   isLeft: boolean;
   castShadow?: boolean;
+  spinRef?: React.RefObject<THREE.Group | null>;
 }
 
 /**
- * Cụm bánh xe chuẩn hóa (Lốp cao su + Mâm đúc hợp kim)
+ * Cụm bánh xe chuẩn hóa (Lốp cao su + Mâm đúc hợp kim + 5 chấu nan hoa)
  */
 const WheelAssembly: React.FC<WheelAssemblyProps> = ({
   position,
   radius,
   width,
-  isLeft: _isLeft,
+  isLeft,
   castShadow = true,
+  spinRef,
 }) => {
   const { materials } = COACH_CONFIG;
 
   return (
     <group position={position}>
-      {/* Lốp xe cao su mờ (Tire) */}
-      <mesh
-        rotation={[0, 0, Math.PI / 2]}
-        castShadow={castShadow}
-      >
-        <cylinderGeometry args={[radius, radius, width, 20]} />
-        <meshStandardMaterial
-          color={materials.tireColor}
-          roughness={materials.tireRoughness}
-          metalness={0.05}
-        />
-      </mesh>
+      {/* Inner spin group quay quanh trục bánh xe X theo quãng đường thực tế */}
+      <group ref={spinRef}>
+        {/* Lốp xe cao su mờ (Tire) */}
+        <mesh
+          rotation={[0, 0, Math.PI / 2]}
+          castShadow={castShadow}
+        >
+          <cylinderGeometry args={[radius, radius, width, 24]} />
+          <meshStandardMaterial
+            color={materials.tireColor}
+            roughness={materials.tireRoughness}
+            metalness={0.05}
+          />
+        </mesh>
 
-      {/* Mâm đúc hợp kim bạc sáng (Alloy Wheel Rim) */}
-      <mesh rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[radius * 0.62, radius * 0.62, width + 0.002, 20]} />
-        <meshStandardMaterial
-          color={materials.rimColor}
-          roughness={materials.rimRoughness}
-          metalness={materials.rimMetalness}
-        />
-      </mesh>
+        {/* Mâm đúc hợp kim bạc sáng (Alloy Wheel Rim) */}
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[radius * 0.62, radius * 0.62, width + 0.002, 24]} />
+          <meshStandardMaterial
+            color={materials.rimColor}
+            roughness={materials.rimRoughness}
+            metalness={materials.rimMetalness}
+          />
+        </mesh>
 
-      {/* Trục tâm bánh mạ kim loại (Hub Cap) */}
-      <mesh rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[radius * 0.22, radius * 0.22, width + 0.006, 12]} />
-        <meshStandardMaterial
-          color="#A0A8B4"
-          roughness={0.2}
-          metalness={0.9}
-        />
-      </mesh>
+        {/* Trục tâm bánh mạ kim loại (Hub Cap) */}
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[radius * 0.22, radius * 0.22, width + 0.006, 16]} />
+          <meshStandardMaterial
+            color="#A0A8B4"
+            roughness={0.2}
+            metalness={0.9}
+          />
+        </mesh>
+
+        {/* 5 chấu nan hoa hợp kim để chuyển động quay bánh nhìn thấy rõ nét */}
+        {Array.from({ length: 5 }).map((_, i) => {
+          const angle = (i * Math.PI * 2) / 5;
+          const spokeLen = radius * 0.44;
+          return (
+            <mesh
+              key={i}
+              position={[
+                isLeft ? -width / 2 - 0.001 : width / 2 + 0.001,
+                Math.sin(angle) * (radius * 0.30),
+                Math.cos(angle) * (radius * 0.30),
+              ]}
+              rotation={[angle, 0, 0]}
+            >
+              <boxGeometry args={[0.003, 0.012, spokeLen]} />
+              <meshStandardMaterial
+                color="#8C94A0"
+                roughness={0.25}
+                metalness={0.85}
+              />
+            </mesh>
+          );
+        })}
+      </group>
     </group>
   );
 };

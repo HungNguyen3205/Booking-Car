@@ -12,6 +12,8 @@ interface JourneyCanvasProps {
   className?: string;
   flapAngle?: number;
   isDebug?: boolean;
+  shouldReduceMotion?: boolean;
+  coachReplayKey?: number;
 }
 
 // Robust check for WebGL support prior to mounting Three.js renderer
@@ -37,6 +39,8 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
   className = '',
   flapAngle = 0.0,
   isDebug = false,
+  shouldReduceMotion = false,
+  coachReplayKey = 0,
 }) => {
   const [hasWebGL] = useState<boolean>(() => checkWebGLAvailability());
   const [hasRendererError, setHasRendererError] = useState(false);
@@ -91,8 +95,11 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
         {/* Curved Road: Real continuous ribbon, shoulders, and dashed centerline */}
         <CurvedRoad isDebug={isDebug} />
 
-        {/* Sleeper Coach: Grounded 3D coach model positioned at static stop point */}
-        <SleeperCoach />
+        {/* Sleeper Coach: Grounded 3D coach model animated along road curve with wheel rotation */}
+        <SleeperCoach
+          shouldReduceMotion={shouldReduceMotion}
+          replayKey={coachReplayKey}
+        />
 
         {/* Future 3D elements (Landmarks) slot in here */}
         {children}

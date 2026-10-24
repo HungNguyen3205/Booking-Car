@@ -201,5 +201,49 @@
     - `danava_go_step4_1440x900.png` (Xe Giường nằm tĩnh góc 3/4 trên đường cong, bóng gầm vững chãi)
     - `danava_go_step4_390px.png` (Hiển thị sắc nét trên màn hình di động)
 
+### Bước 5: Chuyển động xe trên scene hiện có (Coach Motion & Wheel Animation)
+- **Thời gian**: 2026-10-24
+- **Công việc đã thực hiện**:
+  1. **Bám sát Đường dẫn Đã Khai báo (`VEHICLE_PATH_CURVE`)**:
+     - Xe di chuyển chuẩn xác dọc theo `VEHICLE_PATH_CURVE` từ điểm vào $t = 0.0$ (`[-3.45, 0.020, 0.92]`) đến điểm dừng đỗ $t = 0.62$ (`[0.704, 0.020, -0.173]`).
+     - Cao độ $Y = 0.020$ tuyệt đối ổn định trong suốt hành trình, 4 bánh xe luôn tiếp xúc chính xác mặt đường, không bị lơ lửng hay chìm lún.
+  2. **Định hướng Theo Tiếp tuyến & Giảm tốc Êm**:
+     - Thân xe xoay theo góc `yawAngle = Math.atan2(tangent.x, tangent.z)` liên tục và mượt mà, triệt tiêu hoàn toàn hiện tượng giật góc hay rung lắc.
+     - Đường cong giảm tốc Cubic Ease-Out: $f(u) = 1 - (1 - u)^3$ với thời lượng $2.4$s:
+       - Xe vào với vận tốc hành trình mượt, giảm tốc dần đều, và dừng êm ru tại đích.
+       - Tuyệt đối không dùng spring nảy hay rung lắc giả tạo.
+  3. **Vật lý Quay Bánh Xe Theo Quãng Đường Thực Tế**:
+     - Bánh xe quay quanh trục X theo công thức vật lý: $\Delta \theta = \frac{\Delta s}{R_{wheel}}$ ($R_{wheel} = 0.078$).
+     - Tổng quãng đường $s = 4.411$ units tương ứng chính xác $9.00$ vòng quay của bánh xe.
+     - Khi xe giảm tốc, tốc độ quay bánh xe giảm tương ứng; khi xe dừng hẳn tại $t = 0.62$, bánh xe dừng quay hoàn toàn và cố định vị trí tĩnh.
+  4. **Bóng Gầm Di Chuyển Đồng Bộ**:
+     - Mesh bóng gầm tiếp xúc (Contact shadow) là node con trong cùng root group của xe, chuyển động đồng thời với thân xe tại cao độ $Y = 0.0208$, kết hợp cùng shadow map động của Three.js.
+  5. **Hiệu năng & Không Dùng React setState Mỗi Frame**:
+     - Vòng lặp animation sử dụng hook `useFrame` của `@react-three/fiber`, can thiệp trực tiếp vào thuộc tính `.position` và `.rotation` của các Three.js Object3D thông qua `useRef`.
+     - Số lần gọi `setState` trong lúc chuyển động: **0 lần**.
+     - Giao diện form và DOM hoàn toàn độc lập, không bị re-render hay lag giật khi xe đang chạy.
+  6. **Cơ chế Cleanup & Hỗ trợ Accessibility**:
+     - R3F tự động gỡ bỏ `useFrame` khi component unmount hoặc khi người dùng chuyển trang.
+     - Chế độ `shouldReduceMotion`: Đặt xe ngay lập tức tại vị trí dừng tĩnh $t = 0.62$, bỏ qua chuyển động lăn bánh.
+  7. **Công cụ Phát lại Kiểm thử (Debug Replay)**:
+     - Thêm nút "Phát lại xe ▶" trong thanh header khi có tham số `?debug=1`, cho phép phát lại chu kỳ chuyển động xe để kiểm tra cơ học bánh xe.
+     - Người dùng thông thường (không có `?debug=1`) chỉ thấy xe vào một lần tự nhiên, không hiển thị nút replay trên UI khách.
+- **Kết quả nghiệm thu**:
+  - **Browser thật & Quay video**:
+    - Video browser WebP được ghi nhận tự động tại `coach_motion_demo_1792852532009.webp`.
+    - Xe di chuyển êm ái, bám sát mặt đường, không bị lún hay bay khỏi đường.
+    - Dừng xe thì bánh xe dừng quay hoàn toàn.
+    - Nút "Tìm chuyến" và form tìm kiếm tương tác bình thường trong suốt quá trình xe chạy.
+    - Lỗi console renderer: **0 lỗi** (`Total console error count: 0`).
+  - **Linter & Typecheck**:
+    - `npx oxlint`: 0 warnings, 0 errors.
+    - `npm run build`: Thành công 100%, chunk `JourneyCanvas-*.js` độc lập.
+  - **Ảnh chụp nghiệm thu**:
+    - `danava_go_step5_transit_early.png` (Xe ở đoạn vào $t \approx 0.15$)
+    - `danava_go_step5_transit_midway.png` (Xe lướt trên cung đường đèo $t \approx 0.38$)
+    - `danava_go_step5_stopped.png` (Xe dừng đỗ tĩnh vững chãi tại $t = 0.62$, bánh dừng hoàn toàn)
+    - `danava_go_step5_replaying.png` (Xác thực công cụ phát lại dev debug)
+
+
 
 

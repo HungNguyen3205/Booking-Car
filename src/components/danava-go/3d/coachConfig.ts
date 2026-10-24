@@ -55,6 +55,14 @@ export const COACH_CONFIG = {
     shadowOpacity: 0.58,
   },
 
+  // Cấu hình chuyển động xe chạy dọc đường và quay bánh theo vật lý
+  animation: {
+    duration: 2.4,            // Thời lượng xe chạy từ điểm vào đến điểm dừng (giây)
+    entryT: 0.0,              // Điểm vào đầu đường (t = 0.0)
+    stopT: 0.62,              // Điểm dừng xe cuối (t = 0.62)
+    totalDistance: 4.411,     // Quãng đường cong thực tế từ t=0 đến t=0.62 (units)
+  },
+
   // Metadata mô hình phục vụ báo cáo kiểm kê & đối soát kỹ thuật
   meta: {
     modelType: 'Procedural 3D Rig (Three.js Geometry)',
