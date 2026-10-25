@@ -1,16 +1,38 @@
-import React, { useState, useMemo } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import React, { useState, useMemo, useEffect } from 'react';
+import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import type { SearchParams, Trip } from '../../types';
 import { TripTicketCard } from './TripTicketCard';
-import { TripFilters, type FilterState } from './TripFilters';
-import { ArrowLeft, ArrowRight, SlidersHorizontal, ArrowUpDown, Calendar, MapPin, Users, AlertCircle, RotateCcw } from 'lucide-react';
-import { formatVietnamDate, parseDurationMinutes } from '../../utils/dateUtils';
+import { TripFilters, type FilterState, MAX_FILTER_PRICE } from './TripFilters';
+import { TripSearchForm } from '../home/TripSearchForm';
+import {
+  ArrowLeft,
+  ArrowRight,
+  SlidersHorizontal,
+  ArrowUpDown,
+  Calendar,
+  MapPin,
+  Users,
+  AlertCircle,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  Edit3,
+  Info,
+  RefreshCw,
+} from 'lucide-react';
+import {
+  formatVietnamDate,
+  parseDurationMinutes,
+  addDaysToDateStr,
+  getVietnamTodayDateStr,
+} from '../../utils/dateUtils';
 
 interface TripResultsViewProps {
   searchParams: SearchParams;
   allTrips: Trip[];
   onSelectTrip: (trip: Trip) => void;
   onModifySearch: () => void;
+  onUpdateSearch?: (params: SearchParams) => void;
 }
 
 export const TripResultsView: React.FC<TripResultsViewProps> = ({
@@ -18,29 +40,46 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
   allTrips,
   onSelectTrip,
   onModifySearch,
+  onUpdateSearch,
 }) => {
   const shouldReduceMotion = useReducedMotion();
+  const todayStr = getVietnamTodayDateStr();
 
-  // Time tab pill: 'all', 'morning', 'afternoon', 'evening'
+  // Time slot quick pills: 'all', 'morning', 'afternoon', 'evening'
   const [quickTimeTab, setQuickTimeTab] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'early' | 'price-asc' | 'duration'>('early');
+  const [sortBy, setSortBy] = useState<'early' | 'late' | 'price-asc' | 'price-desc' | 'duration'>('early');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [isEditingSearch, setIsEditingSearch] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [simulatedError, setSimulatedError] = useState<string | null>(null);
 
-  // Advanced filters state
+  // Advanced filters state with 600,000 VND default ceiling to support all trip prices
   const [filters, setFilters] = useState<FilterState>({
     timeSlots: [],
     vehicleCategories: [],
-    maxPrice: 400000,
+    maxPrice: MAX_FILTER_PRICE,
   });
 
   const resetFilters = () => {
     setFilters({
       timeSlots: [],
       vehicleCategories: [],
-      maxPrice: 400000,
+      maxPrice: MAX_FILTER_PRICE,
     });
     setQuickTimeTab('all');
   };
+
+  // Close mobile filter on escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileFilterOpen(false);
+        setIsEditingSearch(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Filter and sort computation
   const filteredTrips = useMemo(() => {
@@ -70,15 +109,60 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
       })
       .sort((a, b) => {
         if (sortBy === 'price-asc') return a.price - b.price;
+        if (sortBy === 'price-desc') return b.price - a.price;
         if (sortBy === 'duration') {
           return parseDurationMinutes(a.duration) - parseDurationMinutes(b.duration);
         }
-        // Default: departure time
+        if (sortBy === 'late') {
+          return b.departureTime.localeCompare(a.departureTime);
+        }
+        // Default: departure time ascending
         return a.departureTime.localeCompare(b.departureTime);
       });
   }, [allTrips, quickTimeTab, filters, sortBy]);
 
   const hasNoTripsFound = allTrips.length === 0;
+
+  // Day navigation helpers
+  const canGoPrevDay = searchParams.date > todayStr;
+  const handlePrevDay = () => {
+    if (!canGoPrevDay) return;
+    const prevDate = addDaysToDateStr(searchParams.date, -1);
+    handleNewSearchParams({ ...searchParams, date: prevDate });
+  };
+
+  const handleNextDay = () => {
+    const nextDate = addDaysToDateStr(searchParams.date, 1);
+    handleNewSearchParams({ ...searchParams, date: nextDate });
+  };
+
+  const handleNewSearchParams = (newParams: SearchParams) => {
+    setIsLoading(true);
+    setSimulatedError(null);
+    setIsEditingSearch(false);
+
+    // Fast, realistic response transition
+    setTimeout(() => {
+      onUpdateSearch?.(newParams);
+      setIsLoading(false);
+    }, shouldReduceMotion ? 0 : 220);
+  };
+
+  const handleRetry = () => {
+    setIsLoading(true);
+    setSimulatedError(null);
+    setTimeout(() => {
+      onUpdateSearch?.(searchParams);
+      setIsLoading(false);
+    }, 250);
+  };
+
+  // Count active filters for badge
+  const activeFiltersCount =
+    filters.timeSlots.length +
+    filters.vehicleCategories.length +
+    (filters.maxPrice < MAX_FILTER_PRICE ? 1 : 0) +
+    (quickTimeTab !== 'all' ? 1 : 0);
 
   return (
     <motion.div
@@ -89,60 +173,207 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
       className="min-h-screen bg-[#F7F4EC] pb-16"
     >
       {/* ============================================================
-          2. THANH TÓM TẮT TÌM KIẾM (SURFACE SUMMARY BAR)
-          Clean horizontal surface bar right below header:
-          Origin -> Destination, Date, Passengers & Modify Search button
+          1. SURFACE SUMMARY BAR (Sticky Below Header)
+          Clear route info, adjacent day switcher, and inline edit toggle
           ============================================================ */}
-      <div className="bg-[#FFFEFA] border-b border-[#E5E3DC] shadow-2xs py-3 sm:py-3.5">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-3">
-          {/* Route details pill group */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[#102744]">
-            {/* Origin -> Destination */}
-            <div className="flex items-center gap-1.5 font-bold text-sm sm:text-base text-[#102744]">
-              <MapPin className="w-4 h-4 text-[#0097A7] shrink-0" />
-              <span>{searchParams.from}</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
-              <span>{searchParams.to}</span>
+      <div className="bg-[#FFFEFA] border-b border-[#E5E3DC] shadow-2xs py-3 sm:py-3.5 sticky top-16 sm:top-[68px] z-30">
+        <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Left: Origin -> Destination, Date & Passenger Count */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[#102744]">
+              {/* Back to Home Button */}
+              <button
+                type="button"
+                onClick={onModifySearch}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#647084] hover:text-[#0097A7] transition-colors p-1 -ml-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-md"
+                title="Quay lại trang chủ"
+                aria-label="Quay lại trang chủ"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Trang chủ</span>
+              </button>
+
+              <span className="text-[#CBD5E1] hidden sm:inline">•</span>
+
+              {/* Origin -> Destination Pill */}
+              <div className="flex items-center gap-1.5 font-bold text-sm sm:text-base text-[#102744]">
+                <MapPin className="w-4 h-4 text-[#0097A7] shrink-0" />
+                <span>{searchParams.from}</span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
+                <span>{searchParams.to}</span>
+              </div>
+
+              <span className="text-[#CBD5E1] hidden sm:inline">•</span>
+
+              {/* Travel Date */}
+              <div className="flex items-center gap-1.5 text-[#475569] font-medium text-xs sm:text-sm">
+                <Calendar className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
+                <span>{formatVietnamDate(searchParams.date)}</span>
+              </div>
+
+              <span className="text-[#CBD5E1] hidden sm:inline">•</span>
+
+              {/* Passengers Count */}
+              <div className="flex items-center gap-1.5 text-[#475569] font-medium text-xs sm:text-sm">
+                <Users className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
+                <span>{searchParams.passengers} hành khách</span>
+              </div>
             </div>
 
-            <span className="text-[#CBD5E1] hidden sm:inline">•</span>
+            {/* Right: Quick Day Switcher & Modify Search Button */}
+            <div className="flex items-center gap-2">
+              {/* Adjacent Day Switcher */}
+              <div className="flex items-center bg-[#F7F4EC] rounded-xl p-0.5 border border-[#E5E3DC]">
+                <button
+                  type="button"
+                  onClick={handlePrevDay}
+                  disabled={!canGoPrevDay || isLoading}
+                  className="px-2 py-1 text-xs font-medium text-[#102744] hover:text-[#0097A7] disabled:opacity-35 disabled:hover:text-[#102744] transition-colors flex items-center gap-0.5 cursor-pointer disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-lg"
+                  title="Xem ngày hôm trước"
+                  aria-label="Xem ngày hôm trước"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span className="hidden md:inline">Hôm trước</span>
+                </button>
+                <div className="w-[1px] h-3.5 bg-[#CBD5E1]" />
+                <button
+                  type="button"
+                  onClick={handleNextDay}
+                  disabled={isLoading}
+                  className="px-2 py-1 text-xs font-medium text-[#102744] hover:text-[#0097A7] disabled:opacity-35 transition-colors flex items-center gap-0.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-lg"
+                  title="Xem ngày hôm sau"
+                  aria-label="Xem ngày hôm sau"
+                >
+                  <span className="hidden md:inline">Hôm sau</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
-            {/* Travel Date */}
-            <div className="flex items-center gap-1.5 text-[#475569] font-medium text-xs sm:text-sm">
-              <Calendar className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
-              <span>{formatVietnamDate(searchParams.date)}</span>
-            </div>
-
-            <span className="text-[#CBD5E1] hidden sm:inline">•</span>
-
-            {/* Passengers count */}
-            <div className="flex items-center gap-1.5 text-[#475569] font-medium text-xs sm:text-sm">
-              <Users className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
-              <span>{searchParams.passengers} hành khách</span>
+              {/* Inline Search Modifier Toggle */}
+              <button
+                type="button"
+                onClick={() => setIsEditingSearch(!isEditingSearch)}
+                className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] ${
+                  isEditingSearch
+                    ? 'bg-[#102744] text-white border-[#102744]'
+                    : 'text-[#0097A7] hover:text-[#007887] hover:bg-[#E0F7FA] border-[#0097A7]/40 bg-[#FFFEFA]'
+                }`}
+                aria-expanded={isEditingSearch}
+                aria-controls="inline-search-editor"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>{isEditingSearch ? 'Đóng form' : 'Sửa tìm kiếm'}</span>
+              </button>
             </div>
           </div>
 
-          {/* Modify Search Action Button */}
-          <button
-            type="button"
-            onClick={onModifySearch}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0097A7] hover:text-[#007887] hover:bg-[#E0F7FA] px-3.5 py-1.5 rounded-full border border-[#0097A7]/30 transition-all cursor-pointer active:scale-95"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Sửa tìm kiếm</span>
-          </button>
+          {/* ============================================================
+              INLINE SEARCH MODIFIER PANEL (Smooth Expandable Drawer)
+              Allows modifying route/date/passengers without page switch
+              ============================================================ */}
+          <AnimatePresence>
+            {isEditingSearch && (
+              <motion.div
+                id="inline-search-editor"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: shouldReduceMotion ? 0 : 0.22, ease: 'easeInOut' }}
+                className="overflow-visible pt-4 mt-3 border-t border-[#E5E3DC]/80"
+              >
+                <div className="bg-[#F7F4EC] p-3 sm:p-4 rounded-2xl border border-[#E5E3DC]">
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <span className="text-xs font-bold text-[#102744] uppercase tracking-wider">
+                      Cập nhật thông tin chuyến xe
+                    </span>
+                    <span className="text-[11px] text-[#647084]">
+                      Giữ nguyên dữ liệu không liên quan
+                    </span>
+                  </div>
+                  <TripSearchForm
+                    variant="horizontal-bar"
+                    initialParams={searchParams}
+                    onSearch={(newParams) => {
+                      handleNewSearchParams(newParams);
+                    }}
+                    isLoading={isLoading}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
       {/* ============================================================
-          3. BỐ CỤC CHÍNH DESKTOP (1180-1280px Container)
-          Sidebar 220-250px | Gap 24px | Results List remainder
+          TRANSPARENT MOCK DATA NOTICE (Requirement 9)
           ============================================================ */}
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 mt-5">
-        {hasNoTripsFound ? (
+      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 mt-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E0F2F1]/80 text-[#004D40] border border-[#80CBC4]/60 text-[11px] font-medium">
+          <Info className="w-3.5 h-3.5 text-[#00897B] shrink-0" />
+          <span>
+            <strong>DANAVA GO Demo:</strong> Dữ liệu lịch trình và giá vé mô phỏng (Mock Data) • Sẵn sàng kết nối REST/GraphQL API khi triển khai backend.
+          </span>
+        </div>
+      </div>
+
+      {/* ============================================================
+          MAIN RESULTS WORKSPACE (Desktop 2-Column or Mobile Stack)
+          Sidebar 240px | Gap 24px | Tickets List
+          ============================================================ */}
+      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 mt-5">
+        {/* Error State with Retry Button */}
+        {simulatedError ? (
+          <div className="max-w-xl mx-auto bg-[#FFFEFA] rounded-2xl p-8 border border-red-200 text-center shadow-2xs mt-4">
+            <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-200">
+              <AlertCircle className="w-7 h-7" />
+            </div>
+            <h2 className="font-serif font-bold text-xl text-[#102744]">
+              Không thể tải danh sách chuyến xe
+            </h2>
+            <p className="text-xs text-[#647084] max-w-sm mx-auto leading-relaxed mt-2 mb-5">
+              {simulatedError}
+            </p>
+            <button
+              type="button"
+              onClick={handleRetry}
+              className="px-5 py-2.5 bg-[#0097A7] text-white text-xs font-semibold rounded-xl hover:bg-[#007887] transition-all shadow-xs flex items-center justify-center gap-2 mx-auto cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Thử lại</span>
+            </button>
+          </div>
+        ) : isLoading ? (
           /* ============================================================
-             EMPTY STATE: No trips exist on this route & date
-             ============================================================ */
+              LOADING STATE: Shimmer Skeleton Cards
+              ============================================================ */
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+            <div className="hidden lg:block w-[240px] shrink-0">
+              <div className="bg-[#FFFEFA] rounded-2xl p-5 border border-[#E5E3DC] h-72 animate-pulse" />
+            </div>
+            <div className="flex-1 min-w-0 space-y-3">
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  className="bg-[#FFFEFA] rounded-2xl border border-[#E5E3DC] h-32 animate-pulse p-4 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-24 h-16 bg-[#F0ECE1] rounded-xl" />
+                    <div className="space-y-2">
+                      <div className="w-32 h-4 bg-[#F0ECE1] rounded" />
+                      <div className="w-48 h-3 bg-[#F0ECE1] rounded" />
+                    </div>
+                  </div>
+                  <div className="w-28 h-8 bg-[#F0ECE1] rounded-xl" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : hasNoTripsFound ? (
+          /* ============================================================
+              EMPTY STATE: No trips exist on this route & date (Requirement 6)
+              No made-up trips, no fallback to different cities
+              ============================================================ */
           <div className="max-w-xl mx-auto bg-[#FFFEFA] rounded-2xl p-8 border border-[#E5E3DC] text-center shadow-2xs mt-4">
             <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4 border border-amber-200">
               <AlertCircle className="w-7 h-7" />
@@ -162,30 +393,41 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
               <span>{searchParams.passengers} hành khách</span>
             </div>
 
-            <p className="text-xs text-[#647084] max-w-sm mx-auto leading-relaxed mb-5">
-              Hệ thống hiện chưa có lịch trình khai thác tuyến đường này vào ngày đã chọn.
+            <p className="text-xs text-[#647084] max-w-sm mx-auto leading-relaxed mb-6">
+              Hệ thống DANAVA GO hiện chưa có lịch trình xe khách cho chặng đường này vào ngày đã chọn. Tuyệt đối không tự động chuyển hướng sang tuyến khác để đảm bảo sự minh bạch.
             </p>
 
-            <button
-              type="button"
-              onClick={onModifySearch}
-              className="px-5 py-2.5 bg-[#0097A7] text-white text-xs font-semibold rounded-xl hover:bg-[#007887] transition-all shadow-xs flex items-center justify-center gap-2 mx-auto cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Thay đổi tuyến hoặc ngày</span>
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={handleNextDay}
+                className="px-4 py-2 bg-[#0097A7] text-white text-xs font-semibold rounded-xl hover:bg-[#007887] transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+              >
+                <span>Xem ngày hôm sau</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsEditingSearch(true)}
+                className="px-4 py-2 bg-[#F7F4EC] text-[#102744] hover:bg-[#E5E3DC] text-xs font-semibold rounded-xl border border-[#D8D4C9] transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#102744]"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Đổi tuyến hoặc ngày</span>
+              </button>
+            </div>
           </div>
         ) : (
           /* ============================================================
-             TWO-COLUMN WORKSPACE: 240px Sidebar + Flexible List
-             ============================================================ */
+              RESULTS LIST WITH FILTERS & REAL SORTING
+              ============================================================ */
           <div className="flex flex-col lg:flex-row gap-6 items-start">
-            {/* Desktop Filter Sidebar (240px) */}
-            <div className="hidden lg:block w-[240px] shrink-0 sticky top-20">
+            {/* Desktop Filter Sidebar (240px, Sticky) */}
+            <div className="hidden lg:block w-[240px] shrink-0 sticky top-36">
               <TripFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
             </div>
 
-            {/* Results Column (remainder) */}
+            {/* Results Column (Remainder) */}
             <div className="flex-1 min-w-0">
               {/* Header row: Title + Count + Time tabs + Sort */}
               <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-[#E5E3DC]">
@@ -195,7 +437,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                     Chọn chuyến phù hợp
                   </h2>
                   <span className="text-xs text-[#647084] font-medium">
-                    ({filteredTrips.length} chuyến)
+                    ({filteredTrips.length} chuyến khả dụng)
                   </span>
                 </div>
 
@@ -213,7 +455,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => setQuickTimeTab(tab.id)}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] ${
                           quickTimeTab === tab.id
                             ? 'bg-[#102744] text-white shadow-2xs'
                             : 'text-[#647084] hover:text-[#102744] hover:bg-[#F7F4EC]'
@@ -232,21 +474,30 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value as any)}
                       className="bg-transparent font-semibold text-[#102744] focus:outline-hidden cursor-pointer text-xs"
+                      aria-label="Sắp xếp danh sách chuyến xe"
                     >
                       <option value="early">Giờ đi sớm nhất</option>
+                      <option value="late">Giờ đi muộn nhất</option>
                       <option value="price-asc">Giá thấp nhất</option>
+                      <option value="price-desc">Giá cao nhất</option>
                       <option value="duration">Thời gian nhanh nhất</option>
                     </select>
                   </div>
 
-                  {/* Mobile filter button */}
+                  {/* Mobile filter button with active count badge */}
                   <button
                     type="button"
                     onClick={() => setMobileFilterOpen(true)}
-                    className="lg:hidden inline-flex items-center gap-1.5 bg-[#FFFEFA] hover:bg-[#E0F7FA] px-3 py-1.5 rounded-xl border border-[#E5E3DC] text-xs font-semibold text-[#102744] cursor-pointer"
+                    className="lg:hidden inline-flex items-center gap-1.5 bg-[#FFFEFA] hover:bg-[#E0F7FA] px-3 py-1.5 rounded-xl border border-[#E5E3DC] text-xs font-semibold text-[#102744] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                    aria-label="Mở bộ lọc chuyến xe"
                   >
                     <SlidersHorizontal className="w-3.5 h-3.5 text-[#0097A7]" />
                     <span>Bộ lọc</span>
+                    {activeFiltersCount > 0 && (
+                      <span className="w-4 h-4 rounded-full bg-[#0097A7] text-white text-[10px] flex items-center justify-center font-bold">
+                        {activeFiltersCount}
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -262,12 +513,12 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                     Không có chuyến nào khớp bộ lọc
                   </h3>
                   <p className="text-xs text-[#647084] mt-1.5 mb-5">
-                    Thử bỏ chọn một số điều kiện hoặc khoảng giá để xem thêm chuyến xe.
+                    Thử bỏ chọn một số điều kiện hoặc mở rộng khoảng giá để xem thêm chuyến xe.
                   </p>
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="px-4 py-2 bg-[#0097A7] text-white text-xs font-semibold rounded-xl hover:bg-[#007887] transition-colors cursor-pointer"
+                    className="px-4 py-2 bg-[#0097A7] text-white text-xs font-semibold rounded-xl hover:bg-[#007887] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
                   >
                     Xóa toàn bộ bộ lọc
                   </button>
@@ -292,28 +543,37 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
           MOBILE FILTER DRAWER / MODAL
           ============================================================ */}
       {mobileFilterOpen && !hasNoTripsFound && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex justify-end lg:hidden">
-          <div className="w-full max-w-sm bg-[#FFFEFA] h-full overflow-y-auto p-5 shadow-2xl animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#E5E3DC]">
-              <h3 className="font-serif font-bold text-base text-[#102744]">Bộ lọc chuyến xe</h3>
-              <button
-                type="button"
-                onClick={() => setMobileFilterOpen(false)}
-                className="text-xs font-bold text-[#647084] hover:text-[#102744] p-1 cursor-pointer"
-              >
-                ✕ Đóng
-              </button>
+        <div
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex justify-end lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Bộ lọc chuyến xe di động"
+        >
+          <div className="w-full max-w-sm bg-[#FFFEFA] h-full overflow-y-auto p-5 shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#E5E3DC]">
+                <h3 className="font-serif font-bold text-base text-[#102744]">Bộ lọc chuyến xe</h3>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(false)}
+                  className="text-xs font-bold text-[#647084] hover:text-[#102744] p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-md"
+                  aria-label="Đóng bảng lọc"
+                >
+                  ✕ Đóng
+                </button>
+              </div>
+              <TripFilters
+                filters={filters}
+                onChange={setFilters}
+                onReset={resetFilters}
+              />
             </div>
-            <TripFilters
-              filters={filters}
-              onChange={setFilters}
-              onReset={resetFilters}
-            />
-            <div className="mt-5">
+
+            <div className="mt-5 pt-3 border-t border-[#E5E3DC]">
               <button
                 type="button"
                 onClick={() => setMobileFilterOpen(false)}
-                className="w-full py-2.5 bg-[#0097A7] text-white font-semibold text-xs rounded-xl shadow-xs cursor-pointer"
+                className="w-full py-2.5 bg-[#0097A7] text-white font-semibold text-xs rounded-xl shadow-xs cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
               >
                 Xem kết quả ({filteredTrips.length} chuyến)
               </button>

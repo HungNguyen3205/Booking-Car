@@ -128,7 +128,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
               onClick={() => setIsExpanded(!isExpanded)}
               aria-expanded={isExpanded}
               aria-controls={`trip-details-${trip.id}`}
-              className="text-xs text-[#0097A7] hover:text-[#007887] font-medium flex items-center gap-1 transition-colors cursor-pointer"
+              className="text-xs text-[#0097A7] hover:text-[#007887] font-medium flex items-center gap-1 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] rounded-md px-1 py-0.5"
             >
               <span>Chi tiết chuyến</span>
               {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -175,7 +175,8 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
             <button
               type="button"
               onClick={() => onSelectTrip(trip)}
-              className="w-full py-2 px-3 bg-[#0097A7] hover:bg-[#007887] active:scale-97 text-white font-semibold text-xs lg:text-sm rounded-xl shadow-2xs shadow-[#0097A7]/25 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              className="w-full py-2 px-3 bg-[#0097A7] hover:bg-[#007887] active:scale-97 text-white font-semibold text-xs lg:text-sm rounded-xl shadow-2xs shadow-[#0097A7]/25 flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] focus-visible:ring-offset-2"
+              aria-label={`Chọn chuyến đi lúc ${trip.departureTime} đến ${trip.to}`}
             >
               <span>Chọn chuyến</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -282,7 +283,8 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
           <button
             type="button"
             onClick={() => onSelectTrip(trip)}
-            className="min-h-[44px] px-5 bg-[#0097A7] hover:bg-[#007887] active:scale-97 text-white font-semibold text-sm rounded-xl shadow-2xs shadow-[#0097A7]/25 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            className="min-h-[44px] px-5 bg-[#0097A7] hover:bg-[#007887] active:scale-97 text-white font-semibold text-sm rounded-xl shadow-2xs shadow-[#0097A7]/25 flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] focus-visible:ring-offset-2"
+            aria-label={`Chọn chuyến đi lúc ${trip.departureTime} đến ${trip.to}`}
           >
             <span>Chọn chuyến</span>
             <ArrowRight className="w-4 h-4" />
@@ -296,7 +298,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
             onClick={() => setIsExpanded(!isExpanded)}
             aria-expanded={isExpanded}
             aria-controls={`trip-details-${trip.id}`}
-            className="w-full py-1 text-xs text-[#0097A7] font-medium flex items-center justify-center gap-1 border-t border-[#F0ECE1] pt-2 cursor-pointer"
+            className="w-full py-1 text-xs text-[#0097A7] font-medium flex items-center justify-center gap-1 border-t border-[#F0ECE1] pt-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] rounded-md"
           >
             <span>Chi tiết chuyến</span>
             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}

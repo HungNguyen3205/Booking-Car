@@ -345,6 +345,7 @@ export const App: React.FC = () => {
                     setCurrentStep('home');
                     updateUrlParams(searchParams, 'home');
                   }}
+                  onUpdateSearch={handleSearch}
                 />
               </motion.div>
             )}

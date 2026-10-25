@@ -3,6 +3,8 @@ import { Filter, RotateCcw, Clock, Bus, DollarSign, ChevronDown, ChevronUp } fro
 import type { VehicleCategory } from '../../types';
 import { bookingService } from '../../services/bookingService';
 
+export const MAX_FILTER_PRICE = 600000;
+
 export interface FilterState {
   timeSlots: string[]; // 'morning', 'afternoon', 'evening'
   vehicleCategories: VehicleCategory[];
@@ -41,10 +43,13 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
   const hasActiveFilters =
     filters.timeSlots.length > 0 ||
     filters.vehicleCategories.length > 0 ||
-    filters.maxPrice < 400000;
+    filters.maxPrice < MAX_FILTER_PRICE;
 
   return (
-    <aside className="bg-[#FFFEFA] rounded-2xl p-4 sm:p-5 border border-[#E5E3DC] shadow-2xs space-y-4">
+    <aside
+      className="bg-[#FFFEFA] rounded-2xl p-4 sm:p-5 border border-[#E5E3DC] shadow-2xs space-y-4"
+      aria-label="Bộ lọc chuyến xe"
+    >
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-[#E5E3DC]">
         <div className="flex items-center gap-2">
@@ -55,7 +60,8 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
           <button
             type="button"
             onClick={onReset}
-            className="text-xs text-[#0097A7] hover:text-[#007887] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+            className="text-xs text-[#0097A7] hover:text-[#007887] font-semibold flex items-center gap-1 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-md px-1 py-0.5"
+            aria-label="Xóa tất cả bộ lọc đang chọn"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Xóa lọc</span>
@@ -68,7 +74,8 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
         <button
           type="button"
           onClick={() => setOpenTime(!openTime)}
-          className="w-full flex items-center justify-between text-xs font-bold text-[#102744] uppercase tracking-wider py-1 cursor-pointer select-none"
+          aria-expanded={openTime}
+          className="w-full flex items-center justify-between text-xs font-bold text-[#102744] uppercase tracking-wider py-1 cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-md"
         >
           <span className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-[#0097A7]" />
@@ -88,13 +95,13 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
               return (
                 <label
                   key={item.id}
-                  className="flex items-center gap-2 text-xs text-[#102744] hover:text-[#0097A7] cursor-pointer py-1 select-none"
+                  className="flex items-center gap-2.5 text-xs text-[#102744] hover:text-[#0097A7] cursor-pointer py-1 select-none"
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
                     onChange={() => toggleTimeSlot(item.id)}
-                    className="rounded border-[#CBD5E1] text-[#0097A7] focus:ring-[#0097A7] w-4 h-4 cursor-pointer accent-[#0097A7]"
+                    className="rounded border-[#CBD5E1] text-[#0097A7] focus:ring-[#0097A7] w-4 h-4 cursor-pointer accent-[#0097A7] focus-visible:outline-2 focus-visible:outline-[#0097A7]"
                   />
                   <span className={isChecked ? 'font-semibold text-[#0097A7]' : 'text-[#334155]'}>
                     {item.label}
@@ -111,7 +118,8 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
         <button
           type="button"
           onClick={() => setOpenVehicle(!openVehicle)}
-          className="w-full flex items-center justify-between text-xs font-bold text-[#102744] uppercase tracking-wider py-1 cursor-pointer select-none"
+          aria-expanded={openVehicle}
+          className="w-full flex items-center justify-between text-xs font-bold text-[#102744] uppercase tracking-wider py-1 cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-md"
         >
           <span className="flex items-center gap-1.5">
             <Bus className="w-3.5 h-3.5 text-[#0097A7]" />
@@ -123,21 +131,21 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
         {openVehicle && (
           <div className="space-y-1.5 mt-2.5">
             {[
-              { id: 'sleeper', label: 'Giường nằm 34 chỗ' },
-              { id: 'limousine', label: 'Limousine VIP 16 chỗ' },
-              { id: 'cabin', label: 'Cabin VIP 22 phòng' },
+              { id: 'sleeper', label: 'Giường nằm' },
+              { id: 'limousine', label: 'Limousine VIP' },
+              { id: 'cabin', label: 'Cabin VIP' },
             ].map((item) => {
               const isChecked = filters.vehicleCategories.includes(item.id as VehicleCategory);
               return (
                 <label
                   key={item.id}
-                  className="flex items-center gap-2 text-xs text-[#102744] hover:text-[#0097A7] cursor-pointer py-1 select-none"
+                  className="flex items-center gap-2.5 text-xs text-[#102744] hover:text-[#0097A7] cursor-pointer py-1 select-none"
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
                     onChange={() => toggleCategory(item.id as VehicleCategory)}
-                    className="rounded border-[#CBD5E1] text-[#0097A7] focus:ring-[#0097A7] w-4 h-4 cursor-pointer accent-[#0097A7]"
+                    className="rounded border-[#CBD5E1] text-[#0097A7] focus:ring-[#0097A7] w-4 h-4 cursor-pointer accent-[#0097A7] focus-visible:outline-2 focus-visible:outline-[#0097A7]"
                   />
                   <span className={isChecked ? 'font-semibold text-[#0097A7]' : 'text-[#334155]'}>
                     {item.label}
@@ -154,7 +162,8 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
         <button
           type="button"
           onClick={() => setOpenPrice(!openPrice)}
-          className="w-full flex items-center justify-between text-xs font-bold text-[#102744] uppercase tracking-wider py-1 cursor-pointer select-none"
+          aria-expanded={openPrice}
+          className="w-full flex items-center justify-between text-xs font-bold text-[#102744] uppercase tracking-wider py-1 cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-md"
         >
           <span className="flex items-center gap-1.5">
             <DollarSign className="w-3.5 h-3.5 text-[#0097A7]" />
@@ -174,15 +183,16 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
             <input
               type="range"
               min="0"
-              max="400000"
-              step="20000"
+              max={MAX_FILTER_PRICE}
+              step="25000"
               value={filters.maxPrice}
               onChange={(e) => onChange({ ...filters, maxPrice: Number(e.target.value) })}
-              className="w-full accent-[#0097A7] cursor-pointer"
+              className="w-full accent-[#0097A7] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+              aria-label="Điều chỉnh mức giá tối đa"
             />
             <div className="flex justify-between text-[10px] text-[#647084]">
               <span>0 đ</span>
-              <span>400.000 đ</span>
+              <span>{bookingService.formatCurrency(MAX_FILTER_PRICE)}</span>
             </div>
           </div>
         )}
