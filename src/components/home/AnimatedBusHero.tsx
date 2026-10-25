@@ -150,7 +150,7 @@ export const AnimatedBusHero: React.FC<AnimatedBusHeroProps> = ({
           >
             {/* Eyebrow */}
             <div className="journey-eyebrow">
-              <span>HÀNH TRÌNH / KHÁM PHÁ VIỆT NAM</span>
+              <span>DANAVA GO / KHÁM PHÁ VIỆT NAM</span>
             </div>
 
             {/* Headline with guaranteed no-orphan "trải nghiệm." */}

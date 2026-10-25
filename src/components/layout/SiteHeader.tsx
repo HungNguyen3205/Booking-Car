@@ -71,24 +71,33 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             type="button"
             onClick={() => onNavigate('home')}
             className="flex items-center gap-3 text-left group focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-xl p-1 -ml-1 transition-transform active:scale-98 cursor-pointer"
-            aria-label="Trang chủ HÀNH TRÌNH"
+            aria-label="Trang chủ DANAVA GO"
           >
-            {/* SVG Logo Mark: Elegant Route Loop */}
-            <div className="w-10 h-10 rounded-xl bg-[#102744] flex items-center justify-center shadow-xs transition-colors group-hover:bg-[#0097A7]">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* SVG Logo Mark: DANAVA GO Icon with Teal & Amber Accent */}
+            <div className="w-10 h-10 rounded-xl bg-[#102744] flex items-center justify-center shadow-xs transition-all group-hover:bg-[#0097A7] group-hover:scale-105">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
-                  d="M4 12C4 8 8 6 12 12C16 18 20 16 20 12"
+                  d="M6 5H12C15.866 5 19 8.13401 19 12C19 15.866 15.866 19 12 19H6V5Z"
                   stroke="#FFFEFA"
-                  strokeWidth="2.5"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M6 12C9 9 14 15 17 12"
+                  stroke="#00E5FF"
+                  strokeWidth="2"
                   strokeLinecap="round"
                 />
-                <circle cx="5" cy="12" r="2" fill="#F3B54A" />
-                <circle cx="19" cy="12" r="2" fill="#0097A7" />
+                <circle cx="6" cy="12" r="1.8" fill="#F3B54A" />
+                <circle cx="17" cy="12" r="1.8" fill="#00E5FF" />
               </svg>
             </div>
-            <span className="font-serif font-bold text-2xl tracking-wider text-[#102744]">
-              HÀNH TRÌNH
-            </span>
+            <div className="flex flex-col">
+              <span className="font-serif font-extrabold text-2xl tracking-wide text-[#102744]">
+                DANAVA <span className="text-[#0097A7]">GO</span>
+              </span>
+            </div>
           </button>
 
           {/* Desktop Nav Items (Centered aligned) */}
@@ -199,7 +208,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             </div>
 
             <h3 id="auth-modal-title" className="font-serif font-bold text-xl text-[#102744]">
-              Tài khoản HÀNH TRÌNH
+              Tài khoản DANAVA GO
             </h3>
             <p className="text-sm text-[#647084] mt-1 mb-6">
               Bạn có thể đặt vé trực tiếp không cần tài khoản! Chức năng thành viên tích điểm đang được phát triển trong phiên bản tiếp theo.

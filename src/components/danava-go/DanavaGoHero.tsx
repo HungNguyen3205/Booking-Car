@@ -34,6 +34,17 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
     to: initialParams.to || 'Huế',
   });
 
+  // Đồng bộ tuyến khi initialParams từ cấp cha thay đổi (ví dụ: click điểm đến nổi bật)
+  const [prevFrom, setPrevFrom] = useState(initialParams.from);
+  const [prevTo, setPrevTo] = useState(initialParams.to);
+  if (initialParams.from !== prevFrom || initialParams.to !== prevTo) {
+    setPrevFrom(initialParams.from);
+    setPrevTo(initialParams.to);
+    if (initialParams.from && initialParams.to) {
+      setCurrentRoute({ from: initialParams.from, to: initialParams.to });
+    }
+  }
+
   // Kiểm tra phiên làm việc: Intro chỉ phát một lần duy nhất trong session, không lặp lại khi đổi xe/tuyến
   const [isIntroPlayed, setIsIntroPlayed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
@@ -198,7 +209,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
 
             {/* Description */}
             <p className="font-sans text-[15px] sm:text-[16px] text-[#4A5568] leading-relaxed max-w-[480px] mb-4 sm:mb-5">
-              Chọn chuyến yêu thích. Chạm đến những miền đất mới trên chiếc vé mở kỳ diệu.
+              Chọn chuyến yêu thích. Chạm đến những miền đất mới.
             </p>
 
             {/* Vehicle Selection Chips */}

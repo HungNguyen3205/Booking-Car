@@ -322,7 +322,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
           <button
             type="button"
             onClick={handleSwap}
-            className="w-8 h-8 rounded-full bg-[#FFFDF8] hover:bg-[#E0F7FA] text-[#102744] hover:text-[#0097A7] border border-[#E5E3DC] hover:border-[#0097A7]/40 shadow-2xs flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95"
+            className="w-8 h-8 rounded-full bg-[#FFFDF8] hover:bg-[#E0F7FA] text-[#102744] hover:text-[#0097A7] border border-[#E5E3DC] hover:border-[#0097A7]/40 shadow-2xs flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7]"
             title="Đổi chiều nơi đi - nơi đến"
             aria-label="Đổi nơi đi và nơi đến"
           >
@@ -514,10 +514,19 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-[54px] sm:h-[58px] px-7 sm:px-8 bg-[#0097A7] hover:bg-[#00838F] active:scale-[0.98] text-white font-bold text-[15px] rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2.5 transition-all cursor-pointer whitespace-nowrap disabled:opacity-60"
+            className="w-full h-[54px] sm:h-[58px] px-7 sm:px-8 bg-[#0097A7] hover:bg-[#00838F] active:bg-[#007887] active:scale-[0.98] text-[#FFFEFA] font-bold text-[15px] rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2.5 transition-all cursor-pointer whitespace-nowrap disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] focus-visible:ring-offset-2"
           >
-            <span>Tìm chuyến</span>
-            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+            {isLoading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Đang tìm...</span>
+              </>
+            ) : (
+              <>
+                <span>Tìm chuyến</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              </>
+            )}
           </button>
         </div>
       </div>

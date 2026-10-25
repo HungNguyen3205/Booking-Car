@@ -313,10 +313,17 @@ export const App: React.FC = () => {
                       passengers: searchParams.passengers,
                     });
                   }}
+                  onPreviewRoute={(from, to) => {
+                    setSearchParams((prev) => ({
+                      ...prev,
+                      from,
+                      to,
+                    }));
+                  }}
                 />
                 <VehicleExperience />
                 <BookingSteps />
-                <BenefitsSection />
+                <BenefitsSection onOpenLookup={() => setCurrentStep('lookup')} />
                 <FaqSection />
               </motion.div>
             )}

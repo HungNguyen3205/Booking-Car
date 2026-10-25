@@ -340,7 +340,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                     className="mt-0.5 rounded border-[#CBD5E1] text-[#0097A7] focus:ring-[#0097A7] w-4 h-4 cursor-pointer"
                   />
                   <span className="text-xs text-[#647084]">
-                    Tôi đồng ý với các <strong>Quy định hủy đổi vé</strong> và chính sách vận chuyển của HÀNH TRÌNH. Thông tin đặt vé là bản mô phỏng giao diện không thu phí thực tế.
+                    Tôi đồng ý với các <strong>Quy định hủy đổi vé</strong> và chính sách vận chuyển của DANAVA GO. Thông tin đặt vé là bản mô phỏng giao diện không thu phí thực tế.
                   </span>
                 </label>
                 {errors.agreedTerms && (

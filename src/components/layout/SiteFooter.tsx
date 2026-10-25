@@ -30,7 +30,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
                 </svg>
               </div>
               <span className="font-serif font-bold text-2xl tracking-wider text-white">
-                HÀNH TRÌNH
+                DANAVA <span className="text-[#00E5FF]">GO</span>
               </span>
             </div>
             <p className="text-sm text-slate-300 leading-relaxed max-w-sm">
@@ -130,7 +130,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
-          <p>© 2026 HÀNH TRÌNH. Thiết kế & phát triển cho trải nghiệm bán vé xe khách cao cấp.</p>
+          <p>© 2026 DANAVA GO. Thiết kế & phát triển cho trải nghiệm bán vé xe khách cao cấp.</p>
           <div className="flex items-center gap-1">
             <span>Được xây dựng với tình yêu</span>
             <Heart className="w-3.5 h-3.5 text-red-400 fill-red-400 inline" />

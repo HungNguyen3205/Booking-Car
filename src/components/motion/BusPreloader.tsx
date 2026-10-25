@@ -163,7 +163,7 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                   fontSize="10"
                   letterSpacing="2.5"
                 >
-                  HÀNH TRÌNH
+                  DANAVA GO
                 </text>
 
                 {/* Teal wave icon beside brand */}

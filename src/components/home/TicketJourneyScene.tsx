@@ -511,7 +511,7 @@ export const TicketJourneyScene: React.FC<TicketJourneySceneProps> = ({
               letterSpacing="1.2"
               opacity="0.95"
             >
-              HÀNH TRÌNH
+              DANAVA GO
             </text>
 
             <line
