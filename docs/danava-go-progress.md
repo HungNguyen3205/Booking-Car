@@ -500,7 +500,14 @@
   - Toàn bộ metadata cấu hình được đánh dấu rõ ràng `isPlaceholderPrototype: true`. Tuyệt đối không bịa đặt quyền sở hữu hoặc chất lượng asset.
 
 ### Bước 1 (Mục tiêu mới): Tái cấu trúc Bố cục Hero — 25/10/2026
-- **Bố cục Hero Full-Width**:
+- **Branch & Commit**:
+  - Nhánh: `feature/danava-go`
+  - Commit SHA: `a202753b9905654a5433de3d0b2fb7ccf82a8402`
+  - Thông điệp commit: `prototype(danava-go): refactor hero layout to full-width with unboxed editorial and responsive mobile flow`
+- **Thiết kế & Ảnh tham chiếu đã chốt**:
+  - Xe khách mục tiêu: `public/assets/images/bus_coach_sleeper.png` (bản vẽ Sleeper Coach hạng sang phong cách Marcopolo/Thaco Mobihome, xanh Navy bóng `#102744`, tem lượn sóng Teal/Bạc, mui vát cong khí động học, gương cổ thiên nga, lazăng 10 lỗ mạ chrome).
+  - Sa bàn diorama: `public/assets/images/scenes/journey-pop-up.webp` & `diorama_ticket_danang_hue.webp` (Cầu Rồng bên trái, Ngọ Môn bên phải, đường cong uốn lượn liên tục, nền Cream `#F7F4EC` vô tận).
+- **Bố cục Hero Full-Width đã triển khai**:
   - Hero chiếm 100% chiều rộng trình duyệt (`width: 100%`).
   - Lớp nền Canvas 3D đặt `absolute inset-0 w-full h-full pointer-events-none z-[1]`, không bị giới hạn bởi max-width container.
   - Vùng chữ và form đặt trong shell container có `max-width: 1440px` nổi lên trên canvas theo vùng an toàn.
@@ -514,11 +521,23 @@
 - **Đáp ứng Di động (Mobile Flow)**:
   - Cấu trúc luồng tài liệu tự nhiên: Chữ (Text) → Tabs chọn xe → Vùng scene riêng (`height: 290px`) → Form tìm chuyến.
   - Không ép mobile thành một màn hình cố định, không co thu nhỏ nguyên desktop.
-- **Nghiệm thu**:
-  - `npx oxlint`: 0 errors.
-  - `npm run build`: hoàn tất thành công.
+- **Kiểm tra đã chạy & Kết quả thực tế**:
+  - `npx oxlint`: 0 warnings, 0 errors trên toàn bộ codebase.
+  - `npm run build`: Thành công trong 3.89s, chunking tối ưu.
   - Kiểm thử Playwright tại 1440×900, 1280×800, 390px:
     - Không tràn ngang (`horizontal overflow: false` trên cả 3 viewports).
     - Headline không đè landmark/xe.
-    - Form tìm chuyến không bị cắt và hoạt động trơn tru sang kết quả tìm kiếm.
+    - Form tìm chuyến không bị cắt và hoạt động trơn tru.
+    - Ảnh nghiệm thu: [`docs/screenshots/step1_danava_go_1440x900.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/step1_danava_go_1440x900.png), [`docs/screenshots/step1_danava_go_1280x800.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/step1_danava_go_1280x800.png), [`docs/screenshots/step1_danava_go_390px.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/step1_danava_go_390px.png).
+  - Kiểm tra hồi quy luồng booking hạ nguồn: Tìm chuyến (8 chuyến khả dụng) → Chọn chuyến → Mở sơ đồ ghế 16 chỗ Limousine thành công 100%.
+- **Kiểm kê Asset**:
+  - *Có sẵn*: Ảnh tham chiếu 2D (`bus_coach_sleeper.png`, `journey-pop-up.webp`), Three.js procedural compound meshes (`SleeperCoach.tsx`, `DragonBridge.tsx`, `NgoMonGate.tsx`), procedural CanvasTexture.
+  - *Còn thiếu*: 0 file mô hình 3D thực tế (`.glb`/`.gltf`), 0 file môi trường ánh sáng IBL (`.hdr`/`.exr`), 0 bộ texture map PBR độc lập (albedo, normal, roughness, metallic). Thiếu các chi tiết ngoại thất: vòm mui cong khí động học, viền Z mạ bạc, kính kép nghiêng 30° + gạt nước, gương cổ thiên nga, ca-lăng nụ cười mạ chrome, tem sóng teal/bạc, lazăng 10 lỗ mâm đúc.
+- **Giới hạn hiện tại (Minh bạch kỹ thuật)**:
+  - Xe hiện tại là hình học procedural/compound Three.js prototype, chưa phải photoreal GLB asset chuẩn thương phẩm.
+  - Sơn bóng bắt sáng qua directional light, chưa có phản xạ IBL môi trường thực tế.
+  - Không ghi nhận hoàn thành những phần chưa kiểm tra hoặc chưa có asset thật.
+- **Bước tiếp theo & Điều kiện nghiệm thu**:
+  - Chi tiết kế hoạch bàn giao và nghiệm thu Bước 2 xem tại tài liệu [`docs/danava-go-handoff.md`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/danava-go-handoff.md).
+
 
