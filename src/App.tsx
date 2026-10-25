@@ -101,6 +101,7 @@ export const App: React.FC = () => {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [passengerInfo, setPassengerInfo] = useState<PassengerInfo | null>(null);
   const [completedBooking, setCompletedBooking] = useState<Booking | null>(null);
+  const [lookupPhone, setLookupPhone] = useState<string | undefined>(undefined);
   const initialParamsRef = useRef({ from: searchParams.from, to: searchParams.to });
 
   // Preload critical hero assets immediately on mount without fake waiting
@@ -285,7 +286,10 @@ export const App: React.FC = () => {
               }, 100);
             }
           }}
-          onOpenLookup={() => setCurrentStep('lookup')}
+          onOpenLookup={(phone) => {
+            setLookupPhone(phone);
+            setCurrentStep('lookup');
+          }}
         />
 
         {/* View Router Switcher */}
@@ -455,8 +459,15 @@ export const App: React.FC = () => {
               >
                 <TicketLookupView
                   initialBookingCode={completedBooking?.id}
-                  onBack={() => setCurrentStep('home')}
-                  onNavigateHome={() => setCurrentStep('home')}
+                  initialPhone={lookupPhone}
+                  onBack={() => {
+                    setLookupPhone(undefined);
+                    setCurrentStep('home');
+                  }}
+                  onNavigateHome={() => {
+                    setLookupPhone(undefined);
+                    setCurrentStep('home');
+                  }}
                 />
               </motion.div>
             )}
@@ -474,7 +485,10 @@ export const App: React.FC = () => {
               passengers: searchParams.passengers,
             });
           }}
-          onOpenLookup={() => setCurrentStep('lookup')}
+          onOpenLookup={() => {
+            setLookupPhone(undefined);
+            setCurrentStep('lookup');
+          }}
         />
       </div>
     </div>

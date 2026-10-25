@@ -1,10 +1,32 @@
 import type { Booking, SearchParams, Trip } from '../types';
 import { MOCK_TRIPS } from '../data/mockData';
 
-const STORAGE_KEY = 'hanhtrinh_demo_bookings_v1';
+const PRIMARY_STORAGE_KEY = 'danava_demo_bookings_v1';
+const LEGACY_STORAGE_KEY = 'hanhtrinh_demo_bookings_v1';
 
-// Seed demo booking from reference image
+// Seed demo bookings for initial demonstration and mock validation
 const SEED_BOOKINGS: Booking[] = [
+  {
+    id: 'DG260426001',
+    tripId: 'trip-dn-hue-01',
+    trip: MOCK_TRIPS[0],
+    date: '2026-10-28',
+    selectedSeats: ['A1', 'A2'],
+    passenger: {
+      fullName: 'Nguyễn Văn Hùng',
+      phone: '0905123456',
+      email: 'hung.nguyen@danavago.vn',
+      pickupStopId: 'dn-bxtt',
+      dropoffStopId: 'hue-bxpn',
+      note: 'Mang theo 1 vali hành lý ký gửi',
+      agreedTerms: true,
+    },
+    totalAmount: 360000,
+    paymentMethod: 'vietqr',
+    paymentStatus: 'completed',
+    createdAt: new Date().toISOString(),
+  },
+  // Legacy code alias for test suite backwards-compatibility
   {
     id: 'HT250426001',
     tripId: 'trip-dn-hue-01',
@@ -14,7 +36,7 @@ const SEED_BOOKINGS: Booking[] = [
     passenger: {
       fullName: 'Nguyễn Văn Hùng',
       phone: '0905123456',
-      email: 'hung.nguyen@example.com',
+      email: 'hung.nguyen@danavago.vn',
       pickupStopId: 'dn-bxtt',
       dropoffStopId: 'hue-bxpn',
       note: 'Mang theo 1 vali hành lý ký gửi',
@@ -28,12 +50,17 @@ const SEED_BOOKINGS: Booking[] = [
 ];
 
 export const bookingService = {
-  // Get all bookings from localStorage or fallback seed
+  // Get all bookings from localStorage or initialize with initial demo seeds
   getAllBookings(): Booking[] {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      if (typeof window === 'undefined') return SEED_BOOKINGS;
+
+      const stored = localStorage.getItem(PRIMARY_STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       }
     } catch (e) {
       console.warn('LocalStorage not available, using in-memory demo data', e);
@@ -63,28 +90,41 @@ export const bookingService = {
       paymentStatus: booking.paymentStatus,
       createdAt: booking.createdAt,
     };
+
     const list = this.getAllBookings();
-    const updated = [sanitizedBooking, ...list.filter(b => b.id !== sanitizedBooking.id)];
+    const updated = [sanitizedBooking, ...list.filter((b) => b.id !== sanitizedBooking.id)];
+
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      localStorage.setItem(PRIMARY_STORAGE_KEY, JSON.stringify(updated));
     } catch (e) {
       console.warn('Could not persist booking to storage', e);
     }
   },
 
-  // Find booking by ID and phone
+  // Find booking by ID and optional phone
+  // STRICT RULE: If not found, strictly returns null. Under NO circumstances return a fake or fallback seed booking!
   findBooking(bookingCode: string, phone?: string): Booking | null {
-    const list = this.getAllBookings();
     const cleanCode = bookingCode.trim().toUpperCase();
-    const cleanPhone = phone?.trim().replace(/\s+/g, '');
+    if (!cleanCode) return null;
 
-    return (
-      list.find(b => {
-        const matchCode = b.id.toUpperCase() === cleanCode;
-        if (!cleanPhone) return matchCode;
-        return matchCode && b.passenger.phone.replace(/\s+/g, '') === cleanPhone;
-      }) || null
-    );
+    const cleanPhone = phone?.trim().replace(/\s+/g, '');
+    const list = this.getAllBookings();
+
+    const match = list.find((b) => {
+      const matchCode = b.id.toUpperCase() === cleanCode;
+      if (!cleanPhone) return matchCode;
+      return matchCode && b.passenger.phone.replace(/\s+/g, '') === cleanPhone;
+    });
+
+    return match || null;
+  },
+
+  // Retrieve all bookings belonging to a given phone number
+  getBookingsByPhone(phone: string): Booking[] {
+    const cleanPhone = phone.trim().replace(/\s+/g, '');
+    if (!cleanPhone) return [];
+    const list = this.getAllBookings();
+    return list.filter((b) => b.passenger.phone.replace(/\s+/g, '') === cleanPhone);
   },
 
   // Filter trips based on search parameters
@@ -92,7 +132,7 @@ export const bookingService = {
     const fromQuery = params.from.toLowerCase().trim();
     const toQuery = params.to.toLowerCase().trim();
 
-    return MOCK_TRIPS.filter(trip => {
+    return MOCK_TRIPS.filter((trip) => {
       const matchFrom = !fromQuery || trip.from.toLowerCase().includes(fromQuery);
       const matchTo = !toQuery || trip.to.toLowerCase().includes(toQuery);
       return matchFrom && matchTo;
@@ -101,17 +141,17 @@ export const bookingService = {
 
   // Find single trip
   getTripById(id: string): Trip | undefined {
-    return MOCK_TRIPS.find(t => t.id === id);
+    return MOCK_TRIPS.find((t) => t.id === id);
   },
 
-  // Generate readable booking code
+  // Generate readable booking code for DANAVA GO (e.g. DG2610258123)
   generateBookingCode(): string {
     const today = new Date();
     const yy = String(today.getFullYear()).slice(-2);
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     const rand = Math.floor(1000 + Math.random() * 9000);
-    return `HT${yy}${mm}${dd}${rand}`;
+    return `DG${yy}${mm}${dd}${rand}`;
   },
 
   // Format currency VND

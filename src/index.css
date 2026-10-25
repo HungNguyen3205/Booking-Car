@@ -424,3 +424,56 @@
   }
 }
 
+/* ============================================================
+   BƯỚC 17: PRINT STYLES FOR BOARDING TICKET & EXPORT
+   ============================================================ */
+@media print {
+  /* Hide non-printable navigation, header, footer and buttons */
+  header,
+  footer,
+  .no-print,
+  nav,
+  .fixed,
+  .sticky {
+    display: none !important;
+  }
+
+  body,
+  html,
+  #root,
+  main {
+    background-color: #FFFFFF !important;
+    color: #102744 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Printable Boarding Ticket Card */
+  .ticket-print-card {
+    box-shadow: none !important;
+    border: 1.5px solid #94A3B8 !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    background-color: #FFFFFF !important;
+  }
+
+  /* Ensure colors and stubs print accurately */
+  .ticket-print-card * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 8mm;
+  }
+}
+

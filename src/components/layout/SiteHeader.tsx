@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, User, ShieldCheck } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
+import { authService, type AuthUser } from '../../services/authService';
+import { AuthModal } from '../account/AuthModal';
 
 interface SiteHeaderProps {
   currentTab: string;
   onNavigate: (tab: string) => void;
-  onOpenLookup: () => void;
+  onOpenLookup: (phone?: string) => void;
   variant?: 'default' | 'compact';
 }
 
@@ -17,6 +19,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => authService.getCurrentUser());
 
   const isCompact = variant === 'compact';
 
@@ -26,6 +29,14 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Listen to auth changes
+  useEffect(() => {
+    const unsubscribe = authService.subscribe((user) => {
+      setCurrentUser(user);
+    });
+    return unsubscribe;
   }, []);
 
   // Handle escape to close mobile menu
@@ -53,7 +64,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
       },
     },
     { id: 'routes', label: 'Tuyến đường', action: () => onNavigate('routes') },
-    { id: 'lookup', label: 'Tra cứu vé', action: onOpenLookup },
+    { id: 'lookup', label: 'Tra cứu vé', action: () => onOpenLookup() },
   ];
 
   return (
@@ -66,7 +77,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
         }`}
       >
         <div className="max-w-[1380px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Logo Brand (Clean, single line title without bulky subtitle) */}
+          {/* Logo Brand */}
           <button
             type="button"
             onClick={() => onNavigate('home')}
@@ -118,15 +129,40 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             ))}
           </nav>
 
-          {/* Desktop Right Action: Đăng nhập dạng outline navy */}
+          {/* Desktop Right Action: User Chip or Đăng nhập button */}
           <div className="hidden lg:flex items-center">
-            <button
-              type="button"
-              onClick={() => setAuthModalOpen(true)}
-              className="px-5 py-2 text-sm font-semibold text-[#102744] hover:text-white border-2 border-[#102744] hover:bg-[#102744] rounded-full transition-all active:scale-95 shadow-2xs cursor-pointer"
-            >
-              Đăng nhập
-            </button>
+            {currentUser ? (
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(true)}
+                className="flex items-center gap-2.5 px-3.5 py-1.5 bg-[#FAF8F5] hover:bg-[#F7F4EC] border border-[#E5E3DC] hover:border-[#0097A7] rounded-full transition-all cursor-pointer shadow-2xs group"
+                title="Tài khoản thành viên (Sandbox)"
+              >
+                <div className="w-7 h-7 rounded-full bg-[#102744] group-hover:bg-[#0097A7] text-white flex items-center justify-center text-xs font-bold font-serif transition-colors">
+                  {currentUser.fullName.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-bold text-[#102744] max-w-[130px] truncate leading-tight">
+                    {currentUser.fullName}
+                  </span>
+                  <span className="text-[9.5px] text-[#647084] leading-tight">
+                    Thành viên demo
+                  </span>
+                </div>
+                <span className="text-[9px] font-bold uppercase bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded-md ml-1 border border-amber-300">
+                  Demo
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(true)}
+                className="px-5 py-2 text-sm font-semibold text-[#102744] hover:text-white border-2 border-[#102744] hover:bg-[#102744] rounded-full transition-all active:scale-95 shadow-2xs cursor-pointer flex items-center gap-2"
+              >
+                <User className="w-4 h-4" />
+                <span>Đăng nhập</span>
+              </button>
+            )}
           </div>
 
           {/* Mobile Button (shown for screens under 1024px) */}
@@ -159,78 +195,70 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                 {item.label}
               </button>
             ))}
-            <div className="pt-4 border-t border-[#E5E3DC] flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthModalOpen(true);
-                  setMobileMenuOpen(false);
-                }}
-                className="flex-1 py-2.5 text-center text-sm font-medium border border-[#E5E3DC] rounded-xl text-[#102744]"
-              >
-                Đăng nhập
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthModalOpen(true);
-                  setMobileMenuOpen(false);
-                }}
-                className="flex-1 py-2.5 text-center text-sm font-semibold bg-[#102744] text-white rounded-xl shadow-xs"
-              >
-                Đăng ký
-              </button>
+
+            <div className="pt-4 border-t border-[#E5E3DC]">
+              {currentUser ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-[#FAF8F5] rounded-xl border border-[#E5E3DC]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-[#102744] text-white flex items-center justify-center text-xs font-bold font-serif">
+                        {currentUser.fullName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-[#102744]">{currentUser.fullName}</div>
+                        <div className="text-[10.5px] text-[#647084]">{currentUser.phone}</div>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-bold uppercase bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded border border-amber-300">
+                      Sandbox
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthModalOpen(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full py-2.5 text-center text-xs font-semibold bg-[#0097A7] text-white rounded-xl shadow-xs"
+                  >
+                    Xem tài khoản & Lịch sử
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthModalOpen(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex-1 py-2.5 text-center text-sm font-medium border border-[#E5E3DC] rounded-xl text-[#102744]"
+                  >
+                    Đăng nhập
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthModalOpen(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex-1 py-2.5 text-center text-sm font-semibold bg-[#102744] text-white rounded-xl shadow-xs"
+                  >
+                    Đăng ký
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
       </header>
 
-      {/* Demo Auth Modal */}
-      {authModalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="auth-modal-title"
-        >
-          <div className="bg-[#FFFEFA] w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-[#E5E3DC] relative">
-            <button
-              type="button"
-              onClick={() => setAuthModalOpen(false)}
-              className="absolute top-4 right-4 text-[#647084] hover:text-[#102744]"
-              aria-label="Đóng hộp thoại"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="w-12 h-12 rounded-full bg-[#E0F7FA] text-[#0097A7] flex items-center justify-center mb-4">
-              <User className="w-6 h-6" />
-            </div>
-
-            <h3 id="auth-modal-title" className="font-serif font-bold text-xl text-[#102744]">
-              Tài khoản DANAVA GO
-            </h3>
-            <p className="text-sm text-[#647084] mt-1 mb-6">
-              Bạn có thể đặt vé trực tiếp không cần tài khoản! Chức năng thành viên tích điểm đang được phát triển trong phiên bản tiếp theo.
-            </p>
-
-            <div className="bg-[#F7F4EC] p-3 rounded-xl border border-[#E5E3DC] flex items-start gap-2.5 text-xs text-[#102744] mb-6">
-              <ShieldCheck className="w-4 h-4 text-[#0097A7] shrink-0 mt-0.5" />
-              <span>
-                Mọi vé đặt demo đều được lưu trực tiếp trên thiết bị để bạn tra cứu nhanh chóng bất kỳ lúc nào.
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setAuthModalOpen(false)}
-              className="w-full py-2.5 bg-[#0097A7] hover:bg-[#007887] text-white font-semibold rounded-xl text-sm transition-colors"
-            >
-              Tôi đã hiểu & Tiếp tục
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Standardized Auth & Account Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onOpenLookupWithPhone={(phone) => onOpenLookup(phone)}
+      />
     </>
   );
 };
