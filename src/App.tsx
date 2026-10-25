@@ -180,9 +180,16 @@ export const App: React.FC = () => {
 
   // Handle Select Trip from Search Results
   const handleSelectTrip = (trip: Trip) => {
+    // If switching to a different trip, strictly reset seat selection to prevent carrying over old seats
+    if (selectedTrip?.id !== trip.id) {
+      setSelectedSeats([]);
+    } else {
+      // If re-entering the same trip, preserve only seats that are still valid and available
+      setSelectedSeats((prev) =>
+        prev.filter((code) => trip.seats.some((s) => s.code === code && s.status === 'available'))
+      );
+    }
     setSelectedTrip(trip);
-    // Reset seat selection completely on trip select to ensure clean state
-    setSelectedSeats([]);
     setCurrentStep('seat-select');
   };
 
@@ -214,6 +221,11 @@ export const App: React.FC = () => {
   const handlePaymentSuccess = (paymentMethod: 'vietqr' | 'momo' | 'vnpay' | 'credit_card') => {
     if (!selectedTrip || !passengerInfo) return;
 
+    const totalAmount = selectedSeats.reduce((sum, code) => {
+      const s = selectedTrip.seats.find((item) => item.code === code);
+      return sum + (s ? s.price : selectedTrip.price);
+    }, 0);
+
     const newBooking: Booking = {
       id: bookingService.generateBookingCode(),
       tripId: selectedTrip.id,
@@ -221,7 +233,7 @@ export const App: React.FC = () => {
       date: searchParams.date,
       selectedSeats,
       passenger: passengerInfo,
-      totalAmount: selectedSeats.length * selectedTrip.price,
+      totalAmount,
       paymentMethod,
       paymentStatus: 'completed',
       createdAt: new Date().toISOString(),

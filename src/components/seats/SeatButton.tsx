@@ -71,16 +71,19 @@ export const SeatButton: React.FC<SeatButtonProps> = ({
   return (
     <motion.button
       type="button"
+      role="checkbox"
       whileHover={isSelectable && !isLimitReached ? { scale: 1.04 } : undefined}
       whileTap={isSelectable ? { scale: 0.96 } : undefined}
       disabled={!isSelectable}
       onClick={handleClick}
+      aria-checked={isSelected}
       aria-pressed={isSelected}
+      aria-disabled={!isSelectable}
       aria-label={`Ghế ${seat.code}, loại ${seat.type}, ${statusLabel}, giá ${formattedPrice} đồng`}
       title={`Ghế ${seat.code} • ${statusLabel}${isSelectable ? ` • ${formattedPrice} ₫` : ''}`}
-      className={`relative ${getDimensionClasses()} rounded-xl flex flex-col justify-between p-1 sm:p-1.5 transition-all text-xs select-none cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0097A7] shrink-0 ${
+      className={`relative ${getDimensionClasses()} min-w-[44px] min-h-[44px] touch-manipulation rounded-xl flex flex-col justify-between p-1 sm:p-1.5 transition-all text-xs select-none cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0097A7] shrink-0 ${
         isSelected
-          ? 'bg-[#0097A7] text-white shadow-md shadow-[#0097A7]/35 ring-2 ring-[#00695C] border border-[#004D40]'
+          ? 'bg-[#0097A7] text-white shadow-md shadow-[#0097A7]/35 ring-2 ring-[#00695C] border-2 border-[#004D40]'
           : isBooked
           ? 'bg-[#1E293B] text-slate-400 cursor-not-allowed border border-slate-700 opacity-90'
           : isUnavailable

@@ -192,6 +192,27 @@ const createTripData = (
 export const MOCK_TRIPS: Trip[] = [
   // --- TUYẾN: ĐÀ NẴNG → HUẾ ---
   createTripData({
+    id: 'trip-dn-hue-soldout',
+    code: 'DG-SOLD',
+    operator: 'DANAVA GO LINER (HẾT CHỖ)',
+    vehicle: VEHICLE_MODELS.limousine,
+    from: 'Đà Nẵng',
+    to: 'Huế',
+    departureTime: '05:30',
+    arrivalTime: '08:00',
+    duration: '2h30m',
+    departureLocation: { name: 'Văn phòng Nguyễn Văn Linh', address: '124 Nguyễn Văn Linh' },
+    arrivalLocation: { name: 'Văn phòng Trung tâm Lê Lợi', address: '14 Lê Lợi' },
+    price: 240000,
+    departureStops: DANANG_PICKUPS,
+    dropoffStops: HUE_DROPOFFS,
+    // All 16 seats are booked to test sold-out and unavailable behavior
+    seats: createLimousineSeats(
+      240000,
+      Array.from({ length: 16 }, (_, i) => `L${i + 1}`)
+    ),
+  }),
+  createTripData({
     id: 'trip-dn-hue-free',
     code: 'DG-TEST-0D',
     operator: 'DANAVA GO TEST (0Đ)',

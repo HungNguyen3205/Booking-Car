@@ -164,10 +164,17 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                 bookingService.formatCurrency(trip.price)
               )}
             </div>
-            <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>Còn {availableSeats} chỗ</span>
-            </div>
+            {availableSeats === 0 ? (
+              <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/60">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                <span>Hết chỗ</span>
+              </div>
+            ) : (
+              <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Còn {availableSeats} chỗ</span>
+              </div>
+            )}
           </div>
 
           {/* Select Button */}
@@ -175,10 +182,18 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
             <button
               type="button"
               onClick={() => onSelectTrip(trip)}
-              className="w-full py-2 px-3 bg-[#0097A7] hover:bg-[#007887] active:scale-97 text-white font-semibold text-xs lg:text-sm rounded-xl shadow-2xs shadow-[#0097A7]/25 flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] focus-visible:ring-offset-2"
-              aria-label={`Chọn chuyến đi lúc ${trip.departureTime} đến ${trip.to}`}
+              className={`w-full py-2 px-3 text-white font-semibold text-xs lg:text-sm rounded-xl shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                availableSeats === 0
+                  ? 'bg-[#475569] hover:bg-[#334155] focus-visible:ring-slate-500'
+                  : 'bg-[#0097A7] hover:bg-[#007887] active:scale-97 shadow-[#0097A7]/25 focus-visible:ring-[#0097A7]'
+              }`}
+              aria-label={
+                availableSeats === 0
+                  ? `Xem sơ đồ chuyến hết chỗ lúc ${trip.departureTime}`
+                  : `Chọn chuyến đi lúc ${trip.departureTime} đến ${trip.to}`
+              }
             >
-              <span>Chọn chuyến</span>
+              <span>{availableSeats === 0 ? 'Xem sơ đồ (Hết chỗ)' : 'Chọn chuyến'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -214,10 +229,17 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
           </div>
 
           <div className="shrink-0 text-right">
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>Còn {availableSeats} chỗ</span>
-            </span>
+            {availableSeats === 0 ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/60">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                <span>Hết chỗ</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Còn {availableSeats} chỗ</span>
+              </span>
+            )}
           </div>
         </div>
 
@@ -283,10 +305,18 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
           <button
             type="button"
             onClick={() => onSelectTrip(trip)}
-            className="min-h-[44px] px-5 bg-[#0097A7] hover:bg-[#007887] active:scale-97 text-white font-semibold text-sm rounded-xl shadow-2xs shadow-[#0097A7]/25 flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] focus-visible:ring-offset-2"
-            aria-label={`Chọn chuyến đi lúc ${trip.departureTime} đến ${trip.to}`}
+            className={`min-h-[44px] px-4 text-white font-semibold text-sm rounded-xl shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+              availableSeats === 0
+                ? 'bg-[#475569] hover:bg-[#334155] focus-visible:ring-slate-500'
+                : 'bg-[#0097A7] hover:bg-[#007887] active:scale-97 shadow-[#0097A7]/25 focus-visible:ring-[#0097A7]'
+            }`}
+            aria-label={
+              availableSeats === 0
+                ? `Xem sơ đồ chuyến hết chỗ lúc ${trip.departureTime}`
+                : `Chọn chuyến đi lúc ${trip.departureTime} đến ${trip.to}`
+            }
           >
-            <span>Chọn chuyến</span>
+            <span>{availableSeats === 0 ? 'Xem sơ đồ (Hết chỗ)' : 'Chọn chuyến'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

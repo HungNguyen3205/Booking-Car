@@ -8,6 +8,7 @@ import {
   ArrowRight,
   X,
   AlertCircle,
+  AlertTriangle,
   Ticket as TicketIcon,
   ChevronUp,
   ChevronDown,
@@ -64,6 +65,11 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
   const [limitNotice, setLimitNotice] = useState<string | null>(null);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
 
+  // Check if whole trip is sold out
+  const isTripSoldOut = useMemo(() => {
+    return trip.seats.filter((s) => s.status === 'available').length === 0;
+  }, [trip.seats]);
+
   // Compute total price accurately from individual seat prices if configured
   const totalPrice = useMemo(() => {
     return selectedSeats.reduce((sum, code) => {
@@ -93,7 +99,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
             <button
               type="button"
               onClick={onBack}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F7F4EC] hover:bg-[#E5E3DC] text-xs font-bold text-[#102744] rounded-xl border border-[#CBD5E1] transition-all cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F7F4EC] hover:bg-[#E5E3DC] text-xs font-bold text-[#102744] rounded-xl border border-[#CBD5E1] transition-all cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-[#0097A7]"
               title="Quay lại danh sách chuyến"
             >
               <ArrowLeft className="w-4 h-4 text-[#0097A7]" />
@@ -112,7 +118,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-[#647084] mt-0.5">
-                {trip.departureTime} • {bookingService.formatDisplayDate(dateStr)} • {passengersCount} hành khách
+                {trip.departureTime} • {bookingService.formatDisplayDate(dateStr)} • Yêu cầu {passengersCount} hành khách
               </p>
             </div>
           </div>
@@ -131,11 +137,37 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
             <span className="text-[#CBD5E1]">→</span>
             <div className="flex items-center gap-1 text-[#647084] px-2 py-1">
               <span className="w-3.5 h-3.5 rounded-full bg-[#E5E3DC] text-[#647084] flex items-center justify-center text-[9px]">3</span>
-              <span className="hidden sm:inline">3. Thanh toán</span>
+              <span className="hidden sm:inline">3. Thông tin & Thanh toán</span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ============================================================
+          SOLD-OUT ALERT BANNER (NẾU HẾT GHẾ)
+          ============================================================ */}
+      {isTripSoldOut && (
+        <div className="max-w-[1200px] w-full mx-auto px-3 sm:px-6 mt-4">
+          <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-rose-900 text-xs sm:text-sm shadow-xs">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
+              <div>
+                <span className="font-bold block text-sm">Chuyến xe này hiện đã hết chỗ trống</span>
+                <span className="text-rose-700 text-xs block mt-0.5">
+                  Toàn bộ {trip.seats.length} chỗ ngồi trên chuyến #{trip.code} đã được đặt trước. Vui lòng quay lại danh sách để đổi sang giờ chạy khác.
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer shrink-0 self-end sm:self-auto"
+            >
+              Quay lại đổi chuyến
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ============================================================
           LIMIT EXCEEDED TOAST / NOTIFICATION
@@ -221,7 +253,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
           {/* ==========================================================
               RIGHT TICKET STUB (CUỐNG VÉ MINH HỌA)
               ========================================================== */}
-          <div className="lg:w-[220px] shrink-0 bg-[#FAF8F5] p-5 sm:p-6 flex flex-col justify-between items-center text-center border-t lg:border-t-0 border-[#E5E3DC] rounded-b-3xl lg:rounded-b-none lg:rounded-r-3xl relative">
+          <div className="lg:w-[230px] shrink-0 bg-[#FAF8F5] p-5 sm:p-6 flex flex-col justify-between items-center text-center border-t lg:border-t-0 border-[#E5E3DC] rounded-b-3xl lg:rounded-b-none lg:rounded-r-3xl relative">
             {/* Top Ticket Stub Badge */}
             <div className="w-full">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#647084] block">
@@ -233,23 +265,39 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
             </div>
 
             {/* Trip Details on Stub */}
-            <div className="my-4 py-3 border-y border-[#E5E3DC] w-full space-y-1.5 text-xs">
+            <div className="my-4 py-3 border-y border-[#E5E3DC] w-full space-y-1.5 text-xs text-left">
               <div className="flex justify-between items-center text-[11px]">
                 <span className="text-[#647084]">Tuyến:</span>
                 <span className="font-bold text-[#102744]">{trip.from} - {trip.to}</span>
+              </div>
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-[#647084]">Ngày đi:</span>
+                <span className="font-semibold text-[#102744]">{bookingService.formatDisplayDate(dateStr)}</span>
               </div>
               <div className="flex justify-between items-center text-[11px]">
                 <span className="text-[#647084]">Giờ chạy:</span>
                 <span className="font-bold text-[#0097A7]">{trip.departureTime}</span>
               </div>
               <div className="flex justify-between items-center text-[11px]">
+                <span className="text-[#647084]">Dòng xe:</span>
+                <span className="font-semibold text-[#102744] truncate max-w-[130px]">{trip.vehicle.name}</span>
+              </div>
+              <div className="flex justify-between items-center text-[11px]">
                 <span className="text-[#647084]">Số khách:</span>
                 <span className="font-bold text-[#102744]">{passengersCount} người</span>
               </div>
-              <div className="flex justify-between items-center text-[11px]">
+              <div className="flex justify-between items-center text-[11px] pt-1 border-t border-[#E5E3DC]">
                 <span className="text-[#647084]">Đã chọn:</span>
-                <span className="font-bold text-[#0097A7]">{selectedSeats.length} / {passengersCount}</span>
+                <span className={`font-bold ${isEnoughSeats ? 'text-emerald-600' : 'text-[#0097A7]'}`}>
+                  {selectedSeats.length} / {passengersCount}
+                </span>
               </div>
+              {selectedSeats.length > 0 && (
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-[#647084]">Mã ghế:</span>
+                  <span className="font-bold text-[#0097A7]">{selectedSeats.join(', ')}</span>
+                </div>
+              )}
             </div>
 
             {/* SVG Barcode Graphic */}
@@ -257,13 +305,13 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
               <SvgTicketBarcode code={`${trip.code}-${dateStr.replace(/-/g, '')}`} />
             </div>
 
-            {/* Restrained Demo Disclaimer Badge */}
-            <div className="mt-4 p-2 bg-amber-50 rounded-xl border border-amber-200/80 w-full text-center">
-              <span className="text-[9.5px] font-bold text-amber-800 block uppercase tracking-wider">
-                Phiên chọn ghế demo
+            {/* Honest FE reservation disclaimer */}
+            <div className="mt-4 p-2.5 bg-blue-50 rounded-xl border border-blue-200/80 w-full text-center">
+              <span className="text-[9.5px] font-bold text-[#0284C7] block uppercase tracking-wider">
+                Lựa chọn trên FE
               </span>
-              <span className="text-[8.5px] text-amber-700 block leading-tight mt-0.5">
-                Chưa có giá trị lên xe thực tế
+              <span className="text-[8.5px] text-[#0369A1] block leading-tight mt-0.5">
+                Chưa khóa chỗ trên hệ thống backend
               </span>
             </div>
           </div>
@@ -289,6 +337,10 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                   <span className="font-semibold text-[#102744]">{trip.from} → {trip.to} ({trip.departureTime})</span>
                 </div>
                 <div className="flex justify-between text-[#647084]">
+                  <span>Ngày khởi hành:</span>
+                  <span className="font-semibold text-[#102744]">{bookingService.formatDisplayDate(dateStr)}</span>
+                </div>
+                <div className="flex justify-between text-[#647084]">
                   <span>Phương tiện:</span>
                   <span className="font-semibold text-[#0097A7]">{trip.vehicle.name}</span>
                 </div>
@@ -297,6 +349,10 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                   <span className="font-bold text-[#102744]">
                     {selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn'}
                   </span>
+                </div>
+                <div className="flex justify-between text-[11px] text-[#647084] italic pt-1 border-t border-[#E5E3DC]">
+                  <span>Trạng thái:</span>
+                  <span className="text-[#0284C7] font-medium">Chưa khóa ghế trên hệ thống</span>
                 </div>
               </div>
             </motion.div>
@@ -314,7 +370,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                   {trip.from} → {trip.to} • {trip.departureTime}
                 </span>
                 <span className="text-[11px] text-[#647084]">
-                  {trip.vehicle.name} • {trip.operator}
+                  {trip.vehicle.name} • {bookingService.formatDisplayDate(dateStr)}
                 </span>
               </div>
 
@@ -322,15 +378,25 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
 
               {/* Selected seats list chips */}
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold text-[#102744] uppercase tracking-wider shrink-0">
                     Ghế ({selectedSeats.length}/{passengersCount}):
                   </span>
+                  {/* Status badge */}
+                  {isEnoughSeats ? (
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+                      Đủ số lượng ✓
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold text-[#0097A7] bg-[#E0F7FA] px-2 py-0.5 rounded-full shrink-0">
+                      Thiếu {passengersCount - selectedSeats.length} ghế
+                    </span>
+                  )}
                   {/* Mobile toggle button */}
                   <button
                     type="button"
                     onClick={() => setMobileSummaryOpen(!mobileSummaryOpen)}
-                    className="sm:hidden text-[#647084] hover:text-[#102744] p-0.5"
+                    className="sm:hidden text-[#647084] hover:text-[#102744] p-0.5 cursor-pointer"
                     aria-label="Xem chi tiết tóm tắt"
                   >
                     {mobileSummaryOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
@@ -383,23 +449,33 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
               {/* Total Price */}
               <div className="text-left sm:text-right">
                 <span className="text-[10px] uppercase font-bold text-[#647084] block">
-                  Tổng thanh toán
+                  Tổng tạm tính
                 </span>
                 <span className="font-serif font-bold text-xl sm:text-2xl text-[#0097A7] leading-tight block">
                   {bookingService.formatCurrency(totalPrice)}
                 </span>
               </div>
 
-              {/* Proceed Action Button */}
-              <button
-                type="button"
-                disabled={!isEnoughSeats}
-                onClick={onProceedToPassenger}
-                className="py-3 px-6 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
-              >
-                <span>Tiếp tục điền thông tin</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {/* Proceed Action Button with explicit honest copy */}
+              <div>
+                <button
+                  type="button"
+                  disabled={!isEnoughSeats}
+                  onClick={onProceedToPassenger}
+                  title={
+                    isEnoughSeats
+                      ? 'Tiếp tục điền thông tin hành khách'
+                      : `Vui lòng chọn đủ ${passengersCount} ghế để tiếp tục`
+                  }
+                  className="py-3 px-5 sm:px-6 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                >
+                  <span>Tiếp tục điền thông tin</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <span className="text-[9.5px] text-[#647084] block text-right mt-1">
+                  Chưa trừ tiền • Giữ chỗ ở bước kế
+                </span>
+              </div>
             </div>
           </div>
         </div>

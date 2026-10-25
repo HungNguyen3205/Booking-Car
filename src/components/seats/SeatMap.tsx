@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Trip, Seat } from '../../types';
 import { SeatButton } from './SeatButton';
-import { Compass, Check, Lock, Ban, Layers, ShieldCheck } from 'lucide-react';
+import { Compass, Check, Lock, Ban, Layers, ShieldCheck, Info, AlertCircle } from 'lucide-react';
 
 interface SeatMapProps {
   trip: Trip;
@@ -20,12 +20,31 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   onLimitExceeded,
 }) => {
   const [activeFloor, setActiveFloor] = useState<1 | 2>(1);
-  const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
+  const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 640) {
+      return 'vertical';
+    }
+    return 'horizontal';
+  });
+
+  // Derive floor cleanly during render: 1-floor vehicles are always floor 1
+  const currentFloor = trip.vehicle.floors < 2 ? 1 : activeFloor;
+
+  // Compute available seats per floor from trip.seats
+  const floor1Available = useMemo(
+    () => trip.seats.filter((s) => s.floor === 1 && s.status === 'available').length,
+    [trip.seats]
+  );
+  const floor2Available = useMemo(
+    () => trip.seats.filter((s) => s.floor === 2 && s.status === 'available').length,
+    [trip.seats]
+  );
+  const floorSeatsAvailable = currentFloor === 1 ? floor1Available : floor2Available;
 
   // Filter seats by active floor
   const floorSeats = useMemo(() => {
-    return trip.seats.filter((s) => s.floor === activeFloor);
-  }, [trip.seats, activeFloor]);
+    return trip.seats.filter((s) => s.floor === currentFloor);
+  }, [trip.seats, currentFloor]);
 
   // Find all distinct rows sorted ascending
   const rows = useMemo(() => {
@@ -50,38 +69,40 @@ export const SeatMap: React.FC<SeatMapProps> = ({
           CABIN CONTROL TOOLBAR: Floor Switcher & View Mode
           ---------------------------------------------------- */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-3 mb-4 border-b border-[#E5E3DC]">
-        {/* Floor Switcher */}
+        {/* Floor Switcher with live seat availability count */}
         {trip.vehicle.floors === 2 ? (
-          <div className="flex items-center gap-1.5 bg-[#F7F4EC] p-1 rounded-2xl border border-[#E5E3DC]">
+          <div className="flex items-center gap-1.5 bg-[#F7F4EC] p-1 rounded-2xl border border-[#E5E3DC] w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setActiveFloor(1)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeFloor === 1
+              className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                currentFloor === 1
                   ? 'bg-[#102744] text-white shadow-xs'
                   : 'text-[#647084] hover:text-[#102744]'
               }`}
             >
               <Layers className="w-3.5 h-3.5 text-[#00E5FF]" />
-              <span>Tầng 1 (Tầng dưới)</span>
+              <span>Tầng 1 (còn {floor1Available})</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveFloor(2)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeFloor === 2
+              className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                currentFloor === 2
                   ? 'bg-[#102744] text-white shadow-xs'
                   : 'text-[#647084] hover:text-[#102744]'
               }`}
             >
               <Layers className="w-3.5 h-3.5 text-[#00E5FF]" />
-              <span>Tầng 2 (Tầng trên)</span>
+              <span>Tầng 2 (còn {floor2Available})</span>
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-2 text-xs font-bold text-[#102744] bg-[#F7F4EC] px-3.5 py-1.5 rounded-xl border border-[#E5E3DC]">
             <span className="w-2 h-2 rounded-full bg-[#0097A7]" />
-            <span>Khoang 1 tầng tiêu chuẩn VIP ({trip.vehicle.seatsTotal} chỗ)</span>
+            <span>
+              Khoang 1 tầng tiêu chuẩn VIP ({trip.vehicle.seatsTotal} chỗ • còn {floor1Available} chỗ)
+            </span>
           </div>
         )}
 
@@ -102,7 +123,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
               }`}
               title="Góc nhìn thân xe nằm ngang"
             >
-              Ngang (Desktop)
+              Ngang
             </button>
             <button
               type="button"
@@ -112,7 +133,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                   ? 'bg-[#0097A7] text-white shadow-2xs'
                   : 'text-[#647084] hover:text-[#102744]'
               }`}
-              title="Góc nhìn thân xe dọc (Mobile)"
+              title="Góc nhìn thân xe dọc (Tối ưu điện thoại)"
             >
               Dọc
             </button>
@@ -120,13 +141,25 @@ export const SeatMap: React.FC<SeatMapProps> = ({
         </div>
       </div>
 
+      {/* Sold-out floor / trip indicator */}
+      {floorSeatsAvailable === 0 && (
+        <div className="mb-3.5 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2.5 text-xs text-amber-900">
+          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+          <span>
+            {trip.vehicle.floors === 2
+              ? `Tầng ${currentFloor} hiện đã kín chỗ. Bạn có thể bấm chuyển sang tầng khác để tìm ghế trống.`
+              : 'Toàn bộ ghế trên chuyến này đã được đặt kín.'}
+          </span>
+        </div>
+      )}
+
       {/* ----------------------------------------------------
           INTERACTIVE TOP-DOWN COACH CHASSIS
           Rendered through smooth crossfade when changing floors
           ---------------------------------------------------- */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={`${activeFloor}-${orientation}`}
+          key={`${currentFloor}-${orientation}`}
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
@@ -474,28 +507,61 @@ export const SeatMap: React.FC<SeatMapProps> = ({
       {/* ----------------------------------------------------
           LEGEND: Trạng thái ghế rõ ràng, chuẩn accessibility
           ---------------------------------------------------- */}
-      <div className="mt-5 pt-3.5 border-t border-[#E5E3DC] flex flex-wrap items-center justify-center gap-4 sm:gap-7 text-xs text-[#102744]">
+      {/* ----------------------------------------------------
+          LEGEND: Trạng thái ghế rõ ràng, chuẩn accessibility (không chỉ dựa vào màu)
+          ---------------------------------------------------- */}
+      <div className="mt-5 pt-3.5 border-t border-[#E5E3DC] grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-[#102744]">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg bg-[#FFFEFA] border-2 border-[#CBD5E1] shadow-2xs" />
-          <span>Còn trống</span>
+          <div className="w-5 h-5 rounded-lg bg-[#FFFEFA] border-2 border-[#CBD5E1] shadow-2xs shrink-0" />
+          <div>
+            <span className="font-semibold block leading-tight text-[#102744]">Còn trống</span>
+            <span className="text-[10px] text-[#647084]">Sẵn sàng chọn</span>
+          </div>
         </div>
+
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg bg-[#0097A7] border border-[#00695C] text-white flex items-center justify-center shadow-xs">
+          <div className="w-5 h-5 rounded-lg bg-[#0097A7] border-2 border-[#004D40] text-white flex items-center justify-center shadow-xs ring-1 ring-[#00695C] shrink-0">
             <Check className="w-3.5 h-3.5 stroke-[3]" />
           </div>
-          <span className="font-bold text-[#0097A7]">Đang chọn</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg bg-[#1E293B] text-slate-400 flex items-center justify-center shadow-xs">
-            <Lock className="w-3 h-3" />
+          <div>
+            <span className="font-bold text-[#0097A7] block leading-tight">Đang chọn</span>
+            <span className="text-[10px] text-[#007887]">Tạm thời trên FE</span>
           </div>
-          <span className="text-[#647084]">Đã đặt</span>
         </div>
+
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 text-slate-400 flex items-center justify-center">
-            <Ban className="w-3 h-3" />
+          <div className="w-5 h-5 rounded-lg bg-[#1E293B] text-slate-300 flex items-center justify-center shadow-xs border border-slate-700 shrink-0">
+            <Lock className="w-3.5 h-3.5" />
           </div>
-          <span className="text-slate-400">Không khả dụng</span>
+          <div>
+            <span className="font-semibold text-[#102744] block leading-tight">Đã đặt</span>
+            <span className="text-[10px] text-[#647084]">Hệ thống đã khóa</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 text-slate-400 flex items-center justify-center shrink-0">
+            <Ban className="w-3.5 h-3.5" />
+          </div>
+          <div>
+            <span className="font-semibold text-slate-500 block leading-tight">Không khả dụng</span>
+            <span className="text-[10px] text-slate-400">Bảo trì/Khóa chỗ</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ----------------------------------------------------
+          DISCLAIMER: Tách rõ trạng thái chọn trên FE với giữ chỗ thực
+          ---------------------------------------------------- */}
+      <div className="mt-4 p-3.5 bg-[#F0F9FF] border border-[#BAE6FD] rounded-2xl flex items-start gap-2.5 text-xs text-[#0C4A6E]">
+        <Info className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
+        <div className="leading-relaxed">
+          <span className="font-bold block text-[#0369A1]">
+            Lưu ý trạng thái chọn chỗ (Chưa giữ chỗ trên hệ thống):
+          </span>
+          <span className="text-[#334155] text-[11.5px] mt-0.5 block">
+            Các vị trí bạn vừa chọn chỉ đang được đánh dấu tạm thời trên thiết bị này. Hệ thống backend <strong>chưa giữ chỗ chính thức</strong> cho đến khi bạn xác nhận thông tin hành khách ở bước tiếp theo.
+          </span>
         </div>
       </div>
 
@@ -503,7 +569,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
       <div className="mt-3 text-center">
         <p className="text-[11px] text-[#647084] italic flex items-center justify-center gap-1">
           <ShieldCheck className="w-3.5 h-3.5 text-[#0097A7] inline" />
-          * Sơ đồ mô phỏng theo cấu hình không gian tiêu chuẩn của dòng xe {trip.vehicle.name} (Bản thử nghiệm)
+          * Sơ đồ mô phỏng theo cấu hình không gian tiêu chuẩn của dòng xe {trip.vehicle.name} ({trip.seats.length} chỗ)
         </p>
       </div>
     </div>
