@@ -465,3 +465,14 @@
 - Tạo tài liệu kỹ thuật hoàn chỉnh tại `README.md`.
 - Sẵn sàng tích hợp Pull Request vào nhánh `main`.
 
+
+
+### Visual refinement — 25/10/2026
+- Reviewed feature/danava-go at a5c87d7. The scene is a functioning procedural prototype, not a visual match to the reference video. Earlier completion statements above describe workflow stages, not photoreal asset acceptance.
+- Replaced overlapping copy/scene with responsive separate tracks; removed public scene diagnostic header/footer and synthetic distance badge. Debug tools remain behind explicit debug query.
+- Compact location labels; no perpetual pin ping. Form and booking components retained.
+- Reframed camera, softened lighting, continuous foreground road bend and larger vehicle presentation. Vehicle wheel travel uses the current curve length and scene scale.
+- Added reusable smooth procedural ridge geometry; softened vegetation; fixed the water material's invisible back face; rounded sleeper hull and adjusted glass.
+- Removed hardcoded date/time/seat and heritage-only text from decorative ticket texture.
+- Verification: build, lint and diff check passed. Chromium production preview: 1440x900, 1280x800 and 390px without horizontal overflow or page errors. Vehicle changes, reverse route and edited date preservation checked with reduced motion enabled. Initial non-reduced-motion render also checked, but software GPU does not establish real-device FPS or full intro quality.
+- Limits: existing procedural buses/gate remain stylized, not production-quality GLB assets matching the video. No new photoreal models or textures were fabricated. Mobile device performance and full payment/issuance regression were not re-tested.

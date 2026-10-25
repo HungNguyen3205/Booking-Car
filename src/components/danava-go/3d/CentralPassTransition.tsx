@@ -1,3 +1,4 @@
+import { ScenicRidge } from './ScenicRidge';
 import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
@@ -27,7 +28,7 @@ export const CentralPassTransition: React.FC<CentralPassTransitionProps> = ({
   // Nhẹ nhàng lay động rặng thông sườn đèo Hải Vân và cập nhật nổi pop-up
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    if (treesGroupRef.current) {
+    if (treesGroupRef.current && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       treesGroupRef.current.rotation.z = Math.sin(t * 1.5 + 0.5) * 0.012;
     }
 
@@ -68,40 +69,7 @@ export const CentralPassTransition: React.FC<CentralPassTransitionProps> = ({
           1. ĐỒI XANH ĐÈO HẢI VÂN Ở HẬU CẢNH TRUNG TÂM (CENTRAL HILLS)
           Các ngọn đồi thoai thoải uốn lượn phía sau khúc cua đèo Z = -0.32
           --------------------------------------------------------------------- */}
-      <group position={[0, 0, -0.95]}>
-        {/* Đỉnh đèo Hải Vân trung tâm */}
-        <mesh position={[0.05, 0.18, 0]} scale={[1.8, 0.7, 0.9]} castShadow={castShadow} receiveShadow={receiveShadow}>
-          <coneGeometry args={[0.55, 0.52, 10]} />
-          <meshStandardMaterial
-            color="#3E6B4E"
-            roughness={0.92}
-            transparent
-            opacity={0.88}
-          />
-        </mesh>
-
-        {/* Sườn đồi thoai thoải dốc về phía Đà Nẵng (Tây) */}
-        <mesh position={[-0.55, 0.12, 0.1]} scale={[1.4, 0.55, 0.8]} castShadow={castShadow} receiveShadow={receiveShadow}>
-          <coneGeometry args={[0.45, 0.42, 8]} />
-          <meshStandardMaterial
-            color="#487B56"
-            roughness={0.92}
-            transparent
-            opacity={0.85}
-          />
-        </mesh>
-
-        {/* Sườn đồi dốc về phía vịnh Lăng Cô / Huế (Đông) */}
-        <mesh position={[0.60, 0.14, 0.1]} scale={[1.5, 0.58, 0.8]} castShadow={castShadow} receiveShadow={receiveShadow}>
-          <coneGeometry args={[0.48, 0.45, 8]} />
-          <meshStandardMaterial
-            color="#386444"
-            roughness={0.92}
-            transparent
-            opacity={0.85}
-          />
-        </mesh>
-      </group>
+      <group position={[0, 0, -1.05]}><ScenicRidge width={1.8} depth={.8} height={.45} color="#8EA38B" /></group>
 
       {/* ---------------------------------------------------------------------
           2. RẶNG CÂY RỪNG ĐÈO HẢI VÂN (PASS RIDGE TREES)
@@ -109,12 +77,12 @@ export const CentralPassTransition: React.FC<CentralPassTransitionProps> = ({
       <group ref={treesGroupRef}>
         {passTrees.map((t, idx) => (
           <group key={`pass-tree-${idx}`} position={[t.x, 0, t.z]}>
-            <mesh position={[0, t.scale * 0.35, 0]} castShadow>
+            <mesh position={[0, t.scale * 0.35, 0]} castShadow={castShadow}>
               <cylinderGeometry args={[0.01 * t.scale * 5, 0.014 * t.scale * 5, t.scale * 0.7, 5]} />
               <meshStandardMaterial color="#5D4037" roughness={0.9} />
             </mesh>
-            <mesh position={[0, t.scale * 0.85, 0]} castShadow>
-              <coneGeometry args={[t.scale * 0.48, t.scale * 0.75, 7]} />
+            <mesh position={[0, t.scale * 0.85, 0]} castShadow={castShadow}>
+              <sphereGeometry args={[t.scale * 0.48, 10, 8]} />
               <meshStandardMaterial color={t.color} roughness={0.82} />
             </mesh>
           </group>

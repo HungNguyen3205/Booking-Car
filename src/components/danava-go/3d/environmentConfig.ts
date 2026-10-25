@@ -18,22 +18,22 @@ export const DANAVA_3D_CONFIG = {
 
   // Three-quarter camera viewing perspective (derived from reference composition)
   camera: {
-    fov: 36,
+    fov: 34,
     near: 0.1,
     far: 80,
     // [x, y, z] looking down-forward at a subtle angle towards stage center
-    position: [0, 4.8, 9.2] as [number, number, number],
-    target: [0, 0.35, 0] as [number, number, number],
+    position: [0, 4.1, 8.5] as [number, number, number],
+    target: [0, 0.30, 0] as [number, number, number],
   },
 
   // Unified lighting system (soft, consistent directional sun + fill)
   lighting: {
     ambient: {
-      intensity: 0.8,
+      intensity: 1.55,
     },
     keyLight: {
       position: [-4.2, 7.5, 5.0] as [number, number, number],
-      intensity: 1.25,
+      intensity: 2.5,
       castShadow: true,
       shadowMapSize: 1024,
       shadowBias: -0.0001,
@@ -45,7 +45,7 @@ export const DANAVA_3D_CONFIG = {
     },
     fillLight: {
       position: [4.5, 3.8, -2.5] as [number, number, number],
-      intensity: 0.4,
+      intensity: 0.8,
     },
   },
 

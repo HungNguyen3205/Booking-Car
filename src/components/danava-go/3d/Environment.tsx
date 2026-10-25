@@ -1,22 +1,7 @@
-import React, { useMemo } from 'react';
-import * as THREE from 'three';
+import React from 'react';
 import { DANAVA_3D_CONFIG } from './environmentConfig';
 
 export const Environment: React.FC = () => {
-  // Generate a very soft, faint distant horizon curve (no buildings, no vehicles)
-  const ridgeGeometry = useMemo(() => {
-    const geom = new THREE.PlaneGeometry(1, 1, 24, 1);
-    const pos = geom.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      // Faint gentle hill curvature
-      const yOffset = Math.sin(x * Math.PI * 2.5) * 0.12 + Math.cos(x * Math.PI * 4.2) * 0.06;
-      pos.setY(i, pos.getY(i) + yOffset);
-    }
-    geom.computeVertexNormals();
-    return geom;
-  }, []);
-
   const { colors, lighting, ground, atmosphere } = DANAVA_3D_CONFIG;
 
   return (
@@ -28,6 +13,7 @@ export const Environment: React.FC = () => {
         args={[colors.background, atmosphere.fog.near, atmosphere.fog.far]}
       />
 
+      <hemisphereLight args={["#fff8e9", "#b6b9aa", 1.2]} />
       {/* Unified Ambient Sunlight Fill */}
       <ambientLight
         color={colors.ambient}
@@ -71,19 +57,7 @@ export const Environment: React.FC = () => {
         />
       </mesh>
 
-      {/* Faint distant landscape silhouette (Atmospheric depth only, completely devoid of architecture or cars) */}
-      <mesh
-        geometry={ridgeGeometry}
-        position={atmosphere.distantRidge.position}
-        scale={atmosphere.distantRidge.scale}
-      >
-        <meshBasicMaterial
-          color={colors.distantHills}
-          transparent
-          opacity={atmosphere.distantRidge.opacity}
-          depthWrite={false}
-        />
-      </mesh>
+
     </>
   );
 };

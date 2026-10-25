@@ -1,3 +1,4 @@
+import { ScenicRidge } from './ScenicRidge';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { HUE_DESTINATION } from './destinationConfig';
@@ -53,7 +54,7 @@ export const HueLandmark: React.FC<HueLandmarkProps> = ({
   // Nhẹ nhàng lay động rặng thông Cố đô theo gió và cập nhật pop-up 60fps
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    if (treesGroupRef.current) {
+    if (treesGroupRef.current && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       treesGroupRef.current.rotation.z = Math.sin(t * 1.4 + 1.0) * 0.012;
     }
 
@@ -202,17 +203,17 @@ export const HueLandmark: React.FC<HueLandmarkProps> = ({
             </mesh>
             {/* Tầng tán thông 1 (Tán hình dù kim) */}
             <mesh position={[0, p.scale * 0.85, 0]} castShadow>
-              <coneGeometry args={[p.scale * 0.55, p.scale * 0.45, 8]} />
+              <sphereGeometry args={[p.scale * 0.55, 10, 8]} />
               <meshStandardMaterial color={p.color} roughness={0.82} />
             </mesh>
             {/* Tầng tán thông 2 */}
             <mesh position={[0, p.scale * 1.15, 0]} castShadow>
-              <coneGeometry args={[p.scale * 0.42, p.scale * 0.40, 8]} />
+              <sphereGeometry args={[p.scale * 0.42, 10, 8]} />
               <meshStandardMaterial color={p.color} roughness={0.82} />
             </mesh>
             {/* Tầng đỉnh chóp */}
             <mesh position={[0, p.scale * 1.40, 0]} castShadow>
-              <coneGeometry args={[p.scale * 0.26, p.scale * 0.35, 7]} />
+              <sphereGeometry args={[p.scale * 0.26, 10, 8]} />
               <meshStandardMaterial color={p.color} roughness={0.82} />
             </mesh>
           </group>
@@ -223,18 +224,7 @@ export const HueLandmark: React.FC<HueLandmarkProps> = ({
           5. NÚI NGỰ BÌNH MỜ XA Ở HẬU CẢNH (NGU BINH MOUNTAIN SILHOUETTE)
           Dáng núi đỉnh bằng thoai thoải ("Tiền án" phong thủy Cố đô)
           ===================================================================== */}
-      <group position={[0, 0.02, -1.45]}>
-        {/* Đỉnh núi Ngự Bình đỉnh bằng thoai thoải */}
-        <mesh position={[0, 0.22, 0]} scale={[2.0, 0.75, 0.8]} castShadow>
-          <cylinderGeometry args={[0.35, 0.75, 0.55, 10]} />
-          <meshStandardMaterial
-            color={materials.nguBinhHills}
-            roughness={0.95}
-            transparent
-            opacity={0.82}
-          />
-        </mesh>
-      </group>
+      <group position={[0, .02, -1.35]}><ScenicRidge width={2.6} depth={1.1} height={.57} color="#91A393" /></group>
 
       {/* =====================================================================
           6. DEBUG SAFE ZONE & ANCHOR (CHỈ HIỂN THỊ KHI ?debug=1)

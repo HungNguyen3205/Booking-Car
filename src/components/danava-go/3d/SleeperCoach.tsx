@@ -1,3 +1,4 @@
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
@@ -116,6 +117,8 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
   timelineRef,
 }) => {
   const { dimensions, materials, animation } = COACH_CONFIG;
+  const hull = useMemo(() => new RoundedBoxGeometry(dimensions.width, .30, dimensions.length - .04, 4, .035), [dimensions.width, dimensions.length]);
+  const nose = useMemo(() => new RoundedBoxGeometry(dimensions.width, .27, .08, 4, .025), [dimensions.width]);
 
   const coachRootRef = useRef<THREE.Group>(null);
   const flWheelRef = useRef<THREE.Group>(null);
@@ -353,7 +356,7 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
           castShadow={castShadow}
           receiveShadow
         >
-          <boxGeometry args={[dimensions.width, 0.30, dimensions.length - 0.04]} />
+          <primitive object={hull} attach="geometry" />
           <meshStandardMaterial
             color={materials.bodyColor}
             roughness={materials.bodyRoughness}
@@ -367,7 +370,7 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
           castShadow={castShadow}
           receiveShadow
         >
-          <boxGeometry args={[dimensions.width, 0.27, 0.08]} />
+          <primitive object={nose} attach="geometry" />
           <meshStandardMaterial
             color={materials.bodyColor}
             roughness={materials.bodyRoughness}

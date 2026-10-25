@@ -23,7 +23,7 @@ interface VehicleStageProps {
   onVehicleError?: (failedCategory: VehicleCategory, fallbackCategory: VehicleCategory) => void;
 }
 
-const TOTAL_CURVE_DISTANCE = 4.411; // Chiều dài cung đường cong xe chạy
+const TOTAL_CURVE_DISTANCE = VEHICLE_PATH_CURVE.getLength(); // Chiều dài cung đường cong xe chạy
 
 /**
  * Slot render độc lập cho từng instance xe trong Scene Graph
@@ -82,7 +82,7 @@ const VehicleSlotInstance: React.FC<{
       rootRef.current.position.set(pt.x, pt.y, pt.z);
       rootRef.current.rotation.y = yaw;
 
-      const wheelAngle = (TOTAL_CURVE_DISTANCE * currentT) / wheelRadius;
+      const wheelAngle = (TOTAL_CURVE_DISTANCE * currentT) / (wheelRadius * 1.4);
       rootRef.current.traverse((child) => {
         if (child.name === 'WHEEL_SPIN') {
           child.rotation.x = wheelAngle;
@@ -121,7 +121,7 @@ const VehicleSlotInstance: React.FC<{
       rootRef.current.position.set(pt.x, pt.y, pt.z);
       rootRef.current.rotation.y = yaw;
 
-      const wheelAngle = (TOTAL_CURVE_DISTANCE * currentT) / wheelRadius;
+      const wheelAngle = (TOTAL_CURVE_DISTANCE * currentT) / (wheelRadius * 1.4);
       rootRef.current.traverse((child) => {
         if (child.name === 'WHEEL_SPIN') {
           child.rotation.x = wheelAngle;
@@ -160,7 +160,7 @@ const VehicleSlotInstance: React.FC<{
       rootRef.current.position.set(pt.x, pt.y, pt.z);
       rootRef.current.rotation.y = yaw;
 
-      const wheelAngle = (TOTAL_CURVE_DISTANCE * currentT) / wheelRadius;
+      const wheelAngle = (TOTAL_CURVE_DISTANCE * currentT) / (wheelRadius * 1.4);
       rootRef.current.traverse((child) => {
         if (child.name === 'WHEEL_SPIN') {
           child.rotation.x = wheelAngle;
@@ -190,7 +190,7 @@ const VehicleSlotInstance: React.FC<{
     );
     rootRef.current.rotation.y = defaultTransform.yawAngle;
 
-    const stopWheelAngle = (TOTAL_CURVE_DISTANCE * stopT) / wheelRadius;
+    const stopWheelAngle = (TOTAL_CURVE_DISTANCE * stopT) / (wheelRadius * 1.4);
     rootRef.current.traverse((child) => {
       if (child.name === 'WHEEL_SPIN') {
         child.rotation.x = stopWheelAngle;
@@ -213,6 +213,7 @@ const VehicleSlotInstance: React.FC<{
   return (
     <group
       ref={rootRef}
+      scale={1.4}
       name={`VEHICLE_SLOT_${category.toUpperCase()}_${isExiting ? 'EXIT' : 'ACTIVE'}`}
     >
       {category === 'sleeper' && (

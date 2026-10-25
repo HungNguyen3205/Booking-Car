@@ -23,101 +23,29 @@ function createTicketPrintTexture(fromCity: string = 'Đà Nẵng', toCity: stri
   const ctx = canvas.getContext('2d');
   if (!ctx) return new THREE.CanvasTexture(canvas);
 
-  // Nền giấy ivory cao cấp
-  ctx.fillStyle = '#FFFDF8';
+  ctx.fillStyle = '#FFF9ED';
   ctx.fillRect(0, 0, 512, 768);
-
-  // Viền bo ngoài
-  ctx.strokeStyle = '#D8D4C9';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(20, 20, 472, 728);
-
-  // Viền chỉ đứt đoạn hành trình
-  ctx.setLineDash([8, 6]);
-  ctx.strokeStyle = '#0097A7';
+  ctx.strokeStyle = '#C8B99A';
   ctx.lineWidth = 2;
-  ctx.strokeRect(32, 32, 448, 704);
+  ctx.setLineDash([5, 8]);
+  ctx.strokeRect(24, 24, 464, 720);
   ctx.setLineDash([]);
-
-  // Dải header thương hiệu
   ctx.fillStyle = '#102744';
-  ctx.fillRect(40, 48, 432, 68);
-
-  ctx.font = 'bold 22px "Noto Serif", serif';
-  ctx.fillStyle = '#FFFFFF';
   ctx.textAlign = 'center';
-  ctx.fillText('DANAVA GO', 256, 80);
-
-  ctx.font = '600 11px "Be Vietnam Pro", sans-serif';
-  ctx.fillStyle = '#E0F7FA';
-  ctx.fillText('VÉ HÀNH TRÌNH ĐIỆN TỬ • BOARDING PASS', 256, 102);
-
-  // Tiêu đề tuyến đường lớn: ĐÀ NẴNG → HUẾ
-  ctx.font = 'bold 34px "Noto Serif", serif';
-  ctx.fillStyle = '#102744';
-  ctx.fillText(`${fromCity.toUpperCase()} → ${toCity.toUpperCase()}`, 256, 178);
-
-  // Dòng phụ đề di sản
-  ctx.font = 'bold 13px "Be Vietnam Pro", sans-serif';
-  ctx.fillStyle = '#0097A7';
-  ctx.fillText('CẦU RỒNG SÔNG HÀN • NGỌ MÔN HOÀNG THÀNH', 256, 210);
-
-  // Nét phân cách mờ
-  ctx.strokeStyle = '#E2DCD0';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(50, 235);
-  ctx.lineTo(462, 235);
-  ctx.stroke();
-
-  // Bảng thông số hành trình
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#718096';
-  ctx.font = '500 12px "Be Vietnam Pro", sans-serif';
-  ctx.fillText('NGÀY KHỞI HÀNH', 60, 268);
-  ctx.fillText('GIỜ XUẤT PHÁT', 300, 268);
-
-  ctx.fillStyle = '#102744';
-  ctx.font = 'bold 16px "Be Vietnam Pro", sans-serif';
-  ctx.fillText('24/10/2026', 60, 296);
-  ctx.fillText('08:30 SÁNG', 300, 296);
-
-  ctx.fillStyle = '#718096';
-  ctx.font = '500 12px "Be Vietnam Pro", sans-serif';
-  ctx.fillText('HẠNG PHƯƠNG TIỆN', 60, 345);
-  ctx.fillText('VỊ TRÍ CHỖ NGỒI', 300, 345);
-
-  ctx.fillStyle = '#102744';
-  ctx.font = 'bold 16px "Be Vietnam Pro", sans-serif';
-  ctx.fillText('GIƯỜNG NẰM VIP', 60, 373);
-  ctx.fillText('TẦNG 1 • 06B', 300, 373);
-
-  // Nét phân cách 2
-  ctx.beginPath();
-  ctx.moveTo(50, 405);
-  ctx.lineTo(462, 405);
-  ctx.stroke();
-
-  // Thông số quãng đường & đèo Hải Vân
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#0097A7';
-  ctx.font = 'bold 14px "Be Vietnam Pro", sans-serif';
-  ctx.fillText('CỰ LY: 100 KM • TUYẾN QUA ĐÈO HẢI VÂN', 256, 440);
-
-  // Mã vạch tượng trưng phía dưới
-  ctx.fillStyle = '#102744';
-  const barStarts = [70, 85, 105, 120, 130, 150, 165, 185, 200, 220, 240, 260, 275, 295, 315, 335, 355, 370, 390, 410, 430];
-  barStarts.forEach((bx, i) => {
-    const bw = (i % 3 === 0) ? 5 : (i % 2 === 0 ? 3 : 2);
-    ctx.fillRect(bx, 510, bw, 60);
-  });
-
-  ctx.font = '11px monospace';
-  ctx.fillStyle = '#718096';
-  ctx.fillText('DANAVA-GO • DAD-HUE • 2026-VIP-0830', 256, 595);
-
+  ctx.font = 'bold 42px serif';
+  ctx.fillText('DANAVA GO', 256, 160, 420);
+  ctx.font = '24px sans-serif';
+  ctx.fillText(fromCity, 256, 310, 400);
+  ctx.fillText('→', 256, 365);
+  ctx.fillText(toCity, 256, 420, 400);
+  ctx.strokeStyle = '#0097A7';
+  for (let i=0; i<3; i++) {
+    ctx.beginPath(); ctx.moveTo(65, 535+i*22);
+    ctx.bezierCurveTo(180, 470+i*22, 310, 610+i*22, 445, 535+i*22);
+    ctx.stroke();
+  }
   const texture = new THREE.CanvasTexture(canvas);
-  texture.generateMipmaps = true;
+  texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
 

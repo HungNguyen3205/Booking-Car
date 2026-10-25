@@ -84,13 +84,13 @@ export const VEHICLE_DEFINITIONS: Record<VehicleCategory, VehicleDefinition> = {
       axleHeight: 0.078,
     },
     materials: {
-      bodyColor: '#102744',       // Navy thương hiệu DANAVA GO
+      bodyColor: '#18395A',       // Navy thương hiệu DANAVA GO
       bodyRoughness: 0.38,
       bodyMetalness: 0.22,
       accentColor: '#0097A7',     // Teal
-      windowColor: '#18202C',
+      windowColor: '#647F91',
       windowRoughness: 0.12,
-      windowMetalness: 0.88,
+      windowMetalness: 0.18,
       tireColor: '#1A1D20',
       tireRoughness: 0.90,
       rimColor: '#D8DCE2',

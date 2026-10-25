@@ -11,7 +11,7 @@ const JourneyCanvas = React.lazy(() =>
 );
 
 import type { JourneyTimelineState } from './3d/journeyTimeline';
-import { resolveDestination } from './3d/destinationConfig';
+import './danava-go-hero.css';
 
 const SESSION_INTRO_KEY = 'danava_go_intro_played';
 
@@ -183,12 +183,12 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
       className="danava-go-hero w-full bg-[#F7F4EC] text-[#102744] overflow-visible relative"
       aria-label="DANAVA GO — Vé mở ra hành trình"
     >
-      <div className="max-w-[1380px] mx-auto px-4 sm:px-6">
+      <div className="go-shell">
         {/* HERO STAGE: LEFT EDITORIAL + RIGHT 3D FOLDING TICKET STAGE */}
-        <div className="relative w-full aspect-auto lg:aspect-[1376/570] flex flex-col lg:flex-row items-stretch pt-2 lg:pt-4">
+        <div className="go-layout">
           {/* EDITORIAL CONTENT (LEFT) */}
           <motion.div
-            className="w-full lg:w-[54%] max-w-[700px] z-10 flex flex-col justify-start lg:pr-6 pt-2 lg:pt-4"
+            className="go-copy"
             initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
@@ -200,10 +200,10 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
             </div>
 
             {/* Headline */}
-            <h1 className="font-serif text-[38px] sm:text-[48px] lg:text-[60px] font-bold leading-[1.10] tracking-[-0.025em] text-[#102744] mb-3">
+            <h1 className="go-title">
               <span className="block text-[#102744]">Đi một chuyến.</span>
               <span className="block text-[#102744]">
-                Mở ngàn <span className="inline-block whitespace-nowrap">trải nghiệm.</span>
+                Mở ngàn <span className="go-title-experience">trải nghiệm.</span>
               </span>
             </h1>
 
@@ -222,10 +222,10 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                       key={v.id}
                       type="button"
                       aria-pressed={isActive}
-                      onClick={() => setSelectedVehicle(v.id)}
+                      onClick={() => { handleFormInteraction(); setSelectedVehicle(v.id); }}
                       className={`inline-flex items-center gap-2 h-11 sm:h-12 px-4 sm:px-5 rounded-full text-xs sm:text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
                         isActive
-                          ? 'bg-[#102744] text-[#FFFEFA] shadow-[0_4px_12px_rgba(16,39,68,0.18)] scale-[1.02]'
+                          ? 'bg-[#102744] text-[#FFFEFA] shadow-[0_4px_12px_rgba(16,39,68,0.18)]'
                           : 'bg-[#FFF9ED] hover:bg-[#FFFEFA] text-[#102744] border border-[#D8D4C9] hover:border-[#102744] hover:-translate-y-0.5'
                       }`}
                     >
@@ -311,10 +311,10 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
               Seamlessly renders the Three.js 3D Canvas with soft lighting & cream background.
           */}
           <div
-            className="w-full lg:absolute lg:inset-0 lg:left-0 pointer-events-none z-[5] flex items-center justify-end"
+            className="go-scene-column"
           >
             <div
-              className="w-full lg:w-[62%] aspect-[16/11] sm:aspect-[16/10] lg:aspect-[1376/720] max-h-[570px] relative rounded-2xl overflow-hidden pointer-events-none border border-[#E5E3DC]/80 bg-[#F7F4EC] shadow-[0_16px_40px_-12px_rgba(16,39,68,0.08)] flex flex-col justify-between"
+              className="go-scene"
               data-testid="danava-go-stage-scaffold"
             >
               {/* Lazy-loaded 3D WebGL Canvas Layer */}
@@ -327,7 +327,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                     <WebGLFallback
                       fromCity={currentRoute.from}
                       toCity={currentRoute.to}
-                      message="Đang khởi tạo không gian 3D Three.js..."
+                      message="Đang mở hành trình của bạn…"
                     />
                   }
                 >
@@ -351,7 +351,8 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                 </Suspense>
               </div>
 
-              {/* Stage Header Strip */}
+              {/* Diagnostics are available only in explicit debug mode. */}
+              {isDebug && (
               <div className="relative z-10 flex items-center justify-between border-b border-[#E5E3DC]/60 px-5 pt-3.5 pb-2.5 bg-gradient-to-b from-[#FFFDF8]/90 to-transparent pointer-events-auto">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#0097A7]" />
@@ -452,26 +453,15 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                 </div>
               </div>
 
-              {/* Stage Footer Meta (Step 10: Hiển thị chính xác landmark độc bản của từng thành phố) */}
-              <div className="relative z-10 flex items-center justify-between text-[11px] text-[#718096] px-5 py-2.5 border-t border-[#E5E3DC]/60 bg-gradient-to-t from-[#FFFDF8]/90 to-transparent">
-                <span>Tuyến mẫu: {currentRoute.from} — {currentRoute.to}</span>
-                <span className="italic">
-                  {resolveDestination(currentRoute.from, 'origin').model.name.split('&')[0].trim()} ({resolveDestination(currentRoute.from, 'origin').displayName}) →{' '}
-                  {resolveDestination(currentRoute.to, 'destination').model.name.split('&')[0].trim()} ({resolveDestination(currentRoute.to, 'destination').displayName}) •{' '}
-                  {selectedVehicle === 'limousine'
-                    ? 'Xe Limousine VIP 9–11 Chỗ'
-                    : selectedVehicle === 'cabin'
-                    ? 'Xe Cabin VIP (Cung Điện Di Động)'
-                    : 'Xe Giường Nằm'}
-                </span>
-              </div>
+              )}
+
             </div>
           </div>
         </div>
 
         {/* BOTTOM DOCK: SEARCH FORM & VALUE PROPS */}
         <div
-          className="relative z-20 mt-4 lg:-mt-14"
+          className="go-search-dock"
           id="hero-search"
           onFocusCapture={handleFormInteraction}
           onClickCapture={handleFormInteraction}

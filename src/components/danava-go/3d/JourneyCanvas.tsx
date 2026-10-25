@@ -278,6 +278,9 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
     ({ camera: activeCamera, gl }: { camera: THREE.Camera; gl: THREE.WebGLRenderer }) => {
       activeCamera.lookAt(camera.target[0], camera.target[1], camera.target[2]);
       gl.setClearColor(colors.background, 0);
+      gl.toneMapping = THREE.ACESFilmicToneMapping;
+      gl.toneMappingExposure = 1.25;
+      gl.shadowMap.type = THREE.PCFSoftShadowMap;
 
       const canvasEl = gl.domElement;
       const onContextLost = (e: Event) => {

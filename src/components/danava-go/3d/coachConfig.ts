@@ -35,13 +35,13 @@ export const COACH_CONFIG = {
 
   // Vật liệu và màu sắc xe Giường nằm cao cấp DANAVA GO
   materials: {
-    bodyColor: '#102744',     // Navy thương hiệu DANAVA GO
+    bodyColor: '#18395A',     // Navy thương hiệu DANAVA GO
     bodyRoughness: 0.38,      // Ánh satin trang nhã, không bóng nhựa
     bodyMetalness: 0.22,      // Ánh kim nhẹ của sơn ô tô cao cấp
     accentTeal: '#0097A7',    // Đường chỉ eo thương hiệu Teal
-    windowColor: '#18202C',   // Kính 2 tầng sẫm màu chống chói
+    windowColor: '#647F91',   // Kính 2 tầng sẫm màu chống chói
     windowRoughness: 0.12,    // Kính phản chiếu ánh sáng môi trường
-    windowMetalness: 0.88,
+    windowMetalness: 0.18,
     tireColor: '#1A1D20',     // Cao su lốp xám than mờ
     tireRoughness: 0.90,
     rimColor: '#D8DCE2',      // Mâm đúc hợp kim bạc sáng
@@ -66,7 +66,7 @@ export const COACH_CONFIG = {
   // Metadata mô hình phục vụ báo cáo kiểm kê & đối soát kỹ thuật
   meta: {
     modelType: 'Procedural 3D Rig (Three.js Geometry)',
-    isPlaceholderPrototype: false, // Dựng đầy đủ chi tiết: thân, kính 2 tầng, mui AC, 4 bánh, đèn, bóng gầm
+    isPlaceholderPrototype: true, // Dựng đầy đủ chi tiết: thân, kính 2 tầng, mui AC, 4 bánh, đèn, bóng gầm
     branding: 'DANAVA GO Clean Livery (No third-party labels)',
     futureGlbSpec: {
       format: 'glTF 2.0 Binary (.glb)',

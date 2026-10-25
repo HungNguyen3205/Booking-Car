@@ -24,13 +24,8 @@ import * as THREE from 'three';
  */
 
 export const ROAD_CONTROL_POINTS: [number, number, number][] = [
-  [-3.45, 0.020, 0.92],   // 0. Bắt đầu (Đà Nẵng - gần góc trái phía trước vé)
-  [-2.30, 0.020, 0.62],   // 1. Đoạn uốn ven biển
-  [-1.15, 0.020, 0.05],   // 2. Bắt đầu lên cung đèo trung tâm
-  [0.10, 0.020, -0.32],   // 3. Đỉnh cung lượn đèo (vùng sâu phía sau)
-  [1.25, 0.020, 0.05],    // 4. Đoạn thoát đèo hướng về vùng đồng bằng
-  [2.25, 0.020, 0.42],    // 5. Cung thẳng tiếp cận điểm đích
-  [3.25, 0.020, 0.15],    // 6. Điểm đến (Huế - Ngọ Môn)
+  [3.05, .020, -.95], [2.65, .020, -.45], [2.75, .020, .45],
+  [1.65, .020, 1.0], [.35, .020, 1.12], [-1.25, .020, .82], [-3.25, .020, 1.3],
 ];
 
 // Khởi tạo đường dẫn xe (CatmullRomCurve3) khớp 100% với tim đường

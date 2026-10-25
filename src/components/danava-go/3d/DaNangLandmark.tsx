@@ -1,3 +1,4 @@
+import { ScenicRidge } from './ScenicRidge';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { DA_NANG_DESTINATION } from './destinationConfig';
@@ -96,7 +97,7 @@ export const DaNangLandmark: React.FC<DaNangLandmarkProps> = ({
   // Cập nhật hoạt cảnh nổi pop-up và lay động lá cây trong useFrame (zero React re-renders)
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    if (treesGroupRef.current) {
+    if (treesGroupRef.current && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       treesGroupRef.current.rotation.z = Math.sin(t * 1.6) * 0.015;
     }
 
@@ -202,9 +203,10 @@ export const DaNangLandmark: React.FC<DaNangLandmarkProps> = ({
         receiveShadow={receiveShadow}
       >
         <meshStandardMaterial
-          color="#1E7B98"
+          side={THREE.DoubleSide}
+          color="#5BAEBA"
           roughness={0.12}
-          metalness={0.48}
+          metalness={0.08}
           transparent
           opacity={0.92}
         />
@@ -276,12 +278,12 @@ export const DaNangLandmark: React.FC<DaNangLandmarkProps> = ({
             </mesh>
             {/* Tầng tán lá dưới */}
             <mesh position={[0, t.scale * 0.75, 0]} castShadow>
-              <coneGeometry args={[t.scale * 0.45, t.scale * 0.65, 7]} />
+              <sphereGeometry args={[t.scale * 0.45, 10, 8]} />
               <meshStandardMaterial color={t.color} roughness={0.78} />
             </mesh>
             {/* Tầng tán lá trên */}
             <mesh position={[0, t.scale * 1.05, 0]} castShadow>
-              <coneGeometry args={[t.scale * 0.32, t.scale * 0.55, 7]} />
+              <sphereGeometry args={[t.scale * 0.32, 10, 8]} />
               <meshStandardMaterial color={t.color} roughness={0.78} />
             </mesh>
           </group>
@@ -292,38 +294,7 @@ export const DaNangLandmark: React.FC<DaNangLandmarkProps> = ({
           5. NÚI XA VỪA ĐỦ: BÁN ĐẢO SƠN TRÀ (SƠN TRÀ PENINSULA RIDGE)
           Dãy núi thoai thoải phía sau vịnh, mờ dần vào sương khí quyển.
           ===================================================================== */}
-      <group position={[-0.15, 0.02, -1.45]}>
-        {/* Đỉnh núi chính Sơn Trà */}
-        <mesh position={[0.25, 0.28, 0]} scale={[1.6, 1.0, 1.0]} castShadow>
-          <coneGeometry args={[0.60, 0.68, 12]} />
-          <meshStandardMaterial
-            color="#4A6B5B"
-            roughness={0.92}
-            transparent
-            opacity={0.88}
-          />
-        </mesh>
-        {/* Đỉnh núi thứ 2 thấp hơn */}
-        <mesh position={[-0.45, 0.20, 0.1]} scale={[1.3, 0.75, 0.9]} castShadow>
-          <coneGeometry args={[0.48, 0.54, 10]} />
-          <meshStandardMaterial
-            color="#3B5B4C"
-            roughness={0.92}
-            transparent
-            opacity={0.82}
-          />
-        </mesh>
-        {/* Đỉnh núi thứ 3 thoai thoải ra biển */}
-        <mesh position={[0.95, 0.16, -0.1]} scale={[1.2, 0.65, 0.8]}>
-          <coneGeometry args={[0.42, 0.46, 10]} />
-          <meshStandardMaterial
-            color="#5C7A6D"
-            roughness={0.92}
-            transparent
-            opacity={0.78}
-          />
-        </mesh>
-      </group>
+      <group position={[-.1, .02, -1.28]}><ScenicRidge width={2.4} depth={1} height={.64} color="#7A9A8A" /></group>
 
       {/* =====================================================================
           6. DEBUG SAFE ZONE & ANCHOR (CHỈ HIỂN THỊ KHI ?debug=1)
