@@ -211,7 +211,7 @@ export const PaperTicket: React.FC<PaperTicketProps> = ({
       <mesh
         geometry={baseDeckGeometry}
         position={panels.baseDeck.centerOffset}
-        castShadow={false}
+        visible={false}
         receiveShadow
       >
         <meshStandardMaterial
@@ -237,7 +237,7 @@ export const PaperTicket: React.FC<PaperTicketProps> = ({
         <mesh
           geometry={flapGeometry}
           position={panels.foldingFlap.localCenter}
-          castShadow={false}
+          visible={false}
           receiveShadow
         >
           <meshStandardMaterial
@@ -251,6 +251,7 @@ export const PaperTicket: React.FC<PaperTicketProps> = ({
         <mesh
           position={[panels.foldingFlap.localCenter[0], 0.0006, 0]}
           rotation={[-Math.PI / 2, 0, Math.PI / 2]}
+          visible={false}
         >
           <planeGeometry args={[panels.baseDeck.depth - 0.45, panels.foldingFlap.width - 0.35]} />
           <meshBasicMaterial
@@ -263,12 +264,12 @@ export const PaperTicket: React.FC<PaperTicketProps> = ({
       </group>
 
       {/* =======================================================================
-          C. CREASE LINE (Nếp gấp dập chìm giả lập nếp ép thớ giấy)
-          Chạy dọc đúng trục bản lề X = -1.4
+          C. CREASE LINE (Nếp gấp dập chìm)
           ======================================================================= */}
       <mesh
         position={[panels.hingeX, dimensions.paperThickness + 0.0005, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
+        visible={false}
       >
         <planeGeometry args={[0.024, panels.baseDeck.depth - 0.08]} />
         <meshBasicMaterial

@@ -498,3 +498,27 @@
 - **Giới hạn kỹ thuật còn lại (Minh bạch Prototype)**:
   - Mô hình hiện tại là hình học procedural/compound Three.js rig được tinh chỉnh vật lý PBR, **không phải mô hình quét 3D / photoreal GLB hoàn thiện chuẩn thương phẩm**.
   - Toàn bộ metadata cấu hình được đánh dấu rõ ràng `isPlaceholderPrototype: true`. Tuyệt đối không bịa đặt quyền sở hữu hoặc chất lượng asset.
+
+### Bước 1 (Mục tiêu mới): Tái cấu trúc Bố cục Hero — 25/10/2026
+- **Bố cục Hero Full-Width**:
+  - Hero chiếm 100% chiều rộng trình duyệt (`width: 100%`).
+  - Lớp nền Canvas 3D đặt `absolute inset-0 w-full h-full pointer-events-none z-[1]`, không bị giới hạn bởi max-width container.
+  - Vùng chữ và form đặt trong shell container có `max-width: 1440px` nổi lên trên canvas theo vùng an toàn.
+  - Xóa bỏ hoàn toàn card bo góc, border, khung viền bao quanh scene hoặc quanh khối copy.
+  - Desktop: Chiều cao linh hoạt `min-height: clamp(680px, 86svh, 860px)` theo viewport và nội dung, tuyệt đối không dùng fixed height gây cắt form.
+  - Form đặt gần chân hero trong document flow (`margin-top: auto`), luôn luôn truy cập được trên mọi độ phân giải.
+- **Phân bổ không gian Desktop**:
+  - Mạn trái (35–40%) dành riêng cho chữ: tiêu đề, mô tả, tabs xe đặt trực tiếp trên nền cream.
+  - Lớp gradient cream nhẹ (`danava-go-hero-gradient`, 0% đến 52%) đảm bảo chữ Navy `#102744` tương phản cao và sắc nét mà không che mờ cảnh 3D ở giữa và bên phải.
+  - Cảnh 3D mở rộng toàn chiều ngang: Cầu Rồng ở bên trái, rặng đồi ở giữa, xe khách đỗ tiền cảnh ở $t = 0.54$, Cố đô Huế ở mạn phải và dãy núi xa nối tiếp không bị cắt thành sa bàn nhỏ.
+- **Đáp ứng Di động (Mobile Flow)**:
+  - Cấu trúc luồng tài liệu tự nhiên: Chữ (Text) → Tabs chọn xe → Vùng scene riêng (`height: 290px`) → Form tìm chuyến.
+  - Không ép mobile thành một màn hình cố định, không co thu nhỏ nguyên desktop.
+- **Nghiệm thu**:
+  - `npx oxlint`: 0 errors.
+  - `npm run build`: hoàn tất thành công.
+  - Kiểm thử Playwright tại 1440×900, 1280×800, 390px:
+    - Không tràn ngang (`horizontal overflow: false` trên cả 3 viewports).
+    - Headline không đè landmark/xe.
+    - Form tìm chuyến không bị cắt và hoạt động trơn tru sang kết quả tìm kiếm.
+

@@ -67,7 +67,7 @@ export const ROAD_CONFIG = {
   // Đoạn xe tiến vào và điểm dừng đỗ chuẩn
   vehicleKeyframes: {
     entryT: 0.0,              // Xe xuất phát ở đầu tuyến (t = 0.0 tại Đà Nẵng)
-    stopT: 0.52,              // Điểm dừng xe tiền cảnh chuẩn (t = 0.52 đỗ chếch 3/4 đón mắt nhìn)
+    stopT: 0.54,              // Điểm dừng xe tiền cảnh chuẩn (t = 0.54 đỗ chếch 3/4 đón mắt nhìn)
   },
 } as const;
 

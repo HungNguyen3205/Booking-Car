@@ -1,102 +1,157 @@
 /* DANAVA GO — Full-Width Hero Stage & Editorial Design System */
+
 .danava-go-hero {
   position: relative;
   width: 100%;
   background-color: #F7F4EC;
   color: #102744;
   overflow: hidden;
-  min-height: 680px;
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 1024px) {
   .danava-go-hero {
-    min-height: 740px;
+    min-height: clamp(680px, 86svh, 860px);
   }
 }
 
-@media (min-width: 1440px) {
-  .danava-go-hero {
-    min-height: 780px;
-  }
-}
-
-/* Full-width 3D Canvas Stage Background Layer */
-.danava-go-hero-canvas-bg {
+/* 1. Lớp Gradient Cream bảo vệ độ tương phản chữ phía trái trên Desktop (0-60%) */
+.danava-go-hero-gradient {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
+  background: linear-gradient(
+    90deg,
+    rgba(247, 244, 236, 0.96) 0%,
+    rgba(247, 244, 236, 0.92) 28%,
+    rgba(247, 244, 236, 0.45) 38%,
+    rgba(247, 244, 236, 0.08) 46%,
+    rgba(247, 244, 236, 0) 52%
+  );
+}
+
+@media (max-width: 1023px) {
+  .danava-go-hero-gradient {
+    display: none;
+  }
+}
+
+/* 2. Sân khấu 3D Canvas
+   - Desktop: Lớp nền tuyệt đối inset:0 toàn chiều rộng trình duyệt
+   - Mobile: Vùng scene riêng nằm giữa tabs và form trong document flow
+*/
+.danava-go-hero-canvas-bg {
+  pointer-events: none;
   overflow: hidden;
 }
 
-.danava-go-hero-canvas-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 75% 55%, transparent 40%, rgba(247, 244, 236, 0.45) 85%);
+@media (min-width: 1024px) {
+  .danava-go-hero-canvas-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
 }
 
-/* Editorial & UI Shell floating above 3D scene */
+@media (max-width: 1023px) {
+  .danava-go-hero-canvas-bg {
+    order: 2;
+    position: relative;
+    width: 100%;
+    height: 290px;
+    z-index: 5;
+    margin: 6px 0 12px;
+  }
+}
+
+/* 3. Lớp UI Shell: Chứa chữ, tabs và form trong container có max-width */
 .go-shell {
   position: relative;
   z-index: 10;
+  width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 24px 24px 28px;
-  min-height: inherit;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
   pointer-events: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .go-shell {
-    padding: 32px 36px 32px;
+    padding: 32px 36px 28px;
+    min-height: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
   }
 }
 
-@media (min-width: 1280px) {
+@media (max-width: 1023px) {
   .go-shell {
-    padding: 36px 48px 36px;
+    display: contents;
   }
 }
 
-/* Left Editorial Copy Card */
+/* Hàng trên desktop: Cột chữ trái (35-40%) và Badge ngữ cảnh bên phải */
+.go-hero-top-row {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  pointer-events: auto;
+}
+
+@media (max-width: 1023px) {
+  .go-hero-top-row {
+    display: contents;
+  }
+}
+
+/* Vùng chữ thương hiệu & tabs chọn xe:
+   - Tuyệt đối không đóng khung card, không viền, không bo góc hộp
+   - Dành khoảng 35-40% bề ngang trên Desktop
+*/
 .go-copy {
   pointer-events: auto;
   position: relative;
   z-index: 15;
-  max-width: 540px;
-  padding: 28px 32px;
-  border-radius: 24px;
-  background: rgba(247, 244, 236, 0.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(229, 227, 220, 0.85);
-  box-shadow: 0 12px 36px rgba(16, 39, 68, 0.06);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
-@media (max-width: 767px) {
+@media (min-width: 1024px) {
   .go-copy {
-    padding: 20px 20px;
-    border-radius: 20px;
-    max-width: 100%;
-    background: rgba(247, 244, 236, 0.94);
+    width: 38%;
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .go-copy {
+    order: 1;
+    width: 100%;
+    padding: 24px 20px 0;
   }
 }
 
 .go-title {
   font-family: var(--font-serif, 'Noto Serif', serif);
-  font-size: clamp(34px, 3.4vw, 54px);
+  font-size: clamp(32px, 3.2vw, 52px);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.04em;
   color: #102744;
-  margin: 0 0 16px;
+  margin: 0 0 14px;
 }
 
 .go-title-experience {
@@ -109,14 +164,38 @@
   outline-offset: 3px;
 }
 
-/* Search Dock across bottom */
+/* Cột ngữ cảnh tuyến đường & debug controls phía bên phải */
+.go-hero-context-col {
+  pointer-events: auto;
+}
+
+@media (max-width: 1023px) {
+  .go-hero-context-col {
+    display: none;
+  }
+}
+
+/* Form tìm chuyến: Đặt gần chân hero trong document flow, luôn truy cập được */
 .go-search-dock {
   pointer-events: auto;
   position: relative;
   z-index: 30;
   width: 100%;
-  margin-top: auto;
-  padding-top: 20px;
+}
+
+@media (min-width: 1024px) {
+  .go-search-dock {
+    margin-top: auto;
+    padding-top: 20px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .go-search-dock {
+    order: 3;
+    padding: 0 16px 24px;
+    margin-top: 0;
+  }
 }
 
 /* 3D Destination Pins & Labels */

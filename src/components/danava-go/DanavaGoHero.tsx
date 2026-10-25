@@ -183,9 +183,12 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
       className="danava-go-hero w-full bg-[#F7F4EC] text-[#102744] overflow-hidden relative"
       aria-label="DANAVA GO — Vé mở ra hành trình"
     >
-      {/* 1. TOÀN CHIỀU RỘNG: SÂN KHẤU 3D BACKGROUND (FULL-WIDTH 3D SCENE STAGE) */}
+      {/* 1. LỚP GRADIENT CREAM BẢO VỆ ĐỘ TƯƠNG PHẢN CHỮ PHÍA TRÁI (DESKTOP) */}
+      <div className="danava-go-hero-gradient" aria-hidden="true" />
+
+      {/* 2. SÂN KHẤU 3D BACKGROUND (Desktop: Absolute Inset-0 Full-Width; Mobile: Vùng Scene Riêng) */}
       <div
-        className="danava-go-hero-canvas-bg absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-hidden"
+        className="danava-go-hero-canvas-bg"
         aria-hidden="true"
         data-testid="danava-go-stage-scaffold"
       >
@@ -218,10 +221,10 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
         </Suspense>
       </div>
 
-      {/* 2. LỚP GIAO DIỆN CHÍNH (EDITORIAL UI & SEARCH DOCK FLOATING ABOVE 3D SCENE) */}
-      <div className="go-shell relative z-10 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pt-6 sm:pt-8 pb-4 flex flex-col justify-between pointer-events-none">
-        {/* HÀNG TRÊN: TIÊU ĐỀ THƯƠNG HIỆU & CHỌN XE (TRÁI) + THẺ ĐỊA DANH / DEBUG CONTROLS (PHẢI) */}
-        <div className="flex flex-col lg:flex-row items-start justify-between gap-6 pointer-events-auto">
+      {/* 3. LỚP GIAO DIỆN CHÍNH (EDITORIAL UI & SEARCH DOCK TRONG MAX-WIDTH CONTAINER) */}
+      <div className="go-shell">
+        {/* HÀNG TRÊN: TEXT & TABS (TRÁI 35-40%) + NGỮ CẢNH TUYẾN / DEBUG CONTROLS (PHẢI) */}
+        <div className="go-hero-top-row">
           {/* EDITORIAL CONTENT (LEFT) */}
           <motion.div
             className="go-copy"
@@ -343,7 +346,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
           </motion.div>
 
           {/* RIGHT CONTEXT / ROUTE BADGE & DEBUG OVERLAY */}
-          <div className="flex flex-col items-end gap-2.5">
+          <div className="go-hero-context-col flex flex-col items-end gap-2.5 pointer-events-auto">
             {/* Minimal frosted route context badge */}
             <div className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#FFFDF8]/85 backdrop-blur-md border border-[#E5E3DC]/80 shadow-[0_4px_16px_rgba(16,39,68,0.06)] text-xs font-semibold text-[#102744]">
               <span className="w-2 h-2 rounded-full bg-[#0097A7] animate-pulse" />

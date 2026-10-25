@@ -18,12 +18,12 @@ export const DANAVA_3D_CONFIG = {
 
   // Three-quarter camera viewing perspective calibrated for full-width cinematic hero
   camera: {
-    fov: 35,
+    fov: 34,
     near: 0.1,
     far: 80,
     // [x, y, z] looking forward-downward with focus on foreground vehicle on the right
-    position: [0.25, 3.3, 8.4] as [number, number, number],
-    target: [0.35, 0.40, 0] as [number, number, number],
+    position: [0.35, 3.2, 8.2] as [number, number, number],
+    target: [0.45, 0.40, 0] as [number, number, number],
   },
 
   // Unified lighting system (soft, consistent directional sun + fill)

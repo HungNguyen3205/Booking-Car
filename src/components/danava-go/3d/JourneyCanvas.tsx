@@ -265,9 +265,9 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
   const { camera, colors } = DANAVA_3D_CONFIG;
 
   // Requirement 10: Adaptive mobile camera framing
-  const activeFov = isMobileScreen ? 42 : camera.fov;
+  const activeFov = isMobileScreen ? 38 : camera.fov;
   const activePosition: [number, number, number] = isMobileScreen
-    ? [0, 5.2, 10.4]
+    ? [0.35, 3.8, 9.2]
     : camera.position;
 
   // Requirement 6: Device-calibrated DPR (max 1.5 on mobile to avoid GPU throttling, max 2 on desktop)

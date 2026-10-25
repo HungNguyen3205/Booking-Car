@@ -95,6 +95,7 @@ export const CentralPassTransition: React.FC<CentralPassTransitionProps> = ({
       <mesh
         position={[0, 0.0005, -0.65]}
         rotation={[-Math.PI / 2, 0, 0]}
+        visible={false}
         receiveShadow={receiveShadow}
       >
         <planeGeometry args={[1.6, 0.55]} />
