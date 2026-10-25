@@ -5,10 +5,7 @@ import type { SearchParams, VehicleCategory } from '../../types';
 import { Armchair, BedDouble, Crown, QrCode, Sparkles, AlertCircle } from 'lucide-react';
 import { WebGLFallback } from './3d/WebGLFallback';
 
-// Lazy-load isolated 3D Three.js Canvas to keep booking/checkout bundles lightweight
-const JourneyCanvas = React.lazy(() =>
-  import('./3d/JourneyCanvas').then((m) => ({ default: m.JourneyCanvas }))
-);
+import { JourneyCanvas } from './3d/JourneyCanvas';
 
 import type { JourneyTimelineState } from './3d/journeyTimeline';
 import './danava-go-hero.css';

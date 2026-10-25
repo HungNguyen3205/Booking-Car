@@ -540,4 +540,42 @@
 - **Bước tiếp theo & Điều kiện nghiệm thu**:
   - Chi tiết kế hoạch bàn giao và nghiệm thu Bước 2 xem tại tài liệu [`docs/danava-go-handoff.md`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/danava-go-handoff.md).
 
+### Bước 2: Nâng cấp Toàn diện Asset Xe Coach Chân thực & Môi trường Phản xạ PBR IBL — 25/10/2026
+- **Branch & Phạm vi**:
+  - Nhánh: `feature/danava-go`
+  - Giữ nguyên toàn bộ thiết kế layout Hero đã chốt ở Bước 1, không tạo lại dự án, không phá vỡ form tìm kiếm và luồng booking hạ nguồn.
+- **Nâng cấp 7 Đặc tính Ngoại thất Xe Sleeper Coach (`SleeperCoach.tsx` & `coachConfig.ts`)**:
+  1. *Vòm mui lướt gió khí động học (Roof Brow)*: Loại bỏ khối hộp điều hòa màu trắng rời gây thô cứng; thay bằng vòm mui cong khí động học liền khối với 2 gờ gân lướt gió thể thao cùng màu sơn Midnight Navy bóng gương của thân vỏ.
+  2. *Trụ A & Nẹp chữ Z mạ bạc (Hockey stick line)*: Viền chrome bóng loáng chạy dọc trụ A và eo xe.
+  3. *Kính chắn gió kép vát nghiêng ~32° & Cặp cần gạt nước đôi*: Bảng LED ma trận lộ trình `ĐÀ NẴNG - HUẾ` phát sáng dịu và cặp gạt nước đen đôi chân kính.
+  4. *Gương chiếu hậu khí động học cổ thiên nga (Swan-neck aero mirrors)*: Vươn dài từ đỉnh mui uốn lượn xuống hai bên thân xe, ốp gương sơn bóng màu thân xe, mặt gương mạ chrome.
+  5. *Mặt ca-lăng nụ cười mạ chrome & Cụm đèn pha Jewel LED Projector*: Huy hiệu logo tròn DANAVA mạ vàng ở trung tâm, đèn pha kép xenon, dải mí LED DRL xanh băng (`#00E5FF`) vuốt xếch sang hai bên eo xe, hốc đèn sương mù vàng hổ phách.
+  6. *Decal tem sóng chữ S kép & Typography thương hiệu*:
+     - CanvasTexture siêu nét 2048x1024, khắc phục triệt để lỗi UV đảo ngược, đảm bảo đọc xuôi từ trái sang phải 100% trên màn hình.
+     - Chữ `DANAVA GO` in hoa to đậm 150px màu trắng tinh viền bóng nổi và chữ phụ `EXECUTIVE TOURS` màu Cyan Teal 64px, `ULTRA LUXURY COACH` 30px đặt kiêu hãnh trên nền sơn Navy thân xe.
+     - Dải sóng chữ S kép: dải bạc phay sáng, dải Teal thương hiệu đậm, dải Cyan Teal sáng, chỉ viền vàng Champagne, dải ốp bạc ôm vòm bánh sau, rãnh cốp hành lý và nan khe tản nhiệt động cơ đuôi xe.
+  7. *Cụm bánh xe mâm đúc hợp kim 10 lỗ sâu lòng*: 10 lỗ thoát nhiệt sâu lòng, 10 ốc lazăng chrome, nắp chụp tâm chrome, lốp gai bám đường, đĩa phanh thép và cùm phanh Teal.
+- **Môi trường IBL PMREM Studio Horizon & Phản xạ Vật liệu**:
+  - Tự động sinh equirectangular gradient canvas và nạp vào `THREE.PMREMGenerator` trong `Environment.tsx`.
+  - Gắn bằng cú pháp R3F khai báo chuẩn: `<primitive object={envMap} attach="environment" />`, tuân thủ React Compiler immutability.
+  - Kính sườn xe nâng cấp thành kính khói đen ngọc bích bóng gương phẳng lì (`windowTransmission: 0.0`, `windowRoughness: 0.02`, `clearcoat: 1.0`), triệt tiêu các đố cửa sổ lồi thô, tạo hiệu ứng kính panoramic liền lạc.
+- **Cân chỉnh Góc vàng 3/4 (Golden Beauty Angle)**:
+  - Tinh chỉnh điểm đỗ `ROAD_CONTROL_POINTS[3]` thành `[1.75, 0.020, 1.85]` và góc yaw đỗ tĩnh $\approx 42^\circ - 44^\circ$.
+  - Phô diễn đồng thời trọn vẹn cả mặt tiền xe (ca-lăng cười chrome, logo vàng, đèn pha LED kép, dải DRL xanh băng) và sườn xe (chữ DANAVA GO, EXECUTIVE TOURS, dải sóng teal/bạc, mâm đúc 10 lỗ).
+  - Thêm bóng ambient gầm xe tiếp xúc mặt đường (`Ground Contact AO Shadow`) tạo cảm giác xe bám vững chãi trên đường.
+- **Tối ưu Mount Module 3D**:
+  - Nạp trực tiếp `import { JourneyCanvas } from './3d/JourneyCanvas'` trong `DanavaGoHero.tsx` giúp Three.js scene mount ngay lập tức không bị giật lag hay rơi vào Fallback.
+- **Kiểm định & Nghiệm thu Toàn diện**:
+  - `npx oxlint src/`: 0 warnings, 0 errors trên 66 files.
+  - `npm run build`: pass 100% trong 1.12s.
+  - Playwright Edge headless test (`scripts/test_step2.js`):
+    - 1440x900: `hasOverflow: false`
+    - 1280x800: `hasOverflow: false`
+    - 390x844: `hasOverflow: false`
+    - Chuyển đổi tab xe (Limousine, Cabin VIP, Giường nằm): hoạt động trơn tru, 0 lỗi console (`hasNoErrors: true`).
+    - Luồng booking hạ nguồn: 100% nguyên vẹn (`hasResults: true`).
+  - Ảnh nghiệm thu: [`docs/screenshots/step2_danava_coach_1440x900.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/step2_danava_coach_1440x900.png), [`docs/screenshots/coach_side_closeup.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/coach_side_closeup.png), [`docs/screenshots/step2_danava_coach_1280x800.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/step2_danava_coach_1280x800.png), [`docs/screenshots/step2_danava_coach_390px.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/step2_danava_coach_390px.png).
+- **Minh bạch Kỹ thuật**:
+  - Toàn bộ metadata `coachConfig.ts` duy trì minh bạch `isPlaceholderPrototype: true`. Đây là bản procedural PBR rig hoàn thiện cao cấp nhất có thể trước khi thay bằng file mô hình 3D nhị phân (`.glb`) bên ngoài.
+
 

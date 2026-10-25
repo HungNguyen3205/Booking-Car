@@ -27,9 +27,9 @@ export const ROAD_CONTROL_POINTS: [number, number, number][] = [
   [-3.25, 0.020, 1.25], // Đà Nẵng (Origin mạn trái)
   [-1.25, 0.020, 0.82],
   [0.35, 0.020, 1.10],  // Đèo trung tâm
-  [1.65, 0.020, 1.02],  // Tiền cảnh đỗ xe VIP (Foreground right)
-  [2.75, 0.020, 0.45],
-  [2.65, 0.020, -0.45],
+  [1.75, 0.020, 1.85],  // Tiền cảnh đỗ xe VIP (Foreground 3/4 golden beauty angle)
+  [2.85, 0.020, 0.70],
+  [2.70, 0.020, -0.45],
   [3.05, 0.020, -0.95], // Huế (Destination mạn phải)
 ];
 
@@ -67,7 +67,7 @@ export const ROAD_CONFIG = {
   // Đoạn xe tiến vào và điểm dừng đỗ chuẩn
   vehicleKeyframes: {
     entryT: 0.0,              // Xe xuất phát ở đầu tuyến (t = 0.0 tại Đà Nẵng)
-    stopT: 0.54,              // Điểm dừng xe tiền cảnh chuẩn (t = 0.54 đỗ chếch 3/4 đón mắt nhìn)
+    stopT: 0.52,              // Điểm dừng xe tiền cảnh chuẩn 3/4 golden angle
   },
 } as const;
 
