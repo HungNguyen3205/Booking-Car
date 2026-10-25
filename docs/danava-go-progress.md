@@ -404,3 +404,64 @@
     2. *Bụi cát gầm xe*: Xe khách lướt êm ái với bánh quay và bóng gầm xe tiếp đất khít khao; chưa có hiệu ứng hạt bụi (particle system) bay ra từ lốp xe khi phanh dừng lại.
     3. *Gợn sóng nước*: Nước sông Hàn và hào Kim Thủy có độ phản quang và màu sắc chuẩn mực, nhưng là mặt phẳng tĩnh bắt sáng PBR, chưa có shader sóng nước lăn tăn bằng custom vertex displacement.
 
+### Bước 9: Đa dạng hóa dòng xe & Hiệu ứng chuyển đổi xe (Vehicle Stage)
+- Bổ sung 3 dòng xe: Giường nằm (Sleeper Coach), Limousine VIP (Limousine Van), Cabin Cung Điện (Cabin VIP).
+- Hiệu ứng chuyển đổi xe mượt mà 0.6s với cơ chế Latest-Choice-Wins.
+- Bánh xe quay đúng tỷ lệ vật lý theo chu vi lăn.
+
+### Bước 10: Chuẩn hóa kiến trúc địa danh & Bổ sung Nha Trang
+- Chuẩn hóa Destination Registry với 3 cấp độ danh tính (searchLocationId, administrativeArea, sceneLandmarkId).
+- Bổ sung Tháp Trầm Hương & Vịnh Nha Trang (procedural 3D).
+- Chiếu neo nhãn động 3D sang 2D SVG overlay.
+
+### Bước 11: Mở rộng TP. Hồ Chí Minh
+- Bổ sung Landmark 81 & Sông Sài Gòn với bố cục cân đối và an toàn vùng chữ.
+- Kiểm tra chuyển cảnh từ các điểm xuất phát khác nhau.
+
+### Bước 12: Đồng bộ chuyển tuyến, đảo chiều & Vùng an toàn
+- Đồng bộ chọn tuyến trên Form với sa bàn 3D qua `useRouteTransitionController`.
+- Hỗ trợ đảo chiều tức thì (⇄) mà không gây chồng chéo tên gọi.
+- Kỹ thuật Latest-Choice-Wins ngăn ngừa hiện tượng lag khi bấm nhanh.
+
+### Bước 13: Hoàn thiện nhận diện thương hiệu DANAVA GO quanh Scene
+- Đồng bộ thương hiệu: DANAVA GO, Navy `#102744`, Teal `#0097A7`, Cream `#F7F4EC`.
+- Thiết kế Headline và mô tả chuẩn mực, không orphan hay tràn cột.
+- Bổ sung các section: Tuyến đường nổi bật, Trải nghiệm xe, Các bước đặt vé, Quyền lợi, FAQ.
+
+### Bước 14: Chuẩn hóa trang chọn chuyến
+- Giữ nguyên thông số tìm kiếm (`from`, `to`, `date`, `passengers`).
+- Bộ lọc và sắp xếp theo giá, giờ, nhà xe hoạt động thực tế.
+- Xử lý trạng thái tải, danh sách rỗng và thử lại.
+
+### Bước 15: Hoàn thiện chọn ghế & Sơ đồ xe
+- Hiển thị đúng cấu hình tầng (1 tầng cho limousine, 2 tầng cho giường nằm/cabin).
+- Chú thích ghế trực quan với biểu tượng tiếp cận (`Check`, `Lock`, `Ban`).
+- Giới hạn số ghế theo số khách đặt, tính tổng tiền chính xác.
+- Cách ly ghế khi đổi sang chuyến mới, không mang ghế cũ sang.
+
+### Bước 16: Chuẩn hóa form hành khách & Thanh toán Sandbox
+- Kiểm tra dữ liệu tiếng Việt (Họ tên $\ge 2$ từ, SĐT 10 số VN, RFC Email).
+- Bảo toàn bản nháp thông tin khi nhấn quay lại.
+- Bảng điều khiển kiểm thử Sandbox với 4 trạng thái giao dịch (chờ, thành công, lỗi, hủy).
+- Chống gửi lặp và bảo vệ quyền riêng tư: 100% không lưu số thẻ/CVV vào `localStorage`.
+
+### Bước 17: Đồng bộ xuất vé, tra cứu & Tài khoản
+- Vé điện tử đầy đủ thông tin: mã vé, tuyến, giờ, loại xe, ghế, điểm đón/trả, trạng thái thanh toán.
+- Mã QR mang đường dẫn xác thực tra cứu kèm cảnh báo demo minh bạch.
+- Bố cục in chuyên nghiệp `@media print` A4.
+- Tra cứu vé có loading, không tìm thấy, và tuyệt đối không tạo vé giả khi mã không tồn tại.
+- Tích hợp AuthModal quản lý phiên làm việc client demo và hiển thị cấp bậc hội viên.
+
+### Bước 18: Tối ưu toàn diện Frontend & Fallbacks
+- Giảm 92.5% kích thước chunk `JourneyCanvas.js` (từ 961 kB xuống 71.8 kB).
+- Lazy loading các địa danh và xe không dùng ban đầu.
+- Tự động dừng hoạt ảnh (`frameloop="never"`) khi tab ẩn hoặc cuộn khỏi viewport.
+- Điều chỉnh DPR thích ứng (tối đa 1.5 trên mobile) và camera mobile chuyên biệt (16:11, FOV 42).
+- Poster fallback 2D cao cấp khi WebGL không khả dụng hoặc mất Context.
+
+### Bước 19: Nghiệm thu toàn diện & Chuẩn bị đưa vào Main
+- Toàn bộ 18 bước hoàn thành và được kiểm thử nghiệm thu thành công.
+- Video ghi hình phiên duyệt đầy đủ được lưu trữ trong artifacts.
+- Tạo tài liệu kỹ thuật hoàn chỉnh tại `README.md`.
+- Sẵn sàng tích hợp Pull Request vào nhánh `main`.
+
