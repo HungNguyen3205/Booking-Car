@@ -18,7 +18,8 @@ import { TripResultsView } from './components/search/TripResultsView';
 import type { Booking, BookingStep, PassengerInfo, SearchParams, Seat, Trip } from './types';
 import { bookingService } from './services/bookingService';
 import { VEHICLE_MODELS } from './data/mockData';
-import { preloadCriticalHeroAssets, sceneService } from './data/sceneData';
+import { preloadCriticalHeroAssets } from './data/sceneData';
+import { preloadJourney } from './components/danava-go/journeyStageConfig';
 import { getVietnamTodayDateStr, isValidBookingDate } from './utils/dateUtils';
 
 // Code-split dynamic booking steps and ticket lookup to optimize initial bundle
@@ -123,10 +124,9 @@ export const App: React.FC = () => {
       }
     }, 600);
 
-    Promise.all([
-      preloadCriticalHeroAssets(from, to, defaultVehicle),
-      sceneService.preloadAsset('/assets/images/scenes/journey-pop-up.webp'),
-    ])
+    (new URLSearchParams(window.location.search).get('hero') === 'legacy'
+      ? preloadCriticalHeroAssets(from, to, defaultVehicle)
+      : preloadJourney(from, to))
       .then(() => {
         if (isMounted) {
           clearTimeout(safetyTimer);
@@ -319,6 +319,7 @@ export const App: React.FC = () => {
                   />
                 ) : (
                   <DanavaGoHero
+                    introReady={heroIntroReady}
                     initialParams={searchParams}
                     onSearch={handleSearch}
                     isSearching={false}

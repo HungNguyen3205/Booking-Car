@@ -27,3 +27,6 @@ dist-ssr
 .agents/
 .aider-desk/
 skills-lock.json
+
+# Local browser verification output
+test-results/

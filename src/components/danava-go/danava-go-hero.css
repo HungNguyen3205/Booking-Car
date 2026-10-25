@@ -1,243 +1,63 @@
-/* DANAVA GO — Full-Width Hero Stage & Editorial Design System */
-
-.danava-go-hero {
-  position: relative;
-  width: 100%;
-  background-color: #F7F4EC;
-  color: #102744;
-  overflow: hidden;
-  min-height: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-@media (min-width: 1024px) {
-  .danava-go-hero {
-    min-height: clamp(680px, 86svh, 860px);
-  }
-}
-
-/* 1. Lớp Gradient Cream bảo vệ độ tương phản chữ phía trái trên Desktop (thu hẹp vùng chữ, giữ trong trẻo Cầu Rồng & Đà Nẵng) */
-.danava-go-hero-gradient {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 2;
-  background: linear-gradient(
-    90deg,
-    rgba(247, 244, 236, 0.96) 0%,
-    rgba(247, 244, 236, 0.88) 16%,
-    rgba(247, 244, 236, 0.30) 25%,
-    rgba(247, 244, 236, 0) 32%
-  );
-}
-
+/* One canvas and one persistent road, shared by desktop and mobile. */
+.danava-go-hero { position: relative; background: #f7f4ec; color: #102744; overflow: visible; isolation: isolate; }
+.go-shell { width: 100%; max-width: 1600px; margin: auto; padding: 12px 40px 36px; display: grid; grid-template-columns: minmax(0, .36fr) minmax(0, .64fr); align-items: center; }
+.go-copy { min-width: 0; position: relative; z-index: 4; padding: 30px 0; }
+.go-eyebrow { display: flex; align-items: center; gap: 8px; color: #008595; font-size: 10px; line-height: 1.8; letter-spacing: .15em; font-weight: 700; margin-bottom: 24px; }
+.go-eyebrow svg { flex-shrink: 0; }
+.go-title { font-family: var(--font-serif, 'Noto Serif', serif); font-size: clamp(40px, 4vw, 62px); font-weight: 700; line-height: 1.17; letter-spacing: -.045em; margin: 0 0 24px; overflow-wrap: normal; }
+.go-title > span { display: block; }
+.go-title-experience { color: #0097a7; }
+.go-copy > p { font-size: 15px; line-height: 1.9; color: #596775; margin-bottom: 28px; }
+.go-copy [role=group] { gap: 8px; }
+.go-copy [role=group] button { padding-inline: 14px; font-size: 12px; }
+.go-copy [role=group] button:focus-visible { outline: 2px solid #0097a7; outline-offset: 4px; }
+.go-journey-note { display: flex; align-items: center; gap: 9px; color: #7c867d; font-size: 11px; margin-top: 26px; }
+.go-journey-note > span { width: 22px; height: 1px; background: #afbaab; }
+.go-journey-stage { position: relative; min-width: 0; width: 108%; margin-left: -8%; aspect-ratio: 1536 / 1024; align-self: center; pointer-events: none; }
+.journey-scenery, .journey-vehicle-layer, .journey-road, .journey-route-line, .journey-terrain { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.journey-atmosphere { position: absolute; inset: 12% 0 8%; background: radial-gradient(ellipse at 48% 50%, #e0e9db66, transparent 68%); }
+.journey-road { z-index: 2; }
+.journey-route-line { z-index: 3; }
+.journey-vehicle-layer { z-index: 4; overflow: visible; }
+.journey-landmark { position: absolute; z-index: 1; top: 12%; height: 43%; }
+.journey-landmark-origin { left: 0; width: 54%; }
+.journey-landmark-destination { right: 0; width: 40%; top: 21%; }
+.journey-landmark-content { position: absolute; inset: 0; }
+.journey-landmark-art { width: 100%; height: 100%; display: block; overflow: hidden; }
+.journey-landmark-label { position: absolute; top: -4%; left: 50%; transform: translate(-50%, -100%); text-align: center; min-width: 140px; max-width: 230px; }
+.journey-landmark-label > span { display: block; font-size: 9px; letter-spacing: .18em; color: #008595; font-weight: 600; margin-bottom: 3px; }
+.journey-landmark-destination .journey-landmark-label > span { color: #9d783f; }
+.journey-landmark-label strong { display: block; font-family: var(--font-serif, 'Noto Serif', serif); font-size: clamp(16px, 1.5vw, 23px); line-height: 1.4; font-weight: 600; }
+.journey-landmark-label small { display: block; font-size: 10px; line-height: 1.6; color: #728077; margin-top: 3px; }
+.go-search-dock { position: relative; z-index: 20; grid-column: 1 / -1; margin-top: -8px; }
+/* Preserve labels used by the optional legacy 3D/debug route. */
+.go-label { position: absolute; transform: translate(-50%, -100%); opacity: 0; pointer-events: none; z-index: 25; }
+.go-label-content { padding: 7px 13px; border: 1px solid #e6e3d9; border-radius: 12px; background: #fffdf8f0; text-align: center; }
+.go-label-content strong { display: block; font-size: 13px; color: #102744; }
+.go-label-content small { font-size: 10px; color: #687988; }
+.go-label-pin { width: 7px; height: 7px; margin: 7px auto 0; background: #0097a7; border-radius: 50%; }
+@media (min-width: 1600px) { .go-shell { padding-top: 30px; } }
+@media (min-width: 1024px) and (max-width: 1280px) { .go-shell { padding-inline: 30px; } .go-title { font-size: 45px; } .go-copy [role=group] button { padding-inline: 10px; font-size: 11px; gap: 6px; } .go-eyebrow { font-size: 9px; } }
 @media (max-width: 1023px) {
-  .danava-go-hero-gradient {
-    display: none;
-  }
+  .go-shell { padding: 28px 20px 28px; grid-template-columns: minmax(0, 1fr); }
+  .go-copy { padding: 0; }
+  .go-eyebrow { font-size: 9px; margin-bottom: 16px; letter-spacing: .1em; }
+  .go-title { font-size: clamp(36px, 8vw, 52px); margin-bottom: 16px; }
+  .go-title > span:nth-child(2), .go-title > span:nth-child(3) { display: inline; }
+  .go-title > span:nth-child(2)::after { content: ' '; }
+  .go-copy > p { font-size: 14px; margin-bottom: 20px; }
+  .go-copy > p br { display: none; }
+  .go-journey-note { display: none; }
+  .go-journey-stage { width: 100%; margin: 34px 0 4px; }
+  .journey-landmark-label { min-width: 105px; max-width: 160px; }
+  .journey-landmark-label strong { font-size: 16px; }
+  .journey-landmark-label small { font-size: 8px; }
+  .journey-landmark-label > span { font-size: 7px; }
+  .go-search-dock { grid-column: 1; margin-top: 0; }
 }
+@media (prefers-reduced-motion: reduce) { .danava-go-hero *, .danava-go-hero *::before { animation-duration: 0s !important; } }
 
-/* 2. Sân khấu 3D Canvas
-   - Desktop: Lớp nền tuyệt đối inset:0 toàn chiều rộng trình duyệt
-   - Mobile: Vùng scene riêng nằm giữa tabs và form trong document flow
-*/
-.danava-go-hero-canvas-bg {
-  pointer-events: none;
-  overflow: hidden;
-}
+@media (max-width: 480px) { .go-copy [role=group] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; } .go-copy [role=group] button { padding-inline: 6px; font-size: 10px; justify-content: center; gap: 5px; } .go-copy [role=group] button svg { width: 14px; } }
 
-@media (min-width: 1024px) {
-  .danava-go-hero-canvas-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-  }
-}
-
-@media (max-width: 1023px) {
-  .danava-go-hero-canvas-bg {
-    order: 2;
-    position: relative;
-    width: 100%;
-    height: 290px;
-    z-index: 5;
-    margin: 6px 0 12px;
-  }
-}
-
-/* 3. Lớp UI Shell: Chứa chữ, tabs và form trong container có max-width */
-.go-shell {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
-  pointer-events: none;
-}
-
-@media (min-width: 1024px) {
-  .go-shell {
-    padding: 32px 36px 28px;
-    min-height: inherit;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    flex: 1;
-  }
-}
-
-@media (max-width: 1023px) {
-  .go-shell {
-    display: contents;
-  }
-}
-
-/* Hàng trên desktop: Cột chữ trái (35-40%) và Badge ngữ cảnh bên phải */
-.go-hero-top-row {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  pointer-events: auto;
-}
-
-@media (max-width: 1023px) {
-  .go-hero-top-row {
-    display: contents;
-  }
-}
-
-/* Vùng chữ thương hiệu & tabs chọn xe:
-   - Tuyệt đối không đóng khung card, không viền, không bo góc hộp
-   - Dành khoảng 35-40% bề ngang trên Desktop
-*/
-.go-copy {
-  pointer-events: auto;
-  position: relative;
-  z-index: 15;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-}
-
-@media (min-width: 1024px) {
-  .go-copy {
-    width: 38%;
-    max-width: 520px;
-  }
-}
-
-@media (max-width: 1023px) {
-  .go-copy {
-    order: 1;
-    width: 100%;
-    padding: 24px 20px 0;
-  }
-}
-
-.go-title {
-  font-family: var(--font-serif, 'Noto Serif', serif);
-  font-size: clamp(32px, 3.2vw, 52px);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.04em;
-  color: #102744;
-  margin: 0 0 14px;
-}
-
-.go-title-experience {
-  color: #0097A7;
-  white-space: nowrap;
-}
-
-.go-copy [role=group] button:focus-visible {
-  outline: 2px solid #0097A7;
-  outline-offset: 3px;
-}
-
-/* Cột ngữ cảnh tuyến đường & debug controls phía bên phải */
-.go-hero-context-col {
-  pointer-events: auto;
-}
-
-@media (max-width: 1023px) {
-  .go-hero-context-col {
-    display: none;
-  }
-}
-
-/* Form tìm chuyến: Đặt gần chân hero trong document flow, luôn truy cập được */
-.go-search-dock {
-  pointer-events: auto;
-  position: relative;
-  z-index: 30;
-  width: 100%;
-}
-
-@media (min-width: 1024px) {
-  .go-search-dock {
-    margin-top: auto;
-    padding-top: 20px;
-  }
-}
-
-@media (max-width: 1023px) {
-  .go-search-dock {
-    order: 3;
-    padding: 0 16px 24px;
-    margin-top: 0;
-  }
-}
-
-/* 3D Destination Pins & Labels */
-.go-label {
-  position: absolute;
-  transform: translate(-50%, -100%);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 25;
-}
-
-.go-label-content {
-  padding: 7px 13px;
-  border: 1px solid #E6E3D9;
-  border-radius: 12px;
-  background: rgba(255, 253, 248, 0.95);
-  box-shadow: 0 6px 20px rgba(16, 39, 68, 0.08);
-  white-space: nowrap;
-  text-align: center;
-}
-
-.go-label-content strong {
-  display: block;
-  font-size: 13px;
-  color: #102744;
-}
-
-.go-label-content small {
-  font-size: 10px;
-  color: #687988;
-}
-
-.go-label-pin {
-  width: 7px;
-  height: 7px;
-  margin: 7px auto 0;
-  background: #0097A7;
-  border: 2px solid white;
-  border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(0, 151, 167, 0.15);
-}
-
-.go-label-arrival .go-label-pin {
-  background: #C58A36;
-  box-shadow: 0 0 0 3px rgba(197, 138, 54, 0.15);
-}
+/* Anchor transforms in canvas coordinates, not the changing bus bounding box. */
+.journey-bus { transform-origin: 0px 0px !important; transform-box: view-box !important; }

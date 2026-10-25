@@ -1,161 +1,74 @@
-import React from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { getHeroRouteConfig } from './heroAssetConfig';
-import { MapPin } from 'lucide-react';
+import { useJourneyReducedMotion } from './useJourneyReducedMotion';
+import React, { useEffect, useId, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { decodeJourneyImage, getJourneyLandmark, JOURNEY_ROAD, type JourneyLandmark } from './journeyStageConfig';
 
-interface LayeredSceneStageProps {
-  fromCity: string;
-  toCity: string;
-  className?: string;
-}
+interface LayeredSceneStageProps { fromCity: string; toCity: string; className?: string }
 
-export const LayeredSceneStage: React.FC<LayeredSceneStageProps> = ({
-  fromCity,
-  toCity,
-  className = '',
-}) => {
-  const shouldReduceMotion = useReducedMotion();
-  const routeConfig = getHeroRouteConfig(fromCity, toCity);
-
+function Landmark({ city, role }: { city: string; role: 'origin' | 'destination' }) {
+  const reduced = useJourneyReducedMotion();
+  const maskId = useId().replace(/:/g, '');
+  const [scene, setScene] = useState<JourneyLandmark>(() => getJourneyLandmark(city));
+  useEffect(() => {
+    let current = true;
+    const target = getJourneyLandmark(city);
+    decodeJourneyImage(target.image).then(() => {
+      if (current) setScene(target);
+    }).catch(() => {
+      // Never keep the previous city's artwork under the new city's name.
+      if (current) setScene({ ...target, image: '', landmark: 'Miền đất mới' });
+    });
+    return () => { current = false; };
+  }, [city]);
+  const [cx, cy, cw, ch] = scene.crop;
   return (
-    <div
-      className={`relative w-full h-full overflow-hidden select-none pointer-events-none ${className}`}
-      aria-hidden="true"
-    >
-      {/* 1. LỚP NỀN: BẦU TRỜI & ÁNH SÁNG KEM ẤM */}
-      <div className="absolute inset-0 bg-[#F7F4EC]" />
-
-      {/* HỌA TIẾT VĂN HÓA ĐÔNG SƠN / TRỐNG ĐỒNG Ở ĐỘ TƯƠNG PHẢN RẤT THẤP (3.5% OPACITY) */}
-      <div
-        className="hidden lg:block absolute left-[-60px] top-[-60px] w-[540px] h-[540px] pointer-events-none opacity-[0.035]"
-        aria-hidden="true"
-      >
-        <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#102744]">
-          <circle cx="200" cy="200" r="190" stroke="currentColor" strokeWidth="2" strokeDasharray="3 3" />
-          <circle cx="200" cy="200" r="165" stroke="currentColor" strokeWidth="1.5" />
-          <circle cx="200" cy="200" r="135" stroke="currentColor" strokeWidth="2" strokeDasharray="6 4" />
-          <circle cx="200" cy="200" r="105" stroke="currentColor" strokeWidth="1" />
-          <circle cx="200" cy="200" r="70" stroke="currentColor" strokeWidth="2" strokeDasharray="2 4" />
-          <circle cx="200" cy="200" r="35" stroke="currentColor" strokeWidth="1.5" />
-          {/* Tia sáng mặt trời trung tâm */}
-          <path d="M200 165 L200 235 M165 200 L235 200 M175 175 L225 225 M175 225 L225 175" stroke="currentColor" strokeWidth="1.5" />
-        </svg>
-      </div>
-
-      {/* 2. CẢNH QUAN SA BÀN HÀNH TRÌNH ĐA TẦNG (LANDMARKS & ROAD ĐỘC LẬP) */}
-      <AnimatePresence>
-        <motion.div
-          key={routeConfig.id}
-          initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0 }}
-          transition={{ duration: shouldReduceMotion ? 0.05 : 0.35, ease: 'easeOut' }}
-          className="absolute inset-0 w-full h-full flex items-center justify-end"
-        >
-          {/* Khung chứa các lớp phong cảnh và đường tiền cảnh trải rộng */}
-          <div className="relative w-full h-full max-w-[1560px] ml-auto overflow-hidden">
-            
-            {/* LỚP 2A: ĐỊA DANH BIỂU TƯỢNG (LANDMARKS LAYER — Cầu Rồng Đà Nẵng, Phố Cổ Hội An, Sông Hoài) */}
-            <div className="absolute inset-0 w-full h-full z-2 pointer-events-none">
-              <img
-                src={routeConfig.landmarksAsset}
-                alt={`${routeConfig.title} — Địa danh`}
-                className={`w-full h-full object-cover lg:object-contain object-right-bottom transition-opacity duration-300 ${
-                  routeConfig.isNeutralFallback ? 'opacity-88' : 'opacity-98'
-                }`}
-                style={{
-                  maskImage:
-                    'linear-gradient(to right, transparent 0%, transparent 10%, rgba(0,0,0,0.5) 20%, rgba(0,0,0,0.95) 30%, black 38%, black 100%)',
-                  WebkitMaskImage:
-                    'linear-gradient(to right, transparent 0%, transparent 10%, rgba(0,0,0,0.5) 20%, rgba(0,0,0,0.95) 30%, black 38%, black 100%)',
-                }}
-              />
-            </div>
-
-            {/* LỚP 2B: MẶT ĐƯỜNG TIỀN CẢNH ĐỘC LẬP (FOREGROUND ROAD LAYER — Mặt đường nhựa, vạch sơn, lan can) */}
-            <div className="absolute inset-0 w-full h-full z-4 pointer-events-none">
-              <img
-                src={routeConfig.roadAsset}
-                alt="Mặt đường tiền cảnh"
-                className="w-full h-full object-cover lg:object-contain object-right-bottom transition-opacity duration-300 opacity-100"
-                style={{
-                  maskImage:
-                    'linear-gradient(to right, transparent 0%, transparent 8%, rgba(0,0,0,0.6) 18%, black 28%, black 100%)',
-                  WebkitMaskImage:
-                    'linear-gradient(to right, transparent 0%, transparent 8%, rgba(0,0,0,0.6) 18%, black 28%, black 100%)',
-                }}
-              />
-            </div>
-
-            {/* Dải sáng phản chiếu ngọc bích êm ái */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#0097A7]/6 via-transparent to-[#D4AF37]/4 mix-blend-soft-light pointer-events-none z-5" />
-
-            {/* LỚP 3: ĐƯỜNG HÀNH TRÌNH THANH MẢNH KẾT NỐI HAI ĐỊA DANH */}
-            {!routeConfig.isNeutralFallback && (
-              <svg
-                className="hidden lg:block absolute inset-0 w-full h-full pointer-events-none z-6"
-                viewBox="0 0 1000 600"
-                preserveAspectRatio="none"
-              >
-                <path
-                  d="M 445 150 Q 620 90 790 120"
-                  fill="none"
-                  stroke="#0097A7"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 6"
-                  strokeOpacity="0.5"
-                />
-              </svg>
-            )}
-
-            {/* LỚP 4: DẤU ĐIỂM ĐẾN VÀ TÊN ĐỊA DANH */}
-            {!routeConfig.isNeutralFallback && (
-              <div className="relative z-8">
-                {/* Điểm khởi hành */}
-                <motion.div
-                  initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15, duration: 0.35 }}
-                  className="absolute pointer-events-auto cursor-default hidden sm:flex flex-col items-center"
-                  style={{
-                    left: routeConfig.originBadge.badgePositionDesktop.left,
-                    top: routeConfig.originBadge.badgePositionDesktop.top,
-                  }}
-                >
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FFFDF8]/90 backdrop-blur-sm border border-[#E5E3DC]/90 shadow-[0_2px_8px_rgba(16,39,68,0.06)] text-[11px] font-semibold text-[#102744]">
-                    <span className="w-2 h-2 rounded-full bg-[#0097A7]" />
-                    <span>{routeConfig.originBadge.city}</span>
-                    <span className="text-[10px] text-[#718096] font-normal">({routeConfig.originBadge.landmark})</span>
-                  </div>
-                  <div className="w-1.5 h-1.5 rotate-45 bg-[#FFFDF8] border-r border-b border-[#E5E3DC]/90 -mt-1" />
-                </motion.div>
-
-                {/* Điểm đến */}
-                <motion.div
-                  initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25, duration: 0.35 }}
-                  className="absolute pointer-events-auto cursor-default hidden sm:flex flex-col items-center"
-                  style={{
-                    left: routeConfig.destinationBadge.badgePositionDesktop.left,
-                    top: routeConfig.destinationBadge.badgePositionDesktop.top,
-                  }}
-                >
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FFFDF8]/90 backdrop-blur-sm border border-[#E5E3DC]/90 shadow-[0_2px_8px_rgba(16,39,68,0.06)] text-[11px] font-semibold text-[#102744]">
-                    <MapPin className="w-3 h-3 text-[#D4AF37]" />
-                    <span>{routeConfig.destinationBadge.city}</span>
-                    <span className="text-[10px] text-[#718096] font-normal">({routeConfig.destinationBadge.landmark})</span>
-                  </div>
-                  <div className="w-1.5 h-1.5 rotate-45 bg-[#FFFDF8] border-r border-b border-[#E5E3DC]/90 -mt-1" />
-                </motion.div>
-              </div>
-            )}
+    <div className={`journey-landmark journey-landmark-${role}`} data-landmark-slot={role} data-city={scene.id}>
+      <AnimatePresence initial={false}>
+        <motion.div className="journey-landmark-content" key={`${scene.id}:${scene.image}`}
+          initial={{ opacity: reduced ? 1 : 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: reduced ? 0 : 0.5 }}>
+          <svg className="journey-landmark-art" viewBox={`${cx} ${cy} ${cw} ${ch}`} preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+            <defs>
+              <clipPath id={`${maskId}-crop`}><rect x={cx} y={cy} width={cw} height={ch} /></clipPath>
+              <radialGradient id={`${maskId}-fade`}><stop offset="55%" stopColor="white" /><stop offset="100%" stopColor="black" /></radialGradient>
+              <mask id={`${maskId}-mask`} maskUnits="userSpaceOnUse" x={cx} y={cy} width={cw} height={ch}>
+                <ellipse cx={cx + cw / 2} cy={cy + ch / 2} rx={cw / 2} ry={ch / 2} fill={`url(#${maskId}-fade)`} />
+              </mask>
+            </defs>
+            {scene.image ? <image href={scene.image} width={scene.source[0]} height={scene.source[1]} clipPath={`url(#${maskId}-crop)`}
+              mask={scene.photographic ? undefined : `url(#${maskId}-mask)`}
+              onError={() => setScene((old) => old.image === scene.image ? { ...old, image: '', landmark: 'Miền đất mới' } : old)} />
+              : <g fill="#b9cbb8"><path d={`M${cx} ${cy+ch} Q${cx+cw*.25} ${cy+ch*.15} ${cx+cw*.5} ${cy+ch*.7} Q${cx+cw*.8} ${cy+ch*.3} ${cx+cw} ${cy+ch}Z`} /><path opacity=".5" d={`M${cx} ${cy+ch} Q${cx+cw*.6} ${cy+ch*.1} ${cx+cw} ${cy+ch}Z`} /></g>}
+          </svg>
+          <div className="journey-landmark-label">
+            <span>{role === 'origin' ? 'ĐIỂM ĐI' : 'ĐIỂM ĐẾN'}</span>
+            <strong>{scene.city}</strong><small>{scene.landmark}</small>
           </div>
         </motion.div>
       </AnimatePresence>
+    </div>
+  );
+}
 
-      {/* Lớp gradient bảo vệ độ đọc văn bản bên trái trên Desktop */}
-      <div className="hidden lg:block absolute inset-y-0 left-0 w-[40%] bg-gradient-to-r from-[#F7F4EC] via-[#F7F4EC]/92 to-transparent pointer-events-none z-10" />
+export const LayeredSceneStage: React.FC<LayeredSceneStageProps> = ({ fromCity, toCity, className = '' }) => {
+  const [roadError, setRoadError] = useState(false);
+  return (
+    <div className={`journey-scenery ${className}`} aria-hidden="true">
+      <div className="journey-atmosphere" />
+      <Landmark city={fromCity} role="origin" />
+      <Landmark city={toCity} role="destination" />
+      {/* Persistent road: no route key, transitions, scaling, or location-dependent assets. */}
+      <svg className="journey-road" data-testid="journey-fixed-road" viewBox="0 0 1536 1024" fill="none">
+        {!roadError ? <image href={JOURNEY_ROAD} width="1536" height="1024" onError={() => setRoadError(true)} /> : <>
+          <path d="M470 450 C250 540 500 660 680 725 S1100 840 1490 850" stroke="#dad7c8" strokeWidth="150" />
+          <path d="M470 450 C250 540 500 660 680 725 S1100 840 1490 850" stroke="#646c73" strokeWidth="125" />
+          <path d="M470 450 C250 540 500 660 680 725 S1100 840 1490 850" stroke="#f5e5b7" strokeWidth="3" strokeDasharray="20 18" />
+        </>}
+      </svg>
+      <svg className="journey-route-line" viewBox="0 0 1536 1024" fill="none">
+        <path d="M390 220 Q760 45 1190 195" stroke="#0097a7" strokeOpacity=".35" strokeWidth="2" strokeDasharray="5 9" />
+        <circle cx="390" cy="220" r="5" fill="#0097a7" /><circle cx="1190" cy="195" r="5" fill="#bd924f" />
+      </svg>
     </div>
   );
 };
