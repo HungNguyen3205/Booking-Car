@@ -41,10 +41,30 @@ export const bookingService = {
     return SEED_BOOKINGS;
   },
 
-  // Save a new booking
+  // Save a new booking (Strictly without any card credentials or payment secrets)
   saveBooking(booking: Booking): void {
+    const sanitizedBooking: Booking = {
+      id: booking.id,
+      tripId: booking.tripId,
+      trip: booking.trip,
+      date: booking.date,
+      selectedSeats: booking.selectedSeats,
+      passenger: {
+        fullName: booking.passenger.fullName,
+        phone: booking.passenger.phone,
+        email: booking.passenger.email,
+        pickupStopId: booking.passenger.pickupStopId,
+        dropoffStopId: booking.passenger.dropoffStopId,
+        note: booking.passenger.note,
+        agreedTerms: booking.passenger.agreedTerms,
+      },
+      totalAmount: booking.totalAmount,
+      paymentMethod: booking.paymentMethod,
+      paymentStatus: booking.paymentStatus,
+      createdAt: booking.createdAt,
+    };
     const list = this.getAllBookings();
-    const updated = [booking, ...list.filter(b => b.id !== booking.id)];
+    const updated = [sanitizedBooking, ...list.filter(b => b.id !== sanitizedBooking.id)];
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch (e) {

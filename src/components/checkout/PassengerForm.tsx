@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Trip, PassengerInfo } from '../../types';
 import { bookingService } from '../../services/bookingService';
-import { ArrowLeft, ArrowRight, User, Phone, Mail, MapPin, AlertCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  AlertCircle,
+  ShieldCheck,
+  Loader2,
+} from 'lucide-react';
 
 interface PassengerFormProps {
   trip: Trip;
   dateStr: string;
   selectedSeats: string[];
   initialPassenger?: PassengerInfo;
-  onBack: () => void;
+  onBack: (draft?: PassengerInfo) => void;
   onSubmit: (passenger: PassengerInfo) => void;
 }
 
@@ -33,49 +43,106 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
   const [agreedTerms, setAgreedTerms] = useState(initialPassenger?.agreedTerms ?? true);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validate = () => {
+  // Compute total price accurately from individual seat prices if configured
+  const totalPrice = useMemo(() => {
+    return selectedSeats.reduce((sum, code) => {
+      const seat = trip.seats.find((s) => s.code === code);
+      return sum + (seat ? seat.price : trip.price);
+    }, 0);
+  }, [selectedSeats, trip]);
+
+  // Vietnamese Name Regex: Unicode letters, spaces and apostrophe
+  const vietnameseNameRegex =
+    /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s']+$/;
+
+  // Vietnamese Mobile Phone Regex: 10 digits starting with 03, 05, 07, 08, 09 or +84
+  const vietnamesePhoneRegex =
+    /^(0|\+84)(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/;
+
+  // Standard RFC Email Regex
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  const validateField = (fieldName: string, val: string): string => {
+    switch (fieldName) {
+      case 'fullName': {
+        const trimmed = val.trim();
+        const words = trimmed.split(/\s+/).filter(Boolean);
+        if (!trimmed) {
+          return 'Vui lòng nhập họ và tên hành khách.';
+        }
+        if (trimmed.length < 3 || words.length < 2) {
+          return 'Vui lòng nhập đầy đủ cả họ và tên (tối thiểu 2 từ, ví dụ: Nguyễn Văn A).';
+        }
+        if (!vietnameseNameRegex.test(trimmed)) {
+          return 'Họ và tên chỉ được chứa chữ cái tiếng Việt và khoảng trắng.';
+        }
+        return '';
+      }
+      case 'phone': {
+        const clean = val.trim().replace(/[\s.-]/g, '');
+        if (!clean) {
+          return 'Vui lòng nhập số điện thoại liên hệ.';
+        }
+        if (!vietnamesePhoneRegex.test(clean)) {
+          return 'Số điện thoại di động không hợp lệ (10 số, đầu số 03, 05, 07, 08, 09).';
+        }
+        return '';
+      }
+      case 'email': {
+        const trimmed = val.trim();
+        if (!trimmed) {
+          return 'Vui lòng nhập email nhận vé điện tử.';
+        }
+        if (!emailRegex.test(trimmed)) {
+          return 'Địa chỉ email không đúng định dạng (ví dụ: tenban@gmail.com).';
+        }
+        return '';
+      }
+      default:
+        return '';
+    }
+  };
+
+  const handleBlur = (fieldName: string, value: string) => {
+    const error = validateField(fieldName, value);
+    if (error) {
+      setErrors((prev) => ({ ...prev, [fieldName]: error }));
+    }
+  };
+
+  const validateAll = () => {
     const errs: Record<string, string> = {};
-    if (!fullName.trim() || fullName.trim().length < 3) {
-      errs.fullName = 'Vui lòng nhập họ và tên hành khách (ít nhất 3 ký tự)';
-    }
 
-    const cleanPhone = phone.trim().replace(/\s+/g, '');
-    const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
-    if (!cleanPhone) {
-      errs.phone = 'Vui lòng nhập số điện thoại liên hệ';
-    } else if (!phoneRegex.test(cleanPhone)) {
-      errs.phone = 'Số điện thoại không hợp lệ (ví dụ: 0905123456)';
-    }
+    const nameErr = validateField('fullName', fullName);
+    if (nameErr) errs.fullName = nameErr;
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email.trim()) {
-      errs.email = 'Vui lòng nhập email nhận vé điện tử';
-    } else if (!emailRegex.test(email.trim())) {
-      errs.email = 'Định dạng email không hợp lệ';
-    }
+    const phoneErr = validateField('phone', phone);
+    if (phoneErr) errs.phone = phoneErr;
+
+    const emailErr = validateField('email', email);
+    if (emailErr) errs.email = emailErr;
 
     if (!pickupStopId) {
-      errs.pickupStopId = 'Vui lòng chọn điểm đón';
+      errs.pickupStopId = 'Vui lòng chọn điểm đón hành khách.';
     }
 
     if (!dropoffStopId) {
-      errs.dropoffStopId = 'Vui lòng chọn điểm trả';
+      errs.dropoffStopId = 'Vui lòng chọn điểm trả khách.';
     }
 
     if (!agreedTerms) {
-      errs.agreedTerms = 'Bạn cần đồng ý với điều khoản đặt vé';
+      errs.agreedTerms = 'Bạn cần đồng ý với điều khoản đặt vé trước khi tiếp tục.';
     }
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-
-    onSubmit({
+  const handleBackWithDraft = () => {
+    // Preserve all filled draft information when navigating back
+    onBack({
       fullName: fullName.trim(),
       phone: phone.trim(),
       email: email.trim(),
@@ -86,97 +153,156 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
     });
   };
 
-  const totalPrice = selectedSeats.length * trip.price;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    if (!validateAll()) {
+      // Scroll first invalid field into view
+      const firstErrorField = document.querySelector('[aria-invalid="true"]');
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    // Double submit prevention: disable button and trigger submission
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      onSubmit({
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        pickupStopId,
+        dropoffStopId,
+        note: note.trim(),
+        agreedTerms,
+      });
+    }, 200);
+  };
 
   return (
-    <div className="min-h-screen bg-[#F7F4EC] pb-20">
-      {/* Stepper Header */}
-      <div className="bg-[#FFFEFA] border-b border-[#E5E3DC] py-6 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102744] hover:text-[#0097A7] mb-3 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Quay lại chọn ghế</span>
-          </button>
+    <div className="min-h-screen bg-[#F7F4EC] pb-24 sm:pb-28 text-[#102744]">
+      {/* ============================================================
+          1. STEPPER & BACK NAVIGATION
+          ============================================================ */}
+      <div className="bg-[#FFFEFA] border-b border-[#E5E3DC] sticky top-0 z-20 shadow-2xs">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={handleBackWithDraft}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F7F4EC] hover:bg-[#E5E3DC] text-xs font-bold text-[#102744] rounded-xl border border-[#CBD5E1] transition-all cursor-pointer shrink-0 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+              title="Quay lại sơ đồ chọn ghế (Giữ nguyên thông tin đã điền)"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#0097A7]" />
+              <span className="hidden xs:inline">Quay lại chọn ghế</span>
+            </button>
 
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#102744]">
-                Thông tin hành khách & Điểm đón
-              </h1>
-              <p className="text-xs sm:text-sm text-[#647084] mt-1">
-                Điền thông tin chính xác để nhận vé điện tử và số điện thoại liên hệ lên xe
+              <div className="flex items-center gap-2">
+                <h1 className="font-serif font-bold text-base sm:text-lg text-[#102744] leading-tight">
+                  Thông tin hành khách & Điểm đón
+                </h1>
+                <span className="text-[11px] font-bold text-[#0097A7] uppercase bg-[#E0F7FA] px-2 py-0.5 rounded-md hidden sm:inline">
+                  {trip.vehicle.name}
+                </span>
+              </div>
+              <p className="text-xs text-[#647084] mt-0.5">
+                {trip.from} → {trip.to} • {trip.departureTime} • {bookingService.formatDisplayDate(dateStr)}
               </p>
             </div>
+          </div>
 
-            {/* Stepper */}
-            <div className="flex items-center gap-2 sm:gap-4 text-xs font-semibold">
-              <div className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
-                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
-                <span>1. Chọn chuyến</span>
-              </div>
-              <span className="text-[#CBD5E1]">→</span>
-              <div className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
-                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
-                <span>2. Ghế: {selectedSeats.join(', ')}</span>
-              </div>
-              <span className="text-[#CBD5E1]">→</span>
-              <div className="flex items-center gap-1.5 text-white bg-[#0097A7] px-3.5 py-1.5 rounded-full shadow-xs">
-                <span className="w-4 h-4 rounded-full bg-white text-[#0097A7] flex items-center justify-center text-[10px] font-bold">3</span>
-                <span>3. Thông tin</span>
-              </div>
+          {/* Stepper matching flow */}
+          <div className="flex items-center gap-2 sm:gap-3 text-xs font-semibold self-end sm:self-auto">
+            <div className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+              <span className="w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[9px] font-bold">✓</span>
+              <span className="hidden sm:inline">1. Chọn chuyến</span>
+            </div>
+            <span className="text-[#CBD5E1]">→</span>
+            <div className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+              <span className="w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[9px] font-bold">✓</span>
+              <span className="hidden sm:inline">2. Ghế: {selectedSeats.join(', ')}</span>
+            </div>
+            <span className="text-[#CBD5E1]">→</span>
+            <div className="flex items-center gap-1.5 text-white bg-[#0097A7] px-3 py-1 rounded-full shadow-xs">
+              <span className="w-3.5 h-3.5 rounded-full bg-white text-[#0097A7] flex items-center justify-center text-[9px] font-bold">3</span>
+              <span>3. Thông tin</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Form Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      {/* ============================================================
+          2. MAIN FORM CONTENT
+          ============================================================ */}
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 mt-6 sm:mt-8">
         <form onSubmit={handleSubmit} noValidate>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
             {/* Left Column: Input Fields (~65% / 7 cols) */}
             <div className="lg:col-span-7 space-y-6">
               {/* Contact Information Card */}
-              <div className="bg-[#FFFEFA] rounded-3xl p-6 sm:p-7 border border-[#E5E3DC] shadow-xs space-y-4">
-                <h3 className="font-serif font-bold text-lg text-[#102744] flex items-center gap-2">
-                  <User className="w-5 h-5 text-[#0097A7]" />
-                  <span>Người đại diện đặt vé</span>
-                </h3>
+              <div className="bg-[#FFFEFA] rounded-3xl p-5 sm:p-7 border border-[#E5E3DC] shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-[#E5E3DC]">
+                  <h2 className="font-serif font-bold text-base sm:text-lg text-[#102744] flex items-center gap-2">
+                    <User className="w-5 h-5 text-[#0097A7]" />
+                    <span>Người đại diện đặt vé</span>
+                  </h2>
+                  <span className="text-[11px] text-[#647084]">
+                    Ghế đã chọn: <strong className="text-[#0097A7]">{selectedSeats.join(', ')}</strong> ({selectedSeats.length} chỗ)
+                  </span>
+                </div>
 
-                {/* Full name */}
+                {/* Full name input */}
                 <div>
-                  <label htmlFor="passenger-name" className="block text-xs font-bold text-[#102744] uppercase tracking-wider mb-1.5">
+                  <label
+                    htmlFor="passenger-name"
+                    className="block text-xs font-bold text-[#102744] uppercase tracking-wider mb-1.5"
+                  >
                     Họ và tên hành khách <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    id="passenger-name"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => {
-                      setFullName(e.target.value);
-                      if (errors.fullName) setErrors({ ...errors, fullName: '' });
-                    }}
-                    placeholder="Ví dụ: Nguyễn Văn Hùng"
-                    className={`w-full px-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden transition-all ${
-                      errors.fullName ? 'border-red-400 bg-red-50/50' : 'border-[#E5E3DC]'
-                    }`}
-                  />
+                  <div className="relative">
+                    <User className="w-4 h-4 text-[#647084] absolute left-3.5 top-3" />
+                    <input
+                      id="passenger-name"
+                      type="text"
+                      autoComplete="name"
+                      disabled={isSubmitting}
+                      value={fullName}
+                      onChange={(e) => {
+                        setFullName(e.target.value);
+                        if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: '' }));
+                      }}
+                      onBlur={(e) => handleBlur('fullName', e.target.value)}
+                      aria-invalid={!!errors.fullName}
+                      aria-describedby={errors.fullName ? 'err-name' : undefined}
+                      placeholder="Ví dụ: Nguyễn Văn Hùng"
+                      className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden transition-all disabled:opacity-50 ${
+                        errors.fullName
+                          ? 'border-red-400 bg-red-50/50 focus:ring-red-400'
+                          : 'border-[#E5E3DC]'
+                      }`}
+                    />
+                  </div>
                   {errors.fullName && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      {errors.fullName}
+                    <p id="err-name" className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{errors.fullName}</span>
                     </p>
                   )}
                 </div>
 
                 {/* Phone & Email Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Phone */}
+                  {/* Phone input */}
                   <div>
-                    <label htmlFor="passenger-phone" className="block text-xs font-bold text-[#102744] uppercase tracking-wider mb-1.5">
+                    <label
+                      htmlFor="passenger-phone"
+                      className="block text-xs font-bold text-[#102744] uppercase tracking-wider mb-1.5"
+                    >
                       Số điện thoại <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -184,28 +310,38 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                       <input
                         id="passenger-phone"
                         type="tel"
+                        autoComplete="tel"
+                        disabled={isSubmitting}
                         value={phone}
                         onChange={(e) => {
                           setPhone(e.target.value);
-                          if (errors.phone) setErrors({ ...errors, phone: '' });
+                          if (errors.phone) setErrors((prev) => ({ ...prev, phone: '' }));
                         }}
+                        onBlur={(e) => handleBlur('phone', e.target.value)}
+                        aria-invalid={!!errors.phone}
+                        aria-describedby={errors.phone ? 'err-phone' : undefined}
                         placeholder="0905123456"
-                        className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden transition-all ${
-                          errors.phone ? 'border-red-400 bg-red-50/50' : 'border-[#E5E3DC]'
+                        className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden transition-all disabled:opacity-50 ${
+                          errors.phone
+                            ? 'border-red-400 bg-red-50/50 focus:ring-red-400'
+                            : 'border-[#E5E3DC]'
                         }`}
                       />
                     </div>
                     {errors.phone && (
-                      <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5" />
-                        {errors.phone}
+                      <p id="err-phone" className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{errors.phone}</span>
                       </p>
                     )}
                   </div>
 
-                  {/* Email */}
+                  {/* Email input */}
                   <div>
-                    <label htmlFor="passenger-email" className="block text-xs font-bold text-[#102744] uppercase tracking-wider mb-1.5">
+                    <label
+                      htmlFor="passenger-email"
+                      className="block text-xs font-bold text-[#102744] uppercase tracking-wider mb-1.5"
+                    >
                       Email nhận vé điện tử <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -213,21 +349,28 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                       <input
                         id="passenger-email"
                         type="email"
+                        autoComplete="email"
+                        disabled={isSubmitting}
                         value={email}
                         onChange={(e) => {
                           setEmail(e.target.value);
-                          if (errors.email) setErrors({ ...errors, email: '' });
+                          if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
                         }}
-                        placeholder="hung.nguyen@example.com"
-                        className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden transition-all ${
-                          errors.email ? 'border-red-400 bg-red-50/50' : 'border-[#E5E3DC]'
+                        onBlur={(e) => handleBlur('email', e.target.value)}
+                        aria-invalid={!!errors.email}
+                        aria-describedby={errors.email ? 'err-email' : undefined}
+                        placeholder="tenban@gmail.com"
+                        className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden transition-all disabled:opacity-50 ${
+                          errors.email
+                            ? 'border-red-400 bg-red-50/50 focus:ring-red-400'
+                            : 'border-[#E5E3DC]'
                         }`}
                       />
                     </div>
                     {errors.email && (
-                      <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5" />
-                        {errors.email}
+                      <p id="err-email" className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{errors.email}</span>
                       </p>
                     )}
                   </div>
@@ -235,24 +378,27 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
               </div>
 
               {/* Pickup & Dropoff Stops Selection */}
-              <div className="bg-[#FFFEFA] rounded-3xl p-6 sm:p-7 border border-[#E5E3DC] shadow-xs space-y-5">
-                <h3 className="font-serif font-bold text-lg text-[#102744] flex items-center gap-2">
+              <div className="bg-[#FFFEFA] rounded-3xl p-5 sm:p-7 border border-[#E5E3DC] shadow-sm space-y-5">
+                <h2 className="font-serif font-bold text-base sm:text-lg text-[#102744] flex items-center gap-2 pb-3 border-b border-[#E5E3DC]">
                   <MapPin className="w-5 h-5 text-[#0097A7]" />
-                  <span>Điểm đón và trả khách</span>
-                </h3>
+                  <span>Điểm đón và trả khách chính xác</span>
+                </h2>
 
                 {/* Pickup stops */}
                 <div>
-                  <label className="block text-xs font-bold text-[#102744] uppercase tracking-wider mb-2">
-                    Điểm đón tại {trip.from}
-                  </label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-xs font-bold text-[#102744] uppercase tracking-wider">
+                      Điểm đón tại {trip.from} <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-[11px] text-[#647084]">{trip.departureStops.length} điểm khả dụng</span>
+                  </div>
                   <div className="space-y-2">
                     {trip.departureStops.map((stop) => (
                       <label
                         key={stop.id}
                         className={`flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition-all ${
                           pickupStopId === stop.id
-                            ? 'bg-[#E0F7FA]/50 border-[#0097A7] ring-1 ring-[#0097A7]'
+                            ? 'bg-[#E0F7FA]/60 border-[#0097A7] ring-1 ring-[#0097A7]'
                             : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#0097A7]'
                         }`}
                       >
@@ -261,7 +407,10 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                           name="pickupStop"
                           value={stop.id}
                           checked={pickupStopId === stop.id}
-                          onChange={() => setPickupStopId(stop.id)}
+                          onChange={() => {
+                            setPickupStopId(stop.id);
+                            if (errors.pickupStopId) setErrors((prev) => ({ ...prev, pickupStopId: '' }));
+                          }}
                           className="mt-1 text-[#0097A7] focus:ring-[#0097A7]"
                         />
                         <div className="flex-1 text-xs">
@@ -274,20 +423,29 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                       </label>
                     ))}
                   </div>
+                  {errors.pickupStopId && (
+                    <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{errors.pickupStopId}</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Dropoff stops */}
                 <div className="pt-2">
-                  <label className="block text-xs font-bold text-[#102744] uppercase tracking-wider mb-2">
-                    Điểm trả tại {trip.to}
-                  </label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-xs font-bold text-[#102744] uppercase tracking-wider">
+                      Điểm trả tại {trip.to} <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-[11px] text-[#647084]">{trip.dropoffStops.length} điểm khả dụng</span>
+                  </div>
                   <div className="space-y-2">
                     {trip.dropoffStops.map((stop) => (
                       <label
                         key={stop.id}
                         className={`flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition-all ${
                           dropoffStopId === stop.id
-                            ? 'bg-[#E0F7FA]/50 border-[#0097A7] ring-1 ring-[#0097A7]'
+                            ? 'bg-[#E0F7FA]/60 border-[#0097A7] ring-1 ring-[#0097A7]'
                             : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#0097A7]'
                         }`}
                       >
@@ -296,7 +454,10 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                           name="dropoffStop"
                           value={stop.id}
                           checked={dropoffStopId === stop.id}
-                          onChange={() => setDropoffStopId(stop.id)}
+                          onChange={() => {
+                            setDropoffStopId(stop.id);
+                            if (errors.dropoffStopId) setErrors((prev) => ({ ...prev, dropoffStopId: '' }));
+                          }}
                           className="mt-1 text-[#0097A7] focus:ring-[#0097A7]"
                         />
                         <div className="flex-1 text-xs">
@@ -309,57 +470,69 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                       </label>
                     ))}
                   </div>
+                  {errors.dropoffStopId && (
+                    <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{errors.dropoffStopId}</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Optional note */}
                 <div className="pt-2">
                   <label htmlFor="passenger-note" className="block text-xs font-bold text-[#102744] uppercase tracking-wider mb-1.5">
-                    Ghi chú cho tài xế (Không bắt buộc)
+                    Ghi chú đặc biệt cho tài xế (Không bắt buộc)
                   </label>
                   <textarea
                     id="passenger-note"
                     rows={2}
+                    disabled={isSubmitting}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="Ví dụ: Có mang theo thú cưng, hành lý cồng kềnh hoặc đón người cao tuổi..."
-                    className="w-full px-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border border-[#E5E3DC] text-xs font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden"
+                    placeholder="Ví dụ: Có hành lý ký gửi vali lớn, đi cùng trẻ nhỏ, hoặc cần hỗ trợ đón người cao tuổi..."
+                    className="w-full px-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border border-[#E5E3DC] text-xs font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden disabled:opacity-50"
                   />
                 </div>
               </div>
 
               {/* Agreement Checkbox */}
-              <div className="p-4 bg-[#FFFEFA] rounded-2xl border border-[#E5E3DC] space-y-2">
-                <label className="flex items-start gap-3 cursor-pointer">
+              <div className="p-4 sm:p-5 bg-[#FFFEFA] rounded-2xl border border-[#E5E3DC] shadow-2xs space-y-2">
+                <label className="flex items-start gap-3 cursor-pointer select-none">
                   <input
                     type="checkbox"
+                    disabled={isSubmitting}
                     checked={agreedTerms}
                     onChange={(e) => {
                       setAgreedTerms(e.target.checked);
-                      if (errors.agreedTerms) setErrors({ ...errors, agreedTerms: '' });
+                      if (errors.agreedTerms) setErrors((prev) => ({ ...prev, agreedTerms: '' }));
                     }}
                     className="mt-0.5 rounded border-[#CBD5E1] text-[#0097A7] focus:ring-[#0097A7] w-4 h-4 cursor-pointer"
                   />
-                  <span className="text-xs text-[#647084]">
-                    Tôi đồng ý với các <strong>Quy định hủy đổi vé</strong> và chính sách vận chuyển của DANAVA GO. Thông tin đặt vé là bản mô phỏng giao diện không thu phí thực tế.
+                  <span className="text-xs text-[#647084] leading-relaxed">
+                    Tôi xác nhận thông tin trên là chính xác và đồng ý với <strong>Chính sách hủy đổi vé</strong> của DANAVA GO. Thông tin thẻ/tài khoản thanh toán sẽ không bị lưu giữ trên hệ thống.
                   </span>
                 </label>
                 {errors.agreedTerms && (
-                  <p className="text-xs text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    {errors.agreedTerms}
+                  <p className="text-xs text-red-600 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{errors.agreedTerms}</span>
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Right Column: Order Summary & Checkout Action (~35% / 5 cols) */}
+            {/* Right Column: Transparent Pricing Breakdown & Sticky Action (~35% / 5 cols) */}
             <div className="lg:col-span-5 lg:sticky lg:top-24">
               <div className="bg-[#FFFEFA] rounded-3xl p-6 border border-[#E5E3DC] shadow-sm space-y-6">
-                <h3 className="font-serif font-bold text-lg text-[#102744] pb-3 border-b border-[#E5E3DC]">
-                  Tóm tắt đặt chỗ
+                <h3 className="font-serif font-bold text-base sm:text-lg text-[#102744] pb-3 border-b border-[#E5E3DC] flex items-center justify-between">
+                  <span>Tóm tắt đơn đặt vé</span>
+                  <span className="text-xs font-semibold text-[#0097A7] bg-[#E0F7FA] px-2 py-0.5 rounded-full">
+                    #{trip.code}
+                  </span>
                 </h3>
 
-                <div className="space-y-3 text-xs">
+                {/* Itinerary details */}
+                <div className="space-y-2.5 text-xs">
                   <div className="flex justify-between">
                     <span className="text-[#647084]">Tuyến xe:</span>
                     <strong className="text-[#102744]">{trip.from} → {trip.to}</strong>
@@ -370,15 +543,15 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#647084]">Giờ xuất bến:</span>
-                    <strong className="text-[#0097A7]">{trip.departureTime}</strong>
+                    <strong className="text-[#0097A7]">{trip.departureTime} ({trip.duration})</strong>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#647084]">Dòng xe:</span>
-                    <span className="text-[#102744]">{trip.vehicle.name}</span>
+                    <span className="text-[#102744] font-medium">{trip.vehicle.name}</span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-[#E5E3DC]">
-                    <span className="text-[#647084]">Vị trí ghế ({selectedSeats.length}):</span>
-                    <div className="flex gap-1">
+                    <span className="text-[#647084]">Ghế đã chọn ({selectedSeats.length}):</span>
+                    <div className="flex gap-1 flex-wrap justify-end">
                       {selectedSeats.map((s) => (
                         <span key={s} className="px-2 py-0.5 bg-[#E0F7FA] text-[#007887] font-bold rounded-md">
                           {s}
@@ -388,32 +561,68 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                   </div>
                 </div>
 
-                {/* Price calculation */}
-                <div className="pt-4 border-t border-[#E5E3DC] space-y-2">
-                  <div className="flex justify-between text-xs text-[#647084]">
-                    <span>Giá vé ({selectedSeats.length} người):</span>
-                    <span>{bookingService.formatCurrency(totalPrice)}</span>
+                {/* Transparent Price Breakdown */}
+                <div className="pt-4 border-t border-[#E5E3DC] space-y-2 text-xs">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#647084] block mb-1">
+                    Chi tiết giá vé minh bạch
+                  </span>
+                  
+                  <div className="flex justify-between text-[#647084]">
+                    <span>Tiền vé ({selectedSeats.length} chỗ ngồi):</span>
+                    <span className="font-semibold text-[#102744]">{bookingService.formatCurrency(totalPrice)}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-[#647084]">
-                    <span>Phí dịch vụ & Bảo hiểm:</span>
-                    <span className="text-emerald-600 font-semibold">Miễn phí</span>
+
+                  <div className="flex justify-between text-[#647084]">
+                    <span>Phí dịch vụ trực tuyến:</span>
+                    <span className="text-emerald-700 font-semibold">0 ₫ (Miễn phí)</span>
                   </div>
-                  <div className="flex justify-between items-baseline pt-2 border-t border-dashed border-[#CBD5E1]">
-                    <span className="font-bold text-sm text-[#102744]">Tổng thanh toán:</span>
+
+                  <div className="flex justify-between text-[#647084]">
+                    <span>Bảo hiểm hành khách:</span>
+                    <span className="text-emerald-700 font-semibold">Đã bao gồm</span>
+                  </div>
+
+                  <div className="flex justify-between text-[#647084]">
+                    <span>Thuế GTGT (VAT):</span>
+                    <span className="text-emerald-700 font-semibold">Đã bao gồm</span>
+                  </div>
+
+                  <div className="flex justify-between items-baseline pt-3 border-t border-dashed border-[#CBD5E1]">
+                    <div>
+                      <span className="font-bold text-sm text-[#102744] block">Tổng thanh toán:</span>
+                      <span className="text-[10px] text-[#647084]">Giá trọn gói, không phụ phí</span>
+                    </div>
                     <span className="font-serif font-bold text-2xl text-[#0097A7]">
                       {bookingService.formatCurrency(totalPrice)}
                     </span>
                   </div>
                 </div>
 
-                {/* Action button */}
-                <button
-                  type="submit"
-                  className="w-full py-3.5 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-semibold text-sm rounded-xl shadow-md shadow-[#0097A7]/20 flex items-center justify-center gap-2 transition-all"
-                >
-                  <span>Chuyển sang thanh toán demo</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                {/* Action button with double submit prevention */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-3.5 px-4 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-bold text-sm rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Đang kiểm tra thông tin…</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Chuyển sang thanh toán</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+
+                  <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[10.5px] text-[#647084]">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Mô phỏng thanh toán an toàn • Chưa trừ tiền tài khoản</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

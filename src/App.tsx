@@ -398,7 +398,10 @@ export const App: React.FC = () => {
                   dateStr={searchParams.date}
                   selectedSeats={selectedSeats}
                   initialPassenger={passengerInfo || undefined}
-                  onBack={() => setCurrentStep('seat-select')}
+                  onBack={(draft) => {
+                    if (draft) setPassengerInfo(draft);
+                    setCurrentStep('seat-select');
+                  }}
                   onSubmit={handlePassengerSubmit}
                 />
               </motion.div>
