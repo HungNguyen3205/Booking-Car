@@ -28,7 +28,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
   // Atomic route state for from & to (ensures atomic update when swapping)
   const [{ from, to }, setRoute] = useState(() => ({
     from: initialParams?.from || 'Đà Nẵng',
-    to: initialParams?.to || 'Huế',
+    to: initialParams?.to || 'Hội An',
   }));
 
   const [date, setDate] = useState(() => {

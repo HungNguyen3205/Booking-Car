@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Agent and IDE skills
+.agents/
+.aider-desk/
+skills-lock.json

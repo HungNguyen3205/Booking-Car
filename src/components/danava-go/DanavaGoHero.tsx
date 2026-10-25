@@ -1,16 +1,13 @@
-import React, { useState, useEffect, Suspense } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { TripSearchForm } from '../home/TripSearchForm';
 import type { SearchParams, VehicleCategory } from '../../types';
-import { Armchair, BedDouble, Crown, QrCode, Sparkles, AlertCircle } from 'lucide-react';
-import { WebGLFallback } from './3d/WebGLFallback';
-
-import { JourneyCanvas } from './3d/JourneyCanvas';
-
-import type { JourneyTimelineState } from './3d/journeyTimeline';
+import { Sparkles } from 'lucide-react';
+import { LayeredSceneStage } from './LayeredSceneStage';
+import { VehicleMotionStage } from './VehicleMotionStage';
+import { HeroVehicleSelector } from './HeroVehicleSelector';
+import { getHeroRouteConfig } from './heroAssetConfig';
 import './danava-go-hero.css';
-
-const SESSION_INTRO_KEY = 'danava_go_intro_played';
 
 interface DanavaGoHeroProps {
   initialParams: SearchParams;
@@ -25,13 +22,14 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
 }) => {
   const shouldReduceMotion = useReducedMotion();
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleCategory>('sleeper');
-  const [vehicleToast, setVehicleToast] = useState<{ text: string; id: number } | null>(null);
   const [currentRoute, setCurrentRoute] = useState({
     from: initialParams.from || 'Đà Nẵng',
-    to: initialParams.to || 'Huế',
+    to: initialParams.to || 'Hội An',
   });
 
-  // Đồng bộ tuyến khi initialParams từ cấp cha thay đổi (ví dụ: click điểm đến nổi bật)
+  const routeConfig = getHeroRouteConfig(currentRoute.from, currentRoute.to);
+
+  // Đồng bộ tuyến khi initialParams từ cấp cha thay đổi (ví dụ: người dùng click tuyến nổi bật)
   const [prevFrom, setPrevFrom] = useState(initialParams.from);
   const [prevTo, setPrevTo] = useState(initialParams.to);
   if (initialParams.from !== prevFrom || initialParams.to !== prevTo) {
@@ -42,185 +40,51 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
     }
   }
 
-  // Kiểm tra phiên làm việc: Intro chỉ phát một lần duy nhất trong session, không lặp lại khi đổi xe/tuyến
-  const [isIntroPlayed, setIsIntroPlayed] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true;
-    return window.sessionStorage.getItem(SESSION_INTRO_KEY) === 'true';
-  });
-
-  // Trạng thái timeline tập trung [closed, opening, landscape-reveal, vehicle-enter, route-reveal, ready]
-  const [timelineState, setTimelineState] = useState<JourneyTimelineState>(() =>
-    isIntroPlayed || shouldReduceMotion ? 'ready' : 'closed'
-  );
-
-  const [isSkipped, setIsSkipped] = useState<boolean>(false);
-  const [introReplayKey, setIntroReplayKey] = useState<number>(0);
-
-  // Developer debug mode enabled via ?debug=1 or ?debug3d=true
-  const [isDebug] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    const s = window.location.search;
-    return s.includes('debug=1') || s.includes('debug3d=true');
-  });
-
-  // Debug flap fold angle (0 = flat open, Math.PI = folded over)
-  const [debugFlapAngle, setDebugFlapAngle] = useState<number>(0.0);
-
-  // Debug coach animation replay trigger
-  const [coachReplayKey, setCoachReplayKey] = useState<number>(0);
-
-  // Xử lý bỏ qua intro an toàn (người dùng tương tác form hoặc click bỏ qua)
-  const handleSkipIntro = () => {
-    setIsSkipped(true);
-    setIsIntroPlayed(true);
-    setTimelineState('ready');
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem(SESSION_INTRO_KEY, 'true');
-    }
-  };
-
-  // Hoàn tất intro bình thường
-  const handleIntroComplete = () => {
-    setIsIntroPlayed(true);
-    setTimelineState('ready');
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem(SESSION_INTRO_KEY, 'true');
-    }
-  };
-
-  // Phát lại toàn bộ intro 2.5s (dành cho kiểm thử và debug)
-  const handleReplayIntro = () => {
-    setIsSkipped(false);
-    setIsIntroPlayed(false);
-    setTimelineState('closed');
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.removeItem(SESSION_INTRO_KEY);
-    }
-    setIntroReplayKey((k) => k + 1);
-  };
-
-  // Người dùng tương tác vào form tìm kiếm -> hoàn tất intro an toàn, không khóa form
-  const handleFormInteraction = () => {
-    if (!isIntroPlayed && !isSkipped) {
-      handleSkipIntro();
-    }
-  };
-
-  // Thông báo lỗi nhẹ khi tải asset (Step 9 xe, Step 12 cảnh)
-  const [sceneToast, setSceneToast] = useState<{ text: string; id: number } | null>(null);
-  const [simulateSceneErrorTrigger, setSimulateSceneErrorTrigger] = useState<boolean>(false);
-
-  // Step 9 & 12: Tự động đóng thông báo lỗi sau 4.5 giây
-  useEffect(() => {
-    if (!vehicleToast) return;
-    const timer = setTimeout(() => {
-      setVehicleToast(null);
-    }, 4500);
-    return () => clearTimeout(timer);
-  }, [vehicleToast]);
-
-  useEffect(() => {
-    if (!sceneToast) return;
-    const timer = setTimeout(() => {
-      setSceneToast(null);
-    }, 4500);
-    return () => clearTimeout(timer);
-  }, [sceneToast]);
-
-  // Step 9: Xử lý sự cố tải model xe - giữ nguyên xe trước đó và hiện thông báo trạng thái nhẹ
-  const handleVehicleError = (failedCategory: VehicleCategory, fallbackCategory: VehicleCategory) => {
-    const nameMap: Record<VehicleCategory, string> = {
-      sleeper: 'Giường nằm',
-      limousine: 'Limousine',
-      cabin: 'Cabin VIP',
-    };
-    setSelectedVehicle(fallbackCategory);
-    setVehicleToast({
-      text: `Mô hình ${nameMap[failedCategory] || failedCategory} gặp sự cố khi tải. Giữ hiển thị xe ${nameMap[fallbackCategory] || fallbackCategory}.`,
-      id: Date.now(),
-    });
-  };
-
-  // Step 9: Giả lập lỗi tải mô hình để kiểm thử nghiệm thu kịch bản asset xe lỗi
-  const handleSimulateVehicleError = () => {
-    const targetError: VehicleCategory = selectedVehicle === 'cabin' ? 'limousine' : 'cabin';
-    handleVehicleError(targetError, selectedVehicle);
-  };
-
-  // Step 12: Xử lý sự cố tải cảnh - không commit broken scene, giữ cảnh trước đó và hiện thông báo
-  const handleSceneError = (targetRoute: { from: string; to: string }, errorMsg: string) => {
-    setSceneToast({
-      text: errorMsg || `Không thể tải cảnh quan cho tuyến ${targetRoute.from} → ${targetRoute.to}. Giữ cảnh trước đó.`,
-      id: Date.now(),
-    });
-    setSimulateSceneErrorTrigger(false);
-  };
-
-  // Step 12: Giả lập lỗi tải cảnh để kiểm thử nghiệm thu kịch bản asset cảnh lỗi
-  const handleSimulateSceneError = () => {
-    setSimulateSceneErrorTrigger(true);
-    handleSceneError(
-      currentRoute,
-      `Giả lập sự cố tải mô hình 3D cho ${currentRoute.to}. Giữ cảnh trước đó an toàn.`
-    );
-  };
-
-  const vehicleOptions: { id: VehicleCategory; label: string; icon: React.ReactNode }[] = [
-    { id: 'sleeper', label: 'Giường nằm', icon: <BedDouble size={16} /> },
-    { id: 'limousine', label: 'Limousine', icon: <Armchair size={16} /> },
-    { id: 'cabin', label: 'Cabin VIP', icon: <Crown size={16} /> },
-  ];
-
   const handleRoutePreview = (from: string, to: string) => {
     setCurrentRoute({ from, to });
+  };
+
+  const vehicleNameMap: Record<VehicleCategory, string> = {
+    sleeper: 'Giường Nằm',
+    limousine: 'Limousine VIP',
+    cabin: 'Cabin Hoàng Gia',
   };
 
   return (
     <section
       className="danava-go-hero w-full bg-[#F7F4EC] text-[#102744] overflow-hidden relative"
-      aria-label="DANAVA GO — Vé mở ra hành trình"
+      aria-label="DANAVA GO — Hành trình khám phá Việt Nam"
     >
-      {/* 1. LỚP GRADIENT CREAM BẢO VỆ ĐỘ TƯƠNG PHẢN CHỮ PHÍA TRÁI (DESKTOP) */}
+      {/* 1. LỚP GRADIENT CREAM BẢO VỆ ĐỘ TƯƠNG PHẢN CHỮ (DESKTOP) */}
       <div className="danava-go-hero-gradient" aria-hidden="true" />
 
-      {/* 2. SÂN KHẤU 3D BACKGROUND (Desktop: Absolute Inset-0 Full-Width; Mobile: Vùng Scene Riêng) */}
+      {/* 2. SÂN KHẤU CẢNH ĐỊA DANH NHIỀU LỚP (DESKTOP: NỀN INSET-0 TOÀN CHIỀU RỘNG) */}
       <div
-        className="danava-go-hero-canvas-bg"
+        className="danava-go-hero-canvas-bg hidden lg:block"
         aria-hidden="true"
         data-testid="danava-go-stage-scaffold"
       >
-        <Suspense
-          fallback={
-            <WebGLFallback
-              fromCity={currentRoute.from}
-              toCity={currentRoute.to}
-              message="Đang mở hành trình của bạn…"
-            />
-          }
+        <LayeredSceneStage
+          fromCity={currentRoute.from}
+          toCity={currentRoute.to}
+        />
+        {/* Xe là chủ thể ở nửa phải, đầy đủ thân xe và bánh xe, chừa khoảng cách rõ với thanh tìm kiếm */}
+        <div
+          className="absolute z-20 pointer-events-none transition-all duration-500 ease-out"
+          style={{
+            right: routeConfig.roadAlignment.vehicleRightDesktop,
+            bottom: routeConfig.roadAlignment.vehicleBottomDesktop,
+            width: routeConfig.roadAlignment.vehicleWidthDesktop || '43%',
+            maxWidth: '640px',
+          }}
         >
-          <JourneyCanvas
-            isDebug={isDebug}
-            flapAngle={debugFlapAngle}
-            shouldReduceMotion={!!shouldReduceMotion}
-            coachReplayKey={coachReplayKey}
-            fromCity={currentRoute.from}
-            toCity={currentRoute.to}
-            isIntroPlayed={isIntroPlayed}
-            introReplayKey={introReplayKey}
-            isSkipped={isSkipped}
-            onTimelineStateChange={setTimelineState}
-            onTimelineComplete={handleIntroComplete}
-            selectedVehicle={selectedVehicle}
-            onVehicleError={handleVehicleError}
-            simulateSceneError={simulateSceneErrorTrigger}
-            onSceneError={handleSceneError}
-          />
-        </Suspense>
+          <VehicleMotionStage selectedVehicle={selectedVehicle} />
+        </div>
       </div>
 
       {/* 3. LỚP GIAO DIỆN CHÍNH (EDITORIAL UI & SEARCH DOCK TRONG MAX-WIDTH CONTAINER) */}
       <div className="go-shell">
-        {/* HÀNG TRÊN: TEXT & TABS (TRÁI 35-40%) + NGỮ CẢNH TUYẾN / DEBUG CONTROLS (PHẢI) */}
+        {/* HÀNG TRÊN: TEXT & TABS (TRÁI 35-40%) + NGỮ CẢNH TUYẾN (PHẢI) */}
         <div className="go-hero-top-row">
           {/* EDITORIAL CONTENT (LEFT) */}
           <motion.div
@@ -248,198 +112,47 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
               Chọn chuyến yêu thích. Chạm đến những miền đất mới.
             </p>
 
-            {/* Vehicle Selection Chips */}
-            <div className="mb-2" role="group" aria-label="Chọn loại xe">
-              <div className="flex flex-wrap items-center gap-2.5">
-                {vehicleOptions.map((v) => {
-                  const isActive = selectedVehicle === v.id;
-                  return (
-                    <button
-                      key={v.id}
-                      type="button"
-                      aria-pressed={isActive}
-                      onClick={() => { handleFormInteraction(); setSelectedVehicle(v.id); }}
-                      className={`inline-flex items-center gap-2 h-11 sm:h-12 px-4 sm:px-5 rounded-full text-xs sm:text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
-                        isActive
-                          ? 'bg-[#102744] text-[#FFFEFA] shadow-[0_4px_12px_rgba(16,39,68,0.18)]'
-                          : 'bg-[#FFF9ED] hover:bg-[#FFFEFA] text-[#102744] border border-[#D8D4C9] hover:border-[#102744] hover:-translate-y-0.5'
-                      }`}
-                    >
-                      {v.icon}
-                      <span>{v.label}</span>
-                    </button>
-                  );
-                })}
-
-                {/* Nút giả lập lỗi tải xe kiểm thử nghiệm thu khi bật debug */}
-                {isDebug && (
-                  <button
-                    type="button"
-                    onClick={handleSimulateVehicleError}
-                    className="inline-flex items-center gap-1.5 h-11 sm:h-12 px-3.5 rounded-full text-xs font-mono bg-[#FFF3E0] hover:bg-[#FFE0B2] text-[#E65100] border border-[#FFB74D] cursor-pointer transition-colors shadow-sm"
-                    title="Giả lập lỗi tải mô hình để kiểm thử fallback và thông báo nhẹ"
-                  >
-                    <AlertCircle size={14} />
-                    <span>Test Lỗi Xe ⚠</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Thông báo trạng thái nhẹ khi có lỗi tải asset xe hoặc cảnh quan */}
-              <AnimatePresence>
-                {vehicleToast && (
-                  <motion.div
-                    key={vehicleToast.id}
-                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center justify-between gap-3 mt-3 px-3.5 py-2.5 rounded-xl text-xs font-medium bg-[#FFF8E1] text-[#6D4C41] border border-[#FFE082] shadow-sm max-w-[480px] pointer-events-auto"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-[#F57C00] shrink-0" />
-                      <span>{vehicleToast.text}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setVehicleToast(null)}
-                      className="text-[#8D6E63] hover:text-[#3E2723] text-sm font-bold px-1.5 py-0.5 rounded hover:bg-[#FFE082]/40 transition-colors cursor-pointer"
-                      aria-label="Đóng thông báo"
-                    >
-                      ✕
-                    </button>
-                  </motion.div>
-                )}
-
-                {sceneToast && (
-                  <motion.div
-                    key={sceneToast.id}
-                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center justify-between gap-3 mt-3 px-3.5 py-2.5 rounded-xl text-xs font-medium bg-[#E0F2F1] text-[#004D40] border border-[#80CBC4] shadow-sm max-w-[480px] pointer-events-auto"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-[#00897B] shrink-0" />
-                      <span>{sceneToast.text}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setSceneToast(null)}
-                      className="text-[#004D40] hover:text-[#00251A] text-sm font-bold px-1.5 py-0.5 rounded hover:bg-[#80CBC4]/40 transition-colors cursor-pointer"
-                      aria-label="Đóng thông báo"
-                    >
-                      ✕
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Bộ chọn loại xe */}
+            <HeroVehicleSelector
+              selectedVehicle={selectedVehicle}
+              onSelectVehicle={setSelectedVehicle}
+            />
           </motion.div>
 
-          {/* RIGHT CONTEXT / ROUTE BADGE & DEBUG OVERLAY */}
+          {/* CỘT NGỮ CẢNH TUYẾN / ROUTE BADGE (PHẢI) */}
           <div className="go-hero-context-col flex flex-col items-end gap-2.5 pointer-events-auto">
-            {/* Minimal frosted route context badge */}
-            <div className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#FFFDF8]/85 backdrop-blur-md border border-[#E5E3DC]/80 shadow-[0_4px_16px_rgba(16,39,68,0.06)] text-xs font-semibold text-[#102744]">
-              <span className="w-2 h-2 rounded-full bg-[#0097A7] animate-pulse" />
+            <div className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFFDF8]/90 backdrop-blur-sm border border-[#E5E3DC]/90 shadow-[0_2px_8px_rgba(16,39,68,0.05)] text-xs font-semibold text-[#102744]">
+              <span className="w-2 h-2 rounded-full bg-[#0097A7]" />
               <span>{currentRoute.from}</span>
               <span className="text-[#0097A7]">→</span>
               <span>{currentRoute.to}</span>
               <span className="text-[10px] text-[#718096] border-l border-[#D8D4C9] pl-2 uppercase tracking-wider font-mono">
-                {selectedVehicle === 'sleeper' ? 'Giường Nằm' : selectedVehicle === 'limousine' ? 'Limousine VIP' : 'Cabin Hoàng Gia'}
+                {vehicleNameMap[selectedVehicle] || 'Giường Nằm'}
               </span>
             </div>
-
-            {/* Diagnostics are available only in explicit debug mode. */}
-            {isDebug && (
-              <div className="flex flex-wrap items-center justify-end gap-2 p-2.5 rounded-2xl bg-[#FFFDF8]/90 backdrop-blur-md border border-[#E5E3DC] shadow-md max-w-[420px]">
-                {timelineState !== 'ready' && !shouldReduceMotion && (
-                  <button
-                    type="button"
-                    onClick={handleSkipIntro}
-                    className="text-[11px] font-semibold bg-[#102744] hover:bg-[#0097A7] text-white px-2.5 py-1 rounded-full transition-all cursor-pointer shadow-sm flex items-center gap-1 active:scale-95"
-                  >
-                    Bỏ qua ▶
-                  </button>
-                )}
-                <span className="text-[10px] font-mono bg-[#102744] text-[#00E5FF] px-2 py-0.5 rounded border border-[#00E5FF]/40">
-                  {timelineState}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleReplayIntro}
-                  className="text-[11px] font-mono bg-[#0097A7] hover:bg-[#00838F] text-white px-2.5 py-0.5 rounded cursor-pointer shadow-sm"
-                >
-                  Replay ▶
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCoachReplayKey((k) => k + 1)}
-                  className="text-[11px] font-mono bg-[#37474F] hover:bg-[#455A64] text-white px-2 py-0.5 rounded cursor-pointer shadow-sm"
-                >
-                  Xe ▶
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDebugFlapAngle((prev) => (prev === 0 ? Math.PI : 0))}
-                  className="text-[11px] font-mono bg-[#263238] hover:bg-[#37474F] text-white px-2 py-0.5 rounded cursor-pointer shadow-sm"
-                >
-                  {debugFlapAngle === 0 ? 'Flap Mở' : 'Flap Gập'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSimulateVehicleError}
-                  className="text-[11px] font-mono bg-[#E65100] hover:bg-[#F57C00] text-white px-2 py-0.5 rounded cursor-pointer shadow-sm"
-                >
-                  Test Lỗi Xe
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSimulateSceneError}
-                  className="text-[11px] font-mono bg-[#00695C] hover:bg-[#00897B] text-white px-2 py-0.5 rounded cursor-pointer shadow-sm"
-                >
-                  Test Lỗi Cảnh
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentRoute((prev) => {
-                      if (prev.from === 'Đà Nẵng' && prev.to === 'Huế') {
-                        return { from: 'Đà Nẵng', to: 'Nha Trang' };
-                      }
-                      if (prev.from === 'Đà Nẵng' && prev.to === 'Nha Trang') {
-                        return { from: 'Đà Nẵng', to: 'TP. Hồ Chí Minh' };
-                      }
-                      if (prev.from === 'Đà Nẵng' && prev.to === 'TP. Hồ Chí Minh') {
-                        return { from: 'TP. Hồ Chí Minh', to: 'Đà Nẵng' };
-                      }
-                      if (prev.from === 'TP. Hồ Chí Minh' && prev.to === 'Đà Nẵng') {
-                        return { from: 'Đà Nẵng', to: 'Đà Lạt' };
-                      }
-                      return { from: 'Đà Nẵng', to: 'Huế' };
-                    });
-                  }}
-                  className="text-[11px] font-mono bg-[#00838F] hover:bg-[#0097A7] text-white px-2 py-0.5 rounded cursor-pointer shadow-sm"
-                >
-                  Đổi: {currentRoute.to}
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* BOTTOM DOCK: SEARCH FORM & VALUE PROPS */}
-        <div
-          className="go-search-dock"
-          id="hero-search"
-          onFocusCapture={handleFormInteraction}
-          onClickCapture={handleFormInteraction}
-        >
+        {/* SÂN KHẤU SCENE CHO MOBILE (SẮP XẾP TỰ NHIÊN GIỮA TEXT VÀ FORM TRONG FLOW) */}
+        <div className="lg:hidden relative w-full h-[260px] sm:h-[300px] overflow-hidden my-3 order-2">
+          <LayeredSceneStage
+            fromCity={currentRoute.from}
+            toCity={currentRoute.to}
+          />
+          <div
+            className="absolute z-20 pointer-events-none transition-all duration-500 ease-out"
+            style={{
+              right: routeConfig.roadAlignment.vehicleRightMobile,
+              bottom: routeConfig.roadAlignment.vehicleBottomMobile,
+              width: routeConfig.roadAlignment.vehicleWidthMobile || '78%',
+            }}
+          >
+            <VehicleMotionStage selectedVehicle={selectedVehicle} />
+          </div>
+        </div>
+
+        {/* BOTTOM DOCK: THANH TÌM CHUYẾN NỔI NHẸ PHÍA DƯỚI */}
+        <div className="go-search-dock" id="hero-search">
           <TripSearchForm
             variant="horizontal-bar"
             initialParams={{
@@ -452,16 +165,6 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
             onSearch={onSearch}
             isLoading={isSearching}
           />
-          <div className="flex justify-center gap-6 sm:gap-7 flex-wrap text-xs text-[#4A5568] mt-2.5">
-            <span className="flex items-center gap-2 font-medium">
-              <Armchair className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
-              Chọn chỗ trực quan.
-            </span>
-            <span className="flex items-center gap-2 font-medium">
-              <QrCode className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
-              Vé điện tử dễ tra cứu.
-            </span>
-          </div>
         </div>
       </div>
     </section>

@@ -236,7 +236,81 @@ export const NEUTRAL_SCENE_COMPOSITION: SceneComposition = {
   },
 };
 
+/**
+ * Master Composition: Đà Nẵng — Hội An Heritage Journey
+ * Illustrates Cầu Rồng (Đà Nẵng) and Phố Cổ Hội An & Sông Hoài.
+ */
+export const HERITAGE_DANANG_HOIAN_COMPOSITION: SceneComposition = {
+  id: 'heritage-danang-hoian',
+  title: 'Đà Nẵng — Hội An: Hành trình Phố Cổ & Sông Hoài',
+  asset: '/assets/images/scenes/journey_danang_hoian.webp',
+  cameraAngleId: 'danang_hoian_heritage',
+  supportedDirections: ['da-nang:hoi-an', 'hoi-an:da-nang'],
+  landmarks: {
+    'da-nang': {
+      id: 'da-nang',
+      label: 'Đà Nẵng',
+      subLabel: 'Cầu Rồng',
+      cx: 750,
+      cy: 190,
+      labelOffsetY: -23,
+      badgeWidth: 64,
+    },
+    'hoi-an': {
+      id: 'hoi-an',
+      label: 'Hội An',
+      subLabel: 'Phố Cổ & Sông Hoài',
+      cx: 1100,
+      cy: 175,
+      labelOffsetY: -23,
+      badgeWidth: 72,
+    },
+  },
+  getRoutePath(fromId: string, toId: string): string {
+    if (fromId === 'hoi-an' && toId === 'da-nang') {
+      return 'M 1100,175 Q 925,100 750,190';
+    }
+    return 'M 750,190 Q 925,100 1100,175';
+  },
+  vehicleAnchors: {
+    sleeper: {
+      width: '27.6%',
+      left: '48.3%',
+      top: '40.5%',
+      shadowWidth: '88%',
+      shadowHeight: '9%',
+      shadowTop: '90%',
+      shadowLeft: '50%',
+      motionDeltaX: 24,
+      motionDeltaY: -6,
+    },
+    limousine: {
+      width: '21.4%',
+      left: '52.0%',
+      top: '48.6%',
+      shadowWidth: '84%',
+      shadowHeight: '10%',
+      shadowTop: '98%',
+      shadowLeft: '50%',
+      motionDeltaX: 20,
+      motionDeltaY: -5,
+    },
+    cabin: {
+      width: '28.3%',
+      left: '48.0%',
+      top: '38.4%',
+      shadowWidth: '90%',
+      shadowHeight: '10%',
+      shadowTop: '98%',
+      shadowLeft: '50%',
+      motionDeltaX: 24,
+      motionDeltaY: -6,
+    },
+  },
+};
+
 export const SCENE_COMPOSITIONS: SceneComposition[] = [
+  HERITAGE_DANANG_HOIAN_COMPOSITION,
   HERITAGE_DANANG_HUE_COMPOSITION,
 ];
 

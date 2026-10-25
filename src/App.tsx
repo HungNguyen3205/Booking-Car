@@ -81,7 +81,7 @@ export const App: React.FC = () => {
 
       if (rawFrom || rawTo) {
         const from = rawFrom || 'Đà Nẵng';
-        const to = rawTo || (from === 'Huế' ? 'Đà Nẵng' : 'Huế');
+        const to = rawTo || (from === 'Hội An' ? 'Đà Nẵng' : 'Hội An');
         return {
           from,
           to,
@@ -92,7 +92,7 @@ export const App: React.FC = () => {
     }
     return {
       from: 'Đà Nẵng',
-      to: 'Huế',
+      to: 'Hội An',
       date: today,
       passengers: 1,
     };
