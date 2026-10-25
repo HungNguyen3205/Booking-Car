@@ -3,8 +3,12 @@ import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-
 import { BusPreloader } from './components/motion/BusPreloader';
 import { SiteHeader } from './components/layout/SiteHeader';
 import { SiteFooter } from './components/layout/SiteFooter';
-import { AnimatedBusHero } from './components/home/AnimatedBusHero';
 import { DanavaGoHero } from './components/danava-go/DanavaGoHero';
+
+// Lazy-load legacy hero comparison to exclude from initial production bundle
+const AnimatedBusHero = React.lazy(() =>
+  import('./components/home/AnimatedBusHero').then((m) => ({ default: m.AnimatedBusHero }))
+);
 import { FeaturedRoutes } from './components/home/FeaturedRoutes';
 import { VehicleExperience } from './components/home/VehicleExperience';
 import { BookingSteps } from './components/home/BookingSteps';

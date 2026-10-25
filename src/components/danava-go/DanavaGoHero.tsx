@@ -314,7 +314,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
             className="w-full lg:absolute lg:inset-0 lg:left-0 pointer-events-none z-[5] flex items-center justify-end"
           >
             <div
-              className="w-full lg:w-[62%] aspect-[1376/720] max-h-[570px] relative rounded-2xl overflow-hidden pointer-events-none border border-[#E5E3DC]/80 bg-[#F7F4EC] shadow-[0_16px_40px_-12px_rgba(16,39,68,0.08)] flex flex-col justify-between"
+              className="w-full lg:w-[62%] aspect-[16/11] sm:aspect-[16/10] lg:aspect-[1376/720] max-h-[570px] relative rounded-2xl overflow-hidden pointer-events-none border border-[#E5E3DC]/80 bg-[#F7F4EC] shadow-[0_16px_40px_-12px_rgba(16,39,68,0.08)] flex flex-col justify-between"
               data-testid="danava-go-stage-scaffold"
             >
               {/* Lazy-loaded 3D WebGL Canvas Layer */}
@@ -322,7 +322,15 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
                 className="absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-hidden"
                 aria-hidden="true"
               >
-                <Suspense fallback={<WebGLFallback message="Đang khởi tạo không gian 3D Three.js..." />}>
+                <Suspense
+                  fallback={
+                    <WebGLFallback
+                      fromCity={currentRoute.from}
+                      toCity={currentRoute.to}
+                      message="Đang khởi tạo không gian 3D Three.js..."
+                    />
+                  }
+                >
                   <JourneyCanvas
                     isDebug={isDebug}
                     flapAngle={debugFlapAngle}

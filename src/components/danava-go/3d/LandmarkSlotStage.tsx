@@ -1,14 +1,22 @@
-import React, { useRef } from 'react';
+import React, { useRef, Suspense } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import type { DestinationDefinition } from './destinationConfig';
 import type { TimelineProgress } from './journeyTimeline';
 import { DaNangLandmark } from './DaNangLandmark';
 import { HueLandmark } from './HueLandmark';
-import { NhaTrangLandmark } from './NhaTrangLandmark';
-import { HoChiMinhLandmark } from './HoChiMinhLandmark';
-import { NeutralScenicLandscape } from './NeutralScenicLandscape';
 import type { RouteTransitionController } from './routeTransition';
+
+// Requirements 2 & 3: Lazy-load non-initial landmarks on demand to optimize initial load
+const NhaTrangLandmark = React.lazy(() =>
+  import('./NhaTrangLandmark').then((m) => ({ default: m.NhaTrangLandmark }))
+);
+const HoChiMinhLandmark = React.lazy(() =>
+  import('./HoChiMinhLandmark').then((m) => ({ default: m.HoChiMinhLandmark }))
+);
+const NeutralScenicLandscape = React.lazy(() =>
+  import('./NeutralScenicLandscape').then((m) => ({ default: m.NeutralScenicLandscape }))
+);
 
 interface LandmarkSlotStageProps {
   destination: DestinationDefinition;
@@ -51,21 +59,26 @@ export const LandmarkSlotStage: React.FC<LandmarkSlotStageProps> = ({
 
   return (
     <group ref={rootRef} name={`LANDMARK_SLOT_${slot.toUpperCase()}_${destination.id}`}>
+      {/* Initial default pair (Đà Nẵng -> Huế) ready instantly */}
       {destination.id === 'da-nang' && (
         <DaNangLandmark slot={slot} timelineRef={timelineRef} isDebug={isDebug} />
       )}
       {destination.id === 'hue' && (
         <HueLandmark slot={slot} timelineRef={timelineRef} isDebug={isDebug} />
       )}
-      {destination.id === 'nha-trang' && (
-        <NhaTrangLandmark slot={slot} timelineRef={timelineRef} isDebug={isDebug} />
-      )}
-      {destination.id === 'ho-chi-minh' && (
-        <HoChiMinhLandmark slot={slot} timelineRef={timelineRef} isDebug={isDebug} />
-      )}
-      {!destination.hasDedicatedModel && (
-        <NeutralScenicLandscape slot={slot} timelineRef={timelineRef} isDebug={isDebug} />
-      )}
+
+      {/* Lazy-loaded landmark modules on user selection */}
+      <Suspense fallback={null}>
+        {destination.id === 'nha-trang' && (
+          <NhaTrangLandmark slot={slot} timelineRef={timelineRef} isDebug={isDebug} />
+        )}
+        {destination.id === 'ho-chi-minh' && (
+          <HoChiMinhLandmark slot={slot} timelineRef={timelineRef} isDebug={isDebug} />
+        )}
+        {!destination.hasDedicatedModel && (
+          <NeutralScenicLandscape slot={slot} timelineRef={timelineRef} isDebug={isDebug} />
+        )}
+      </Suspense>
     </group>
   );
 };

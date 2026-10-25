@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import { DANAVA_3D_CONFIG } from './environmentConfig';
 import { Environment } from './Environment';
 import { PaperTicket } from './PaperTicket';
@@ -108,7 +109,7 @@ const JourneyTimelineManager: React.FC<{
       isCompleteRef.current = true;
     }
 
-    // 3. Tôn trọng reduced motion ngay lập tức
+    // 3. Tôn trọng reduced motion ngay lập tức (Requirement 9)
     if (shouldReduceMotion) {
       elapsedRef.current = TIMELINE_CONFIG.totalDuration;
       isCompleteRef.current = true;
@@ -176,8 +177,55 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
   onSceneChangeStart,
   onSceneChangeComplete,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [hasWebGL] = useState<boolean>(() => checkWebGLAvailability());
   const [hasRendererError, setHasRendererError] = useState(false);
+
+  // Requirement 7: Pause animations when tab is hidden or hero is outside viewport
+  const [isTabVisible, setIsTabVisible] = useState(() => {
+    return typeof document !== 'undefined' ? document.visibilityState === 'visible' : true;
+  });
+  const [isInViewport, setIsInViewport] = useState(true);
+
+  // Requirement 6 & 10: Device-calibrated DPR, Shadows & Mobile camera layout
+  const [isMobileScreen, setIsMobileScreen] = useState(() => {
+    return typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileScreen(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Listen to tab visibility
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabVisible(document.visibilityState === 'visible');
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Listen to intersection with viewport
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInViewport(entry.isIntersecting);
+      },
+      { threshold: 0.05 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const isCanvasActive = isTabVisible && isInViewport;
 
   // Bộ đồng hồ tiến trình tập trung (Central Timeline Progress Reference)
   const timelineRef = useRef<TimelineProgress>(
@@ -214,41 +262,73 @@ export const JourneyCanvas: React.FC<JourneyCanvasProps> = ({
     requestRoute(fromCity, toCity);
   }, [fromCity, toCity, simulateSceneError, requestRoute, onSceneError, onSceneChangeStart]);
 
+  const { camera, colors } = DANAVA_3D_CONFIG;
+
+  // Requirement 10: Adaptive mobile camera framing
+  const activeFov = isMobileScreen ? 42 : camera.fov;
+  const activePosition: [number, number, number] = isMobileScreen
+    ? [0, 5.2, 10.4]
+    : camera.position;
+
+  // Requirement 6: Device-calibrated DPR (max 1.5 on mobile to avoid GPU throttling, max 2 on desktop)
+  const activeDpr: [number, number] = isMobileScreen ? [1, 1.5] : [1, 2];
+
+  // WebGL Context Lost & Restored event handling (Requirement 8)
+  const handleCreated = useCallback(
+    ({ camera: activeCamera, gl }: { camera: THREE.Camera; gl: THREE.WebGLRenderer }) => {
+      activeCamera.lookAt(camera.target[0], camera.target[1], camera.target[2]);
+      gl.setClearColor(colors.background, 0);
+
+      const canvasEl = gl.domElement;
+      const onContextLost = (e: Event) => {
+        e.preventDefault();
+        setHasRendererError(true);
+      };
+      const onContextRestored = () => {
+        setHasRendererError(false);
+      };
+
+      canvasEl.addEventListener('webglcontextlost', onContextLost);
+      canvasEl.addEventListener('webglcontextrestored', onContextRestored);
+    },
+    [camera.target, colors.background]
+  );
+
+  // Requirement 8: Poster fallback when WebGL fails or context is lost
   if (!hasWebGL || hasRendererError) {
     return (
       <WebGLFallback
-        message="Trình duyệt không hỗ trợ WebGL hoặc đã xảy ra lỗi bộ dựng đồ họa. Giao diện hoạt động ở chế độ tương thích."
+        fromCity={fromCity}
+        toCity={toCity}
+        message="Trình duyệt đang vận hành ở chế độ 2D Poster tiết kiệm tài nguyên. Mọi thao tác tìm chuyến, chọn ghế và đặt vé vẫn hoạt động mượt mà."
       />
     );
   }
 
-  const { camera, colors } = DANAVA_3D_CONFIG;
-
   return (
     <div
+      ref={containerRef}
       className={`w-full h-full relative pointer-events-none select-none ${className}`}
       data-testid="danava-go-3d-canvas-container"
     >
       <Canvas
         shadows
+        dpr={activeDpr}
+        frameloop={isCanvasActive ? 'always' : 'never'}
         camera={{
-          fov: camera.fov,
-          position: camera.position,
+          fov: activeFov,
+          position: activePosition,
           near: camera.near,
           far: camera.far,
         }}
         gl={{
           alpha: true,
           antialias: true,
-          powerPreference: 'high-performance',
+          powerPreference: isMobileScreen ? 'default' : 'high-performance',
           stencil: false,
           depth: true,
         }}
-        onCreated={({ camera: activeCamera, gl }) => {
-          // Orient camera smoothly towards the unified stage target
-          activeCamera.lookAt(camera.target[0], camera.target[1], camera.target[2]);
-          gl.setClearColor(colors.background, 0); // Transparent blend so no box frame is visible
-        }}
+        onCreated={handleCreated}
         onError={() => {
           setHasRendererError(true);
         }}

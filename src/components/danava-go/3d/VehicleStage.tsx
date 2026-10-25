@@ -5,9 +5,15 @@ import type { VehicleCategory } from '../../../types';
 import { VEHICLE_DEFINITIONS } from './vehicleConfig';
 import { ROAD_CONFIG, VEHICLE_PATH_CURVE, getVehicleTransformAt } from './roadConfig';
 import { SleeperCoach } from './SleeperCoach';
-import { LimousineVan } from './LimousineVan';
-import { CabinCoach } from './CabinCoach';
 import type { TimelineProgress } from './journeyTimeline';
+
+// Requirements 2 & 3: Lazy-load non-default vehicles on demand
+const LimousineVan = React.lazy(() =>
+  import('./LimousineVan').then((m) => ({ default: m.LimousineVan }))
+);
+const CabinCoach = React.lazy(() =>
+  import('./CabinCoach').then((m) => ({ default: m.CabinCoach }))
+);
 
 interface VehicleStageProps {
   currentVehicle: VehicleCategory;
@@ -218,18 +224,20 @@ const VehicleSlotInstance: React.FC<{
           yawAngle={0}
         />
       )}
-      {category === 'limousine' && (
-        <LimousineVan
-          position={[0, 0, 0]}
-          yawAngle={0}
-        />
-      )}
-      {category === 'cabin' && (
-        <CabinCoach
-          position={[0, 0, 0]}
-          yawAngle={0}
-        />
-      )}
+      <React.Suspense fallback={null}>
+        {category === 'limousine' && (
+          <LimousineVan
+            position={[0, 0, 0]}
+            yawAngle={0}
+          />
+        )}
+        {category === 'cabin' && (
+          <CabinCoach
+            position={[0, 0, 0]}
+            yawAngle={0}
+          />
+        )}
+      </React.Suspense>
     </group>
   );
 };
