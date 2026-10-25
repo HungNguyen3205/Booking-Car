@@ -180,12 +180,48 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
 
   return (
     <section
-      className="danava-go-hero w-full bg-[#F7F4EC] text-[#102744] overflow-visible relative"
+      className="danava-go-hero w-full bg-[#F7F4EC] text-[#102744] overflow-hidden relative"
       aria-label="DANAVA GO — Vé mở ra hành trình"
     >
-      <div className="go-shell">
-        {/* HERO STAGE: LEFT EDITORIAL + RIGHT 3D FOLDING TICKET STAGE */}
-        <div className="go-layout">
+      {/* 1. TOÀN CHIỀU RỘNG: SÂN KHẤU 3D BACKGROUND (FULL-WIDTH 3D SCENE STAGE) */}
+      <div
+        className="danava-go-hero-canvas-bg absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-hidden"
+        aria-hidden="true"
+        data-testid="danava-go-stage-scaffold"
+      >
+        <Suspense
+          fallback={
+            <WebGLFallback
+              fromCity={currentRoute.from}
+              toCity={currentRoute.to}
+              message="Đang mở hành trình của bạn…"
+            />
+          }
+        >
+          <JourneyCanvas
+            isDebug={isDebug}
+            flapAngle={debugFlapAngle}
+            shouldReduceMotion={!!shouldReduceMotion}
+            coachReplayKey={coachReplayKey}
+            fromCity={currentRoute.from}
+            toCity={currentRoute.to}
+            isIntroPlayed={isIntroPlayed}
+            introReplayKey={introReplayKey}
+            isSkipped={isSkipped}
+            onTimelineStateChange={setTimelineState}
+            onTimelineComplete={handleIntroComplete}
+            selectedVehicle={selectedVehicle}
+            onVehicleError={handleVehicleError}
+            simulateSceneError={simulateSceneErrorTrigger}
+            onSceneError={handleSceneError}
+          />
+        </Suspense>
+      </div>
+
+      {/* 2. LỚP GIAO DIỆN CHÍNH (EDITORIAL UI & SEARCH DOCK FLOATING ABOVE 3D SCENE) */}
+      <div className="go-shell relative z-10 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pt-6 sm:pt-8 pb-4 flex flex-col justify-between pointer-events-none">
+        {/* HÀNG TRÊN: TIÊU ĐỀ THƯƠNG HIỆU & CHỌN XE (TRÁI) + THẺ ĐỊA DANH / DEBUG CONTROLS (PHẢI) */}
+        <div className="flex flex-col lg:flex-row items-start justify-between gap-6 pointer-events-auto">
           {/* EDITORIAL CONTENT (LEFT) */}
           <motion.div
             className="go-copy"
@@ -200,7 +236,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
             </div>
 
             {/* Headline */}
-            <h1 className="go-title">
+            <h1 className="go-title text-[#102744]">
               <span className="block text-[#102744]">Đi một chuyến.</span>
               <span className="block text-[#102744]">
                 Mở ngàn <span className="go-title-experience">trải nghiệm.</span>
@@ -213,7 +249,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
             </p>
 
             {/* Vehicle Selection Chips */}
-            <div className="mb-4" role="group" aria-label="Chọn loại xe">
+            <div className="mb-2" role="group" aria-label="Chọn loại xe">
               <div className="flex flex-wrap items-center gap-2.5">
                 {vehicleOptions.map((v) => {
                   const isActive = selectedVehicle === v.id;
@@ -306,156 +342,94 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({
             </div>
           </motion.div>
 
-          {/* 3D TICKET SCENE STAGE (RIGHT / CENTER-RIGHT)
-              Stable geometry scaffold: exact aspect ratio to prevent layout shifts.
-              Seamlessly renders the Three.js 3D Canvas with soft lighting & cream background.
-          */}
-          <div
-            className="go-scene-column"
-          >
-            <div
-              className="go-scene"
-              data-testid="danava-go-stage-scaffold"
-            >
-              {/* Lazy-loaded 3D WebGL Canvas Layer */}
-              <div
-                className="absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-hidden"
-                aria-hidden="true"
-              >
-                <Suspense
-                  fallback={
-                    <WebGLFallback
-                      fromCity={currentRoute.from}
-                      toCity={currentRoute.to}
-                      message="Đang mở hành trình của bạn…"
-                    />
-                  }
-                >
-                  <JourneyCanvas
-                    isDebug={isDebug}
-                    flapAngle={debugFlapAngle}
-                    shouldReduceMotion={!!shouldReduceMotion}
-                    coachReplayKey={coachReplayKey}
-                    fromCity={currentRoute.from}
-                    toCity={currentRoute.to}
-                    isIntroPlayed={isIntroPlayed}
-                    introReplayKey={introReplayKey}
-                    isSkipped={isSkipped}
-                    onTimelineStateChange={setTimelineState}
-                    onTimelineComplete={handleIntroComplete}
-                    selectedVehicle={selectedVehicle}
-                    onVehicleError={handleVehicleError}
-                    simulateSceneError={simulateSceneErrorTrigger}
-                    onSceneError={handleSceneError}
-                  />
-                </Suspense>
-              </div>
-
-              {/* Diagnostics are available only in explicit debug mode. */}
-              {isDebug && (
-              <div className="relative z-10 flex items-center justify-between border-b border-[#E5E3DC]/60 px-5 pt-3.5 pb-2.5 bg-gradient-to-b from-[#FFFDF8]/90 to-transparent pointer-events-auto">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#0097A7]" />
-                  <span className="font-serif text-sm font-bold text-[#102744] tracking-wider">
-                    DANAVA GO • {currentRoute.from.toUpperCase()} → {currentRoute.to.toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* Nút bỏ qua intro nhanh nếu intro đang chạy */}
-                  {timelineState !== 'ready' && !shouldReduceMotion && (
-                    <button
-                      type="button"
-                      onClick={handleSkipIntro}
-                      className="pointer-events-auto text-[11px] font-semibold bg-[#102744] hover:bg-[#0097A7] text-white px-2.5 py-0.5 rounded-full transition-all cursor-pointer shadow-sm flex items-center gap-1 active:scale-95"
-                      title="Bỏ qua hiệu ứng mở vé để vào ngay trạng thái sẵn sàng"
-                    >
-                      Bỏ qua ▶
-                    </button>
-                  )}
-
-                  {isDebug && (
-                    <>
-                      <span
-                        className="pointer-events-auto text-[10px] font-mono bg-[#102744] text-[#00E5FF] px-2 py-0.5 rounded border border-[#00E5FF]/40"
-                        title="Trạng thái timeline tập trung"
-                      >
-                        {timelineState}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleReplayIntro}
-                        className="pointer-events-auto text-[11px] font-mono bg-[#0097A7] hover:bg-[#00838F] text-white px-2.5 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
-                        title="Phát lại toàn bộ intro 2.5s (mở vé, nổi cảnh, xe chạy, vẽ tuyến)"
-                      >
-                        Phát lại Intro ▶
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setCoachReplayKey((k) => k + 1)}
-                        className="pointer-events-auto text-[11px] font-mono bg-[#37474F] hover:bg-[#455A64] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
-                        title="Phát lại riêng xe chạy"
-                      >
-                        Xe ▶
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleSimulateVehicleError}
-                        className="pointer-events-auto text-[11px] font-mono bg-[#E65100] hover:bg-[#F57C00] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
-                        title="Giả lập lỗi tải xe để kiểm thử fallback và thông báo nhẹ"
-                      >
-                        Test Lỗi Xe ⚠
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleSimulateSceneError}
-                        className="pointer-events-auto text-[11px] font-mono bg-[#00695C] hover:bg-[#00897B] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
-                        title="Giả lập lỗi tải cảnh để kiểm thử không commit broken scene"
-                      >
-                        Test Lỗi Cảnh ⚠
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCurrentRoute((prev) => {
-                            if (prev.from === 'Đà Nẵng' && prev.to === 'Huế') {
-                              return { from: 'Đà Nẵng', to: 'Nha Trang' };
-                            }
-                            if (prev.from === 'Đà Nẵng' && prev.to === 'Nha Trang') {
-                              return { from: 'Đà Nẵng', to: 'TP. Hồ Chí Minh' };
-                            }
-                            if (prev.from === 'Đà Nẵng' && prev.to === 'TP. Hồ Chí Minh') {
-                              return { from: 'TP. Hồ Chí Minh', to: 'Đà Nẵng' };
-                            }
-                            if (prev.from === 'TP. Hồ Chí Minh' && prev.to === 'Đà Nẵng') {
-                              return { from: 'Đà Nẵng', to: 'Đà Lạt' };
-                            }
-                            return { from: 'Đà Nẵng', to: 'Huế' };
-                          });
-                        }}
-                        className="pointer-events-auto text-[11px] font-mono bg-[#00838F] hover:bg-[#0097A7] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
-                        title="Chuyển nhanh tuyến mẫu để kiểm thử landmark 3D (Huế, Nha Trang, TP. HCM đến/đi, Fallback)"
-                      >
-                        Đổi Tuyến: {currentRoute.from === 'TP. Hồ Chí Minh' ? 'TP. HCM (Đi) 🏙' : currentRoute.to === 'TP. Hồ Chí Minh' ? 'TP. HCM (Đến) 🏙' : currentRoute.to === 'Nha Trang' ? 'Nha Trang 🏖' : currentRoute.to === 'Đà Lạt' ? 'Đà Lạt (Fallback) 🌲' : 'Huế ⛩'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDebugFlapAngle((prev) => (prev === 0 ? Math.PI : 0))}
-                        className="pointer-events-auto text-[11px] font-mono bg-[#263238] hover:bg-[#37474F] text-white px-2 py-0.5 rounded transition-colors cursor-pointer shadow-sm"
-                        title="Góc xoay flap"
-                      >
-                        {debugFlapAngle === 0 ? 'Mở (0°)' : 'Gập (180°)'}
-                      </button>
-                    </>
-                  )}
-                  <span className="text-[11px] font-semibold text-[#718096] bg-[#FFF9ED] px-2.5 py-0.5 rounded-md border border-[#E5E3DC]">
-                    {currentRoute.from} → {currentRoute.to}
-                  </span>
-                </div>
-              </div>
-
-              )}
-
+          {/* RIGHT CONTEXT / ROUTE BADGE & DEBUG OVERLAY */}
+          <div className="flex flex-col items-end gap-2.5">
+            {/* Minimal frosted route context badge */}
+            <div className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#FFFDF8]/85 backdrop-blur-md border border-[#E5E3DC]/80 shadow-[0_4px_16px_rgba(16,39,68,0.06)] text-xs font-semibold text-[#102744]">
+              <span className="w-2 h-2 rounded-full bg-[#0097A7] animate-pulse" />
+              <span>{currentRoute.from}</span>
+              <span className="text-[#0097A7]">→</span>
+              <span>{currentRoute.to}</span>
+              <span className="text-[10px] text-[#718096] border-l border-[#D8D4C9] pl-2 uppercase tracking-wider font-mono">
+                {selectedVehicle === 'sleeper' ? 'Giường Nằm' : selectedVehicle === 'limousine' ? 'Limousine VIP' : 'Cabin Hoàng Gia'}
+              </span>
             </div>
+
+            {/* Diagnostics are available only in explicit debug mode. */}
+            {isDebug && (
+              <div className="flex flex-wrap items-center justify-end gap-2 p-2.5 rounded-2xl bg-[#FFFDF8]/90 backdrop-blur-md border border-[#E5E3DC] shadow-md max-w-[420px]">
+                {timelineState !== 'ready' && !shouldReduceMotion && (
+                  <button
+                    type="button"
+                    onClick={handleSkipIntro}
+                    className="text-[11px] font-semibold bg-[#102744] hover:bg-[#0097A7] text-white px-2.5 py-1 rounded-full transition-all cursor-pointer shadow-sm flex items-center gap-1 active:scale-95"
+                  >
+                    Bỏ qua ▶
+                  </button>
+                )}
+                <span className="text-[10px] font-mono bg-[#102744] text-[#00E5FF] px-2 py-0.5 rounded border border-[#00E5FF]/40">
+                  {timelineState}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleReplayIntro}
+                  className="text-[11px] font-mono bg-[#0097A7] hover:bg-[#00838F] text-white px-2.5 py-0.5 rounded cursor-pointer shadow-sm"
+                >
+                  Replay ▶
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCoachReplayKey((k) => k + 1)}
+                  className="text-[11px] font-mono bg-[#37474F] hover:bg-[#455A64] text-white px-2 py-0.5 rounded cursor-pointer shadow-sm"
+                >
+                  Xe ▶
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDebugFlapAngle((prev) => (prev === 0 ? Math.PI : 0))}
+                  className="text-[11px] font-mono bg-[#263238] hover:bg-[#37474F] text-white px-2 py-0.5 rounded cursor-pointer shadow-sm"
+                >
+                  {debugFlapAngle === 0 ? 'Flap Mở' : 'Flap Gập'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSimulateVehicleError}
+                  className="text-[11px] font-mono bg-[#E65100] hover:bg-[#F57C00] text-white px-2 py-0.5 rounded cursor-pointer shadow-sm"
+                >
+                  Test Lỗi Xe
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSimulateSceneError}
+                  className="text-[11px] font-mono bg-[#00695C] hover:bg-[#00897B] text-white px-2 py-0.5 rounded cursor-pointer shadow-sm"
+                >
+                  Test Lỗi Cảnh
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentRoute((prev) => {
+                      if (prev.from === 'Đà Nẵng' && prev.to === 'Huế') {
+                        return { from: 'Đà Nẵng', to: 'Nha Trang' };
+                      }
+                      if (prev.from === 'Đà Nẵng' && prev.to === 'Nha Trang') {
+                        return { from: 'Đà Nẵng', to: 'TP. Hồ Chí Minh' };
+                      }
+                      if (prev.from === 'Đà Nẵng' && prev.to === 'TP. Hồ Chí Minh') {
+                        return { from: 'TP. Hồ Chí Minh', to: 'Đà Nẵng' };
+                      }
+                      if (prev.from === 'TP. Hồ Chí Minh' && prev.to === 'Đà Nẵng') {
+                        return { from: 'Đà Nẵng', to: 'Đà Lạt' };
+                      }
+                      return { from: 'Đà Nẵng', to: 'Huế' };
+                    });
+                  }}
+                  className="text-[11px] font-mono bg-[#00838F] hover:bg-[#0097A7] text-white px-2 py-0.5 rounded cursor-pointer shadow-sm"
+                >
+                  Đổi: {currentRoute.to}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

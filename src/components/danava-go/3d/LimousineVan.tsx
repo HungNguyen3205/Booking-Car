@@ -151,10 +151,13 @@ export const LimousineVan: React.FC<LimousineVanProps> = ({
           receiveShadow
         >
           <boxGeometry args={[dimensions.width, 0.19, dimensions.length - 0.18]} />
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color={materials.bodyColor}
             roughness={materials.bodyRoughness}
             metalness={materials.bodyMetalness}
+            clearcoat={0.92}
+            clearcoatRoughness={0.08}
+            reflectivity={0.85}
             transparent={isTransparent}
             opacity={opacity}
           />
@@ -167,10 +170,13 @@ export const LimousineVan: React.FC<LimousineVanProps> = ({
           receiveShadow
         >
           <boxGeometry args={[dimensions.width - 0.015, 0.14, 0.16]} />
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color={materials.bodyColor}
             roughness={materials.bodyRoughness}
             metalness={materials.bodyMetalness}
+            clearcoat={0.92}
+            clearcoatRoughness={0.08}
+            reflectivity={0.85}
             transparent={isTransparent}
             opacity={opacity}
           />
@@ -183,10 +189,13 @@ export const LimousineVan: React.FC<LimousineVanProps> = ({
           castShadow={castShadow}
         >
           <boxGeometry args={[dimensions.width - 0.02, 0.11, 0.03]} />
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color={materials.windowColor}
             roughness={materials.windowRoughness}
             metalness={materials.windowMetalness}
+            transmission={0.15}
+            thickness={0.3}
+            ior={1.52}
             transparent={isTransparent}
             opacity={opacity}
           />
@@ -197,10 +206,11 @@ export const LimousineVan: React.FC<LimousineVanProps> = ({
           {/* Kính hông trái */}
           <mesh position={[-dimensions.width / 2 - 0.002, 0, 0]}>
             <boxGeometry args={[0.005, 0.095, dimensions.length - 0.28]} />
-            <meshStandardMaterial
+            <meshPhysicalMaterial
               color={materials.windowColor}
               roughness={materials.windowRoughness}
               metalness={materials.windowMetalness}
+              transmission={0.12}
               transparent={isTransparent}
               opacity={opacity}
             />
@@ -208,10 +218,11 @@ export const LimousineVan: React.FC<LimousineVanProps> = ({
           {/* Kính hông phải */}
           <mesh position={[dimensions.width / 2 + 0.002, 0, 0]}>
             <boxGeometry args={[0.005, 0.095, dimensions.length - 0.28]} />
-            <meshStandardMaterial
+            <meshPhysicalMaterial
               color={materials.windowColor}
               roughness={materials.windowRoughness}
               metalness={materials.windowMetalness}
+              transmission={0.12}
               transparent={isTransparent}
               opacity={opacity}
             />
@@ -221,7 +232,7 @@ export const LimousineVan: React.FC<LimousineVanProps> = ({
         {/* Kính sau đuôi xe (Rear Hatch Window) */}
         <mesh position={[0, 0.165, -dimensions.length / 2 + 0.035]}>
           <boxGeometry args={[dimensions.width - 0.04, 0.085, 0.006]} />
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color={materials.windowColor}
             roughness={materials.windowRoughness}
             metalness={materials.windowMetalness}
@@ -235,34 +246,53 @@ export const LimousineVan: React.FC<LimousineVanProps> = ({
           <boxGeometry args={[dimensions.width + 0.004, 0.008, dimensions.length - 0.16]} />
           <meshStandardMaterial
             color={materials.accentColor}
-            roughness={0.25}
-            metalness={0.80}
+            roughness={0.20}
+            metalness={0.88}
             transparent={isTransparent}
             opacity={opacity}
           />
         </mesh>
 
-        {/* Lưới tản nhiệt mạ Chrome phía trước (Chrome Front Grille) */}
-        <mesh position={[0, 0.082, dimensions.length / 2 + 0.001]}>
-          <boxGeometry args={[0.18, 0.048, 0.006]} />
-          <meshStandardMaterial
-            color={materials.chromeColor}
-            roughness={0.15}
-            metalness={0.92}
-            transparent={isTransparent}
-            opacity={opacity}
-          />
-        </mesh>
+        {/* Lưới tản nhiệt mạ Chrome đa nan phía trước (Chrome Front Grille) */}
+        <group position={[0, 0.082, dimensions.length / 2 + 0.002]}>
+          <mesh>
+            <boxGeometry args={[0.18, 0.052, 0.008]} />
+            <meshStandardMaterial
+              color={materials.chromeColor}
+              roughness={0.10}
+              metalness={0.96}
+              transparent={isTransparent}
+              opacity={opacity}
+            />
+          </mesh>
+          {/* Ngôi sao / Logo DCar trung tâm mạ crom */}
+          <mesh position={[0, 0, 0.005]}>
+            <cylinderGeometry args={[0.014, 0.014, 0.004, 16]} />
+            <meshStandardMaterial color="#FFFFFF" metalness={0.98} roughness={0.08} />
+          </mesh>
+        </group>
 
-        {/* Đèn pha LED Daylight sắc sảo (LED Jewel Headlights) */}
-        <mesh position={[-0.095, 0.098, dimensions.length / 2 + 0.002]}>
-          <boxGeometry args={[0.045, 0.024, 0.006]} />
-          <meshBasicMaterial color={materials.headlightColor} transparent={isTransparent} opacity={opacity} />
-        </mesh>
-        <mesh position={[0.095, 0.098, dimensions.length / 2 + 0.002]}>
-          <boxGeometry args={[0.045, 0.024, 0.006]} />
-          <meshBasicMaterial color={materials.headlightColor} transparent={isTransparent} opacity={opacity} />
-        </mesh>
+        {/* Cụm đèn pha LED Daylight kép sắc sảo (LED Jewel Headlights with DRL) */}
+        <group position={[-0.095, 0.098, dimensions.length / 2 + 0.003]}>
+          <mesh position={[0, 0.008, 0]}>
+            <boxGeometry args={[0.048, 0.006, 0.004]} />
+            <meshBasicMaterial color="#00E5FF" transparent={isTransparent} opacity={opacity} />
+          </mesh>
+          <mesh position={[0, -0.004, 0]}>
+            <boxGeometry args={[0.045, 0.018, 0.004]} />
+            <meshBasicMaterial color={materials.headlightColor} transparent={isTransparent} opacity={opacity} />
+          </mesh>
+        </group>
+        <group position={[0.095, 0.098, dimensions.length / 2 + 0.003]}>
+          <mesh position={[0, 0.008, 0]}>
+            <boxGeometry args={[0.048, 0.006, 0.004]} />
+            <meshBasicMaterial color="#00E5FF" transparent={isTransparent} opacity={opacity} />
+          </mesh>
+          <mesh position={[0, -0.004, 0]}>
+            <boxGeometry args={[0.045, 0.018, 0.004]} />
+            <meshBasicMaterial color={materials.headlightColor} transparent={isTransparent} opacity={opacity} />
+          </mesh>
+        </group>
 
         {/* Cụm đèn hậu LED dọc (Vertical LED Taillights) */}
         <mesh position={[-dimensions.width / 2 + 0.02, 0.145, -dimensions.length / 2 + 0.038]}>
@@ -278,11 +308,11 @@ export const LimousineVan: React.FC<LimousineVanProps> = ({
         <group position={[0, 0.165, dimensions.length / 2 - 0.17]}>
           <mesh position={[-dimensions.width / 2 - 0.028, 0, 0]}>
             <boxGeometry args={[0.018, 0.038, 0.024]} />
-            <meshStandardMaterial color={materials.bodyColor} roughness={0.3} transparent={isTransparent} opacity={opacity} />
+            <meshPhysicalMaterial color={materials.bodyColor} roughness={0.2} metalness={0.5} clearcoat={0.9} transparent={isTransparent} opacity={opacity} />
           </mesh>
           <mesh position={[dimensions.width / 2 + 0.028, 0, 0]}>
             <boxGeometry args={[0.018, 0.038, 0.024]} />
-            <meshStandardMaterial color={materials.bodyColor} roughness={0.3} transparent={isTransparent} opacity={opacity} />
+            <meshPhysicalMaterial color={materials.bodyColor} roughness={0.2} metalness={0.5} clearcoat={0.9} transparent={isTransparent} opacity={opacity} />
           </mesh>
         </group>
       </group>

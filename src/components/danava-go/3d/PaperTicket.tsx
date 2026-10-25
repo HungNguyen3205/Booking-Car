@@ -211,7 +211,7 @@ export const PaperTicket: React.FC<PaperTicketProps> = ({
       <mesh
         geometry={baseDeckGeometry}
         position={panels.baseDeck.centerOffset}
-        castShadow
+        castShadow={false}
         receiveShadow
       >
         <meshStandardMaterial
@@ -237,7 +237,7 @@ export const PaperTicket: React.FC<PaperTicketProps> = ({
         <mesh
           geometry={flapGeometry}
           position={panels.foldingFlap.localCenter}
-          castShadow
+          castShadow={false}
           receiveShadow
         >
           <meshStandardMaterial

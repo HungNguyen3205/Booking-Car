@@ -16,46 +16,46 @@ export const DANAVA_3D_CONFIG = {
     distantHills: '#DFDCD2',  // Subtle far background horizon
   },
 
-  // Three-quarter camera viewing perspective (derived from reference composition)
+  // Three-quarter camera viewing perspective calibrated for full-width cinematic hero
   camera: {
-    fov: 34,
+    fov: 35,
     near: 0.1,
     far: 80,
-    // [x, y, z] looking down-forward at a subtle angle towards stage center
-    position: [0, 4.1, 8.5] as [number, number, number],
-    target: [0, 0.30, 0] as [number, number, number],
+    // [x, y, z] looking forward-downward with focus on foreground vehicle on the right
+    position: [0.25, 3.3, 8.4] as [number, number, number],
+    target: [0.35, 0.40, 0] as [number, number, number],
   },
 
   // Unified lighting system (soft, consistent directional sun + fill)
   lighting: {
     ambient: {
-      intensity: 1.55,
+      intensity: 1.6,
     },
     keyLight: {
-      position: [-4.2, 7.5, 5.0] as [number, number, number],
-      intensity: 2.5,
+      position: [-4.5, 8.0, 5.5] as [number, number, number],
+      intensity: 2.8,
       castShadow: true,
       shadowMapSize: 1024,
       shadowBias: -0.0001,
       shadowCamera: {
         near: 0.5,
-        far: 24,
-        size: 5.5, // bounds of shadow frustum
+        far: 26,
+        size: 6.2, // bounds of shadow frustum
       },
     },
     fillLight: {
-      position: [4.5, 3.8, -2.5] as [number, number, number],
-      intensity: 0.8,
+      position: [4.8, 3.8, -2.2] as [number, number, number],
+      intensity: 0.95,
     },
   },
 
   // Ground plane calibrated to receive soft shadows without edge artifacts
   ground: {
-    width: 24,
-    height: 18,
+    width: 36,
+    height: 24,
     position: [0, -0.01, 0] as [number, number, number],
     rotation: [-Math.PI / 2, 0, 0] as [number, number, number],
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.16,
   },
 
   // Subtle atmospheric depth and gentle distant hills (no buildings, no cars)

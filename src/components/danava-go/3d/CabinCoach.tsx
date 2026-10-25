@@ -189,10 +189,13 @@ export const CabinCoach: React.FC<CabinCoachProps> = ({
           receiveShadow
         >
           <boxGeometry args={[dimensions.width, 0.28, dimensions.length - 0.04]} />
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color={materials.bodyColor}
             roughness={materials.bodyRoughness}
             metalness={materials.bodyMetalness}
+            clearcoat={0.95}
+            clearcoatRoughness={0.08}
+            reflectivity={0.88}
             transparent={isTransparent}
             opacity={opacity}
           />
@@ -205,10 +208,13 @@ export const CabinCoach: React.FC<CabinCoachProps> = ({
           receiveShadow
         >
           <boxGeometry args={[dimensions.width, 0.25, 0.08]} />
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color={materials.bodyColor}
             roughness={materials.bodyRoughness}
             metalness={materials.bodyMetalness}
+            clearcoat={0.95}
+            clearcoatRoughness={0.08}
+            reflectivity={0.88}
             transparent={isTransparent}
             opacity={opacity}
           />
@@ -221,10 +227,13 @@ export const CabinCoach: React.FC<CabinCoachProps> = ({
           castShadow={castShadow}
         >
           <boxGeometry args={[dimensions.width - 0.02, 0.12, 0.04]} />
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color={materials.windowColor}
             roughness={materials.windowRoughness}
             metalness={materials.windowMetalness}
+            transmission={0.16}
+            thickness={0.4}
+            ior={1.52}
             transparent={isTransparent}
             opacity={opacity}
           />

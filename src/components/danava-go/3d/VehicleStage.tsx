@@ -213,7 +213,7 @@ const VehicleSlotInstance: React.FC<{
   return (
     <group
       ref={rootRef}
-      scale={1.4}
+      scale={2.2}
       name={`VEHICLE_SLOT_${category.toUpperCase()}_${isExiting ? 'EXIT' : 'ACTIVE'}`}
     >
       {category === 'sleeper' && (

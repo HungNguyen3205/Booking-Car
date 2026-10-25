@@ -46,13 +46,13 @@ export const TICKET_CONFIG = {
     },
   },
 
-  // Realistic ivory cardstock material properties
+  // Realistic cardstock material properties calibrated to blend into page cream
   material: {
-    faceColor: '#FFFDF8',      // Elegant warm ivory face
-    edgeColor: '#EFE8DB',      // Slightly deeper paper fiber edge
-    creaseColor: '#D8D1C0',    // Indented pressed fold crease line
-    roughness: 0.88,           // Matte paper surface
-    metalness: 0.02,           // Non-metallic paper
-    shadowOpacity: 0.22,
+    faceColor: '#F7F4EC',      // Exact page cream for seamless continuous ground
+    edgeColor: '#EDE8DD',      // Subtle soft edge
+    creaseColor: '#E2DCD0',    // Indented pressed fold crease line
+    roughness: 0.95,           // Matte surface
+    metalness: 0.01,           // Non-metallic
+    shadowOpacity: 0.12,
   },
 } as const;

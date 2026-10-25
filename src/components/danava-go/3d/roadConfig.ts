@@ -24,8 +24,13 @@ import * as THREE from 'three';
  */
 
 export const ROAD_CONTROL_POINTS: [number, number, number][] = [
-  [3.05, .020, -.95], [2.65, .020, -.45], [2.75, .020, .45],
-  [1.65, .020, 1.0], [.35, .020, 1.12], [-1.25, .020, .82], [-3.25, .020, 1.3],
+  [-3.25, 0.020, 1.25], // Đà Nẵng (Origin mạn trái)
+  [-1.25, 0.020, 0.82],
+  [0.35, 0.020, 1.10],  // Đèo trung tâm
+  [1.65, 0.020, 1.02],  // Tiền cảnh đỗ xe VIP (Foreground right)
+  [2.75, 0.020, 0.45],
+  [2.65, 0.020, -0.45],
+  [3.05, 0.020, -0.95], // Huế (Destination mạn phải)
 ];
 
 // Khởi tạo đường dẫn xe (CatmullRomCurve3) khớp 100% với tim đường
@@ -37,15 +42,15 @@ export const VEHICLE_PATH_CURVE = new THREE.CatmullRomCurve3(
 );
 
 export const ROAD_CONFIG = {
-  // Thông số kích thước mặt đường
+  // Thông số kích thước mặt đường chuẩn hóa cho xe lớn tiền cảnh
   dimensions: {
-    roadWidth: 0.68,          // Bề rộng phần đường xe chạy
-    shoulderWidth: 0.05,      // Bề rộng lề đường hai bên
-    totalWidth: 0.78,         // Tổng bề rộng bao gồm cả gờ lề
-    dashLength: 0.18,         // Chiều dài mỗi vạch kẻ tim đường
-    dashGap: 0.14,            // Khoảng cách giữa các vạch tim đường
-    dashWidth: 0.035,         // Bề rộng vạch tim đường
-    roadY: 0.020,             // Cao độ mặt đường (nằm êm trên mặt giấy 0.016, không xuyên giấy)
+    roadWidth: 0.94,          // Bề rộng phần đường xe chạy mở rộng
+    shoulderWidth: 0.08,      // Bề rộng lề đường hai bên
+    totalWidth: 1.10,         // Tổng bề rộng bao gồm cả gờ lề
+    dashLength: 0.22,         // Chiều dài mỗi vạch kẻ tim đường
+    dashGap: 0.16,            // Khoảng cách giữa các vạch tim đường
+    dashWidth: 0.045,         // Bề rộng vạch tim đường
+    roadY: 0.020,             // Cao độ mặt đường (nằm êm trên mặt phẳng, không xuyên nền)
     dashY: 0.022,             // Cao độ vạch sơn (ngay trên mặt nhựa đường, triệt tiêu z-fighting)
   },
 
@@ -61,8 +66,8 @@ export const ROAD_CONFIG = {
 
   // Đoạn xe tiến vào và điểm dừng đỗ chuẩn
   vehicleKeyframes: {
-    entryT: 0.0,              // Xe xuất phát ở đầu tuyến (t = 0.0)
-    stopT: 0.62,              // Điểm dừng xe cuối cùng (t = 0.62)
+    entryT: 0.0,              // Xe xuất phát ở đầu tuyến (t = 0.0 tại Đà Nẵng)
+    stopT: 0.52,              // Điểm dừng xe tiền cảnh chuẩn (t = 0.52 đỗ chếch 3/4 đón mắt nhìn)
   },
 } as const;
 

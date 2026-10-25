@@ -1,23 +1,165 @@
-/* Editorial copy and scene have separate grid tracks; text never crosses landmarks. */
-.go-shell { max-width: 1380px; margin: auto; padding: 0 32px 28px; }
-.go-layout { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.3fr); align-items: center; min-height: 490px; position: relative; }
-.go-copy { position: relative; z-index: 2; padding: 36px 0 42px; min-width: 0; }
-.go-copy > div:first-child { font-size: 10px; letter-spacing: .16em; max-width: 340px; line-height: 1.8; margin-bottom: 22px; }
-.go-title { font-family: var(--font-serif, 'Noto Serif', serif); font-size: clamp(43px, 4.1vw, 60px); font-weight: 700; line-height: 1.12; letter-spacing: -.045em; color: #102744; margin: 0 0 24px; }
-.go-title-experience { display: block; white-space: nowrap; }
-.go-copy > p { max-width: 370px; font-size: 16px; line-height: 1.8; margin-bottom: 28px; }
-.go-copy [role=group] button { padding-inline: 15px; font-size: 12px; }
-.go-copy [role=group] button:focus-visible { outline: 2px solid #0097a7; outline-offset: 4px; }
-.go-scene-column { min-width: 0; position: relative; z-index: 1; }
-.go-scene { position: relative; width: calc(100% + 36px); margin-left: -12px; height: 490px; pointer-events: none; }
-.go-scene::before { content: ''; position: absolute; inset: 8% 2% 7%; border-radius: 50%; background: radial-gradient(ellipse, #e9ece080, #f7f4ec00 70%); }
-.go-search-dock { position: relative; z-index: 20; margin-top: -4px; }
-.go-label { position: absolute; transform: translate(-50%, -100%); opacity: 0; pointer-events: none; z-index: 3; }
-.go-label-content { padding: 7px 13px; border: 1px solid #e6e3d9; border-radius: 12px; background: #fffdf8f0; box-shadow: 0 5px 18px #1027440b; white-space: nowrap; text-align: center; }
-.go-label-content strong { display: block; font-size: 13px; color: #102744; }
-.go-label-content small { font-size: 10px; color: #687988; }
-.go-label-pin { width: 7px; height: 7px; margin: 7px auto 0; background: #0097a7; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 0 3px #0097a71a; }
-.go-label-arrival .go-label-pin { background: #c58a36; box-shadow: 0 0 0 3px #c58a361a; }
-@media(min-width:1600px) { .go-layout { min-height: 530px; } .go-scene { height: 530px; } }
-@media(max-width:1023px) { .go-layout { grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); min-height: 410px; } .go-title { font-size: 42px; } .go-scene { height: 400px; width: calc(100% + 20px); margin-left: 0; } .go-copy { padding-block: 28px; } .go-copy > p { font-size: 14px; } }
-@media(max-width:767px) { .go-shell { padding: 0 20px 22px; } .go-layout { display: flex; flex-direction: column; align-items: stretch; } .go-copy { padding: 28px 0 0; } .go-title { font-size: clamp(36px, 9.7vw, 48px); margin-bottom: 18px; } .go-copy > div:first-child { margin-bottom: 16px; font-size: 9px; } .go-copy > p { margin-bottom: 20px; font-size: 14px; } .go-scene { width: 100%; margin: -8px 0 0; height: 300px; } .go-search-dock { margin-top: 0; } .go-label-content { padding: 5px 8px; } .go-label-content strong { font-size: 11px; } .go-label-content small { display: none; } }
+/* DANAVA GO — Full-Width Hero Stage & Editorial Design System */
+.danava-go-hero {
+  position: relative;
+  width: 100%;
+  background-color: #F7F4EC;
+  color: #102744;
+  overflow: hidden;
+  min-height: 680px;
+}
+
+@media (min-width: 1024px) {
+  .danava-go-hero {
+    min-height: 740px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .danava-go-hero {
+    min-height: 780px;
+  }
+}
+
+/* Full-width 3D Canvas Stage Background Layer */
+.danava-go-hero-canvas-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.danava-go-hero-canvas-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 75% 55%, transparent 40%, rgba(247, 244, 236, 0.45) 85%);
+}
+
+/* Editorial & UI Shell floating above 3D scene */
+.go-shell {
+  position: relative;
+  z-index: 10;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 24px 28px;
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .go-shell {
+    padding: 32px 36px 32px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .go-shell {
+    padding: 36px 48px 36px;
+  }
+}
+
+/* Left Editorial Copy Card */
+.go-copy {
+  pointer-events: auto;
+  position: relative;
+  z-index: 15;
+  max-width: 540px;
+  padding: 28px 32px;
+  border-radius: 24px;
+  background: rgba(247, 244, 236, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(229, 227, 220, 0.85);
+  box-shadow: 0 12px 36px rgba(16, 39, 68, 0.06);
+}
+
+@media (max-width: 767px) {
+  .go-copy {
+    padding: 20px 20px;
+    border-radius: 20px;
+    max-width: 100%;
+    background: rgba(247, 244, 236, 0.94);
+  }
+}
+
+.go-title {
+  font-family: var(--font-serif, 'Noto Serif', serif);
+  font-size: clamp(34px, 3.4vw, 54px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  color: #102744;
+  margin: 0 0 16px;
+}
+
+.go-title-experience {
+  color: #0097A7;
+  white-space: nowrap;
+}
+
+.go-copy [role=group] button:focus-visible {
+  outline: 2px solid #0097A7;
+  outline-offset: 3px;
+}
+
+/* Search Dock across bottom */
+.go-search-dock {
+  pointer-events: auto;
+  position: relative;
+  z-index: 30;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+/* 3D Destination Pins & Labels */
+.go-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.go-label-content {
+  padding: 7px 13px;
+  border: 1px solid #E6E3D9;
+  border-radius: 12px;
+  background: rgba(255, 253, 248, 0.95);
+  box-shadow: 0 6px 20px rgba(16, 39, 68, 0.08);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.go-label-content strong {
+  display: block;
+  font-size: 13px;
+  color: #102744;
+}
+
+.go-label-content small {
+  font-size: 10px;
+  color: #687988;
+}
+
+.go-label-pin {
+  width: 7px;
+  height: 7px;
+  margin: 7px auto 0;
+  background: #0097A7;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(0, 151, 167, 0.15);
+}
+
+.go-label-arrival .go-label-pin {
+  background: #C58A36;
+  box-shadow: 0 0 0 3px rgba(197, 138, 54, 0.15);
+}

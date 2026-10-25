@@ -33,26 +33,37 @@ export const COACH_CONFIG = {
     axleHeight: 0.078,        // Cao độ tâm trục bánh xe (= wheelRadius)
   },
 
-  // Vật liệu và màu sắc xe Giường nằm cao cấp DANAVA GO
+  // Vật liệu và màu sắc xe Giường nằm cao cấp DANAVA GO (PBR Physical Materials)
   materials: {
-    bodyColor: '#18395A',     // Navy thương hiệu DANAVA GO
-    bodyRoughness: 0.38,      // Ánh satin trang nhã, không bóng nhựa
-    bodyMetalness: 0.22,      // Ánh kim nhẹ của sơn ô tô cao cấp
+    bodyColor: '#102744',     // Deep Royal Navy thương hiệu DANAVA GO
+    bodyRoughness: 0.16,      // Độ nhám sơn ô tô cao cấp
+    bodyMetalness: 0.42,      // Ánh kim metallic sang trọng
+    clearcoat: 0.95,          // Lớp phủ bóng gương (clearcoat automotive lacquer)
+    clearcoatRoughness: 0.08, // Độ mịn lớp bóng gương
     accentTeal: '#0097A7',    // Đường chỉ eo thương hiệu Teal
-    windowColor: '#647F91',   // Kính 2 tầng sẫm màu chống chói
-    windowRoughness: 0.12,    // Kính phản chiếu ánh sáng môi trường
-    windowMetalness: 0.18,
-    tireColor: '#1A1D20',     // Cao su lốp xám than mờ
-    tireRoughness: 0.90,
-    rimColor: '#D8DCE2',      // Mâm đúc hợp kim bạc sáng
-    rimRoughness: 0.25,
-    rimMetalness: 0.80,
-    chromeColor: '#F0F4F8',   // Viền lưới tản nhiệt chrome
-    headlightColor: '#FFFDF0', // Đèn pha LED xenon ấm
+    accentGold: '#D4AF37',    // Đường chỉ mạ vàng champagne điểm xuyết
+    windowColor: '#0B1320',   // Kính 2 tầng sẫm màu chống chói cao cấp
+    windowRoughness: 0.06,    // Kính phản chiếu ánh sáng môi trường
+    windowMetalness: 0.15,
+    windowTransmission: 0.18, // Độ truyền quang tinh tế
+    tireColor: '#181A1D',     // Cao su lốp xám than cao cấp
+    tireRoughness: 0.88,
+    rimColor: '#E2E8F0',      // Mâm đúc hợp kim bạc sáng
+    rimRoughness: 0.15,
+    rimMetalness: 0.92,
+    brakeCaliperColor: '#0097A7', // Kẹp phanh thể thao Teal DANAVA
+    chromeColor: '#F8FAFC',   // Viền lưới tản nhiệt chrome sáng bóng
+    chromeMetalness: 0.96,
+    chromeRoughness: 0.08,
+    drlEmissive: '#00E5FF',   // Dải LED định vị ban ngày DRL xanh băng
+    drlEmissiveIntensity: 2.2,
+    headlightColor: '#FFFFFF', // Đèn pha LED xenon trắng tinh
+    headlightEmissive: '#FFFDF0',
     taillightColor: '#E53935', // Đèn hậu LED đỏ
+    taillightEmissive: '#FF1744',
     fogLightColor: '#FFB300',  // Đèn gầm phá sương vàng hổ phách
-    shadowColor: '#08101C',   // Bóng gầm tiếp xúc
-    shadowOpacity: 0.58,
+    shadowColor: '#050B14',   // Bóng gầm tiếp xúc
+    shadowOpacity: 0.65,
   },
 
   // Cấu hình chuyển động xe chạy dọc đường và quay bánh theo vật lý
@@ -65,8 +76,8 @@ export const COACH_CONFIG = {
 
   // Metadata mô hình phục vụ báo cáo kiểm kê & đối soát kỹ thuật
   meta: {
-    modelType: 'Procedural 3D Rig (Three.js Geometry)',
-    isPlaceholderPrototype: true, // Dựng đầy đủ chi tiết: thân, kính 2 tầng, mui AC, 4 bánh, đèn, bóng gầm
+    modelType: 'Procedural 3D Rig (Three.js Compound PBR Geometry)',
+    isPlaceholderPrototype: true, // Bản thử nghiệm kỹ thuật (Technical Prototype), không coi là asset photoreal thương phẩm
     branding: 'DANAVA GO Clean Livery (No third-party labels)',
     futureGlbSpec: {
       format: 'glTF 2.0 Binary (.glb)',

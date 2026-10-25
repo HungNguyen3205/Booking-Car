@@ -476,3 +476,25 @@
 - Removed hardcoded date/time/seat and heritage-only text from decorative ticket texture.
 - Verification: build, lint and diff check passed. Chromium production preview: 1440x900, 1280x800 and 390px without horizontal overflow or page errors. Vehicle changes, reverse route and edited date preservation checked with reduced motion enabled. Initial non-reduced-motion render also checked, but software GPU does not establish real-device FPS or full intro quality.
 - Limits: existing procedural buses/gate remain stylized, not production-quality GLB assets matching the video. No new photoreal models or textures were fabricated. Mobile device performance and full payment/issuance regression were not re-tested.
+
+### Prototype Refinement: Full-Width Hero, Foreground Vehicle & Staging — 25/10/2026
+- **Tái cấu trúc bố cục Hero**:
+  - Chuyển đổi từ khung 2 cột giới hạn (`.go-layout`) sang sân khấu 3D toàn chiều rộng (`.danava-go-hero` với canvas trải rộng toàn cảnh `inset-0 pointer-events-none`).
+  - Bảo vệ độ tương phản chữ bằng thẻ editorial card mờ kính cao cấp (`bg-[rgba(247,244,236,0.88)] backdrop-blur-md`) ở góc trên bên trái: tiêu đề "Đi một chuyến. Mở ngàn trải nghiệm." và mô tả giữ chuẩn typography navy `#102744`, không tràn hay bị rối mắt.
+  - Form tìm kiếm dạng thanh ngang `TripSearchForm` dock cố định ở đáy hero, z-index 30, tương tác bàn phím và click trơn tru.
+  - Huy hiệu tuyến rút gọn (`Đà Nẵng → Huế | GIƯỜNG NẰM`) tinh tế ở góc trên bên phải.
+- **Tạo hình & Vật liệu Xe tiền cảnh (PBR Materials)**:
+  - Phóng đại tỷ lệ xe từ `1.4` lên `2.2`, đặt tại tiền cảnh góc 3/4 đón ánh nhìn camera.
+  - Đổi chiều đường cong theo tự nhiên: Đà Nẵng ở bên trái ($X < -1.8$), Đèo Hải Vân ở giữa, Huế ở bên phải ($X > 1.8$). Xe đỗ tại $t = 0.52$ hướng đầu về phía trước bên phải, phô diễn cụm lưới tản nhiệt chrome, đèn xenon projector và dải LED DRL chữ L xanh cyan `#00E5FF`.
+  - Nâng cấp thân vỏ sang `MeshPhysicalMaterial`: sơn phủ bóng ô tô (`clearcoat: 0.95`, `clearcoatRoughness: 0.08`), màu xanh Navy thương hiệu `#102744`, kính chống nắng sẫm màu có khung phân chia khoang giường nằm tầng 1 và tầng 2.
+  - Cụm bánh xe chi tiết: mâm đúc 8 nan, lốp cao su rãnh lăn, đĩa phanh thép và cùm phanh Teal `#0097A7`.
+  - Cập nhật vật liệu tương đương cho Limousine Van và Cabin VIP.
+- **Hòa trộn mặt vé và nền Cream**:
+  - Đồng bộ `material.faceColor` sang `#F7F4EC` (chuẩn màu nền trang web). Tắt `castShadow` trên tấm đế vé giấy để loại bỏ khung bóng chữ nhật thô cứng, cho phép sa bàn diorama nằm mượt mà trên nền đất cream vô tận.
+- **Kiểm định toàn diện**:
+  - `npx oxlint`: 0 warnings, 0 errors trên 67 files.
+  - `npm run build`: hoàn tất trong 2.83s, tạo các chunk tối ưu hóa.
+  - Playwright headless kiểm thử viewport 1440x900, đổi loại xe sang Limousine và Cabin VIP, mobile 390px, và luồng đặt vé: Tìm chuyến (8 chuyến khả dụng) ➔ Chọn chuyến ➔ Sơ đồ 16 chỗ Limousine. Toàn bộ logic booking được bảo toàn 100%.
+- **Giới hạn kỹ thuật còn lại (Minh bạch Prototype)**:
+  - Mô hình hiện tại là hình học procedural/compound Three.js rig được tinh chỉnh vật lý PBR, **không phải mô hình quét 3D / photoreal GLB hoàn thiện chuẩn thương phẩm**.
+  - Toàn bộ metadata cấu hình được đánh dấu rõ ràng `isPlaceholderPrototype: true`. Tuyệt đối không bịa đặt quyền sở hữu hoặc chất lượng asset.
