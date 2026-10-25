@@ -54,6 +54,8 @@ export const CentralPassTransition: React.FC<CentralPassTransitionProps> = ({
       { x: 0.12, z: -0.80, scale: 0.26, color: '#225238' },
       { x: 0.38, z: -0.68, scale: 0.22, color: '#2E6647' },
       { x: 0.62, z: -0.52, scale: 0.17, color: '#3A6B4C' },
+      { x: -0.28, z: -1.15, scale: 0.30, color: '#1E4A32' },
+      { x: 0.25, z: -1.30, scale: 0.34, color: '#24563B' },
     ];
   }, []);
 
@@ -66,10 +68,23 @@ export const CentralPassTransition: React.FC<CentralPassTransitionProps> = ({
       visible={!isHidden}
     >
       {/* ---------------------------------------------------------------------
-          1. ĐỒI XANH ĐÈO HẢI VÂN Ở HẬU CẢNH TRUNG TÂM (CENTRAL HILLS)
-          Các ngọn đồi thoai thoải uốn lượn phía sau khúc cua đèo Z = -0.32
+          1. HỆ THỐNG ĐỒI NÚI ĐÈO HẢI VÂN 3 TẦNG ĐA LỚP (MULTI-LAYER SCENIC RIDGES)
+          Vươn cao lên nửa trên của Canvas, tạo chiều sâu từ hậu cảnh xuống tiền cảnh
           --------------------------------------------------------------------- */}
-      <group position={[0, 0, -1.05]}><ScenicRidge width={1.8} depth={.8} height={.45} color="#8EA38B" /></group>
+      {/* Tầng 1: Đồi thấp thoai thoải cận cảnh sườn đèo */}
+      <group position={[0, 0, -0.95]}>
+        <ScenicRidge width={2.2} depth={0.85} height={0.55} color="#7E9B88" />
+      </group>
+
+      {/* Tầng 2: Khối núi Đèo Hải Vân hùng vĩ vươn cao trung cảnh */}
+      <group position={[0.45, 0, -2.60]}>
+        <ScenicRidge width={5.6} depth={1.8} height={1.55} color="#486856" />
+      </group>
+
+      {/* Tầng 3: Dãy núi xa Trường Sơn sương mờ hòa sắc vào chân trời */}
+      <group position={[0.20, 0, -5.80]}>
+        <ScenicRidge width={9.2} depth={2.5} height={2.10} color="#9DB5A6" />
+      </group>
 
       {/* ---------------------------------------------------------------------
           2. RẶNG CÂY RỪNG ĐÈO HẢI VÂN (PASS RIDGE TREES)

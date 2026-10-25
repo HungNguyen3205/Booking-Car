@@ -21,9 +21,9 @@ export const DANAVA_3D_CONFIG = {
     fov: 34,
     near: 0.1,
     far: 80,
-    // [x, y, z] looking forward-downward with focus on foreground vehicle on the right
-    position: [0.35, 3.2, 8.2] as [number, number, number],
-    target: [0.45, 0.40, 0] as [number, number, number],
+    // [x, y, z] looking forward with focus on foreground vehicle on the right and layered mountains above
+    position: [0.20, 2.75, 7.80] as [number, number, number],
+    target: [0.30, 0.70, 0.20] as [number, number, number],
   },
 
   // Unified lighting system (soft, consistent directional sun + fill)

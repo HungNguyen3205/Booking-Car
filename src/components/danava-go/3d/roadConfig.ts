@@ -26,10 +26,10 @@ import * as THREE from 'three';
 export const ROAD_CONTROL_POINTS: [number, number, number][] = [
   [-3.25, 0.020, 1.25], // Đà Nẵng (Origin mạn trái)
   [-1.25, 0.020, 0.82],
-  [0.35, 0.020, 1.10],  // Đèo trung tâm
-  [1.75, 0.020, 1.85],  // Tiền cảnh đỗ xe VIP (Foreground 3/4 golden beauty angle)
-  [2.85, 0.020, 0.70],
-  [2.70, 0.020, -0.45],
+  [0.25, 0.020, 1.05],  // Đèo trung tâm
+  [1.35, 0.020, 2.05],  // Tiền cảnh đỗ xe VIP (Đoạn cong uốn tự nhiên đưa tiếp tuyến chĩa góc 3/4 hoàn hảo)
+  [2.45, 0.020, 1.25],
+  [2.75, 0.020, -0.25],
   [3.05, 0.020, -0.95], // Huế (Destination mạn phải)
 ];
 
@@ -67,7 +67,7 @@ export const ROAD_CONFIG = {
   // Đoạn xe tiến vào và điểm dừng đỗ chuẩn
   vehicleKeyframes: {
     entryT: 0.0,              // Xe xuất phát ở đầu tuyến (t = 0.0 tại Đà Nẵng)
-    stopT: 0.52,              // Điểm dừng xe tiền cảnh chuẩn 3/4 golden angle
+    stopT: 0.54,              // Điểm dừng xe tiền cảnh chuẩn 3/4 golden angle, tạo khoảng thoáng hoàn hảo với Cầu Rồng
   },
 } as const;
 

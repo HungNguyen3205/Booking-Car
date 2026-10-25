@@ -25,6 +25,58 @@ interface VehicleStageProps {
 
 const TOTAL_CURVE_DISTANCE = VEHICLE_PATH_CURVE.getLength(); // Chiều dài cung đường cong xe chạy
 
+interface CachedMaterialProps {
+  transparent: boolean;
+  opacity: number;
+  depthWrite: boolean;
+}
+
+/**
+ * Điều khiển opacity an toàn cho toàn bộ hierarchy xe trong quá trình chuyển đổi:
+ * - Bảo lưu thuộc tính gốc (transparent, opacity, depthWrite) của từng material (kính, tem, shadow texture)
+ * - Khi fade transition: scale opacity theo tỷ lệ fadeFactor * origOpacity
+ * - Khi đỗ tĩnh ổn định: khôi phục nguyên vẹn thuộc tính gốc, TUYỆT ĐỐI không ép transparent = false lên mesh trong suốt
+ */
+function applyVehicleFade(root: THREE.Group, fadeFactor: number, isReadyIdle: boolean) {
+  root.traverse((child) => {
+    if ((child as THREE.Mesh).isMesh) {
+      const mesh = child as THREE.Mesh;
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      mats.forEach((m) => {
+        if (!m) return;
+        // Lưu cache thuộc tính ban đầu nếu chưa có
+        if (!m.userData.__danavaOrigMat) {
+          m.userData.__danavaOrigMat = {
+            transparent: m.transparent,
+            opacity: m.opacity,
+            depthWrite: m.depthWrite,
+          } as CachedMaterialProps;
+        }
+
+        const orig = m.userData.__danavaOrigMat as CachedMaterialProps;
+
+        if (isReadyIdle) {
+          // Khôi phục chính xác 100% thuộc tính gốc ban đầu
+          m.transparent = orig.transparent;
+          m.opacity = orig.opacity;
+          m.depthWrite = orig.depthWrite;
+        } else {
+          // Đang trong tiến trình fade in hoặc fade out
+          const targetOpacity = orig.opacity * Math.max(0, Math.min(1, fadeFactor));
+          m.opacity = targetOpacity;
+          if (orig.transparent) {
+            m.transparent = true;
+            m.depthWrite = orig.depthWrite;
+          } else {
+            m.transparent = fadeFactor < 0.999;
+            m.depthWrite = fadeFactor >= 0.999 ? orig.depthWrite : false;
+          }
+        }
+      });
+    }
+  });
+}
+
 /**
  * Slot render độc lập cho từng instance xe trong Scene Graph
  * Tự quản lý transform vị trí, góc yaw, quay bánh và độ mờ opacity trực tiếp trong useFrame
@@ -126,19 +178,8 @@ const VehicleSlotInstance: React.FC<{
         if (child.name === 'WHEEL_SPIN') {
           child.rotation.x = wheelAngle;
         }
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh;
-          if (Array.isArray(mesh.material)) {
-            mesh.material.forEach((m) => {
-              m.transparent = opacity < 0.999;
-              m.opacity = opacity;
-            });
-          } else if (mesh.material) {
-            mesh.material.transparent = opacity < 0.999;
-            mesh.material.opacity = opacity;
-          }
-        }
       });
+      applyVehicleFade(rootRef.current, opacity, false);
       return;
     }
 
@@ -165,23 +206,12 @@ const VehicleSlotInstance: React.FC<{
         if (child.name === 'WHEEL_SPIN') {
           child.rotation.x = wheelAngle;
         }
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh;
-          if (Array.isArray(mesh.material)) {
-            mesh.material.forEach((m) => {
-              m.transparent = opacity < 0.999;
-              m.opacity = opacity;
-            });
-          } else if (mesh.material) {
-            mesh.material.transparent = opacity < 0.999;
-            mesh.material.opacity = opacity;
-          }
-        }
       });
+      applyVehicleFade(rootRef.current, opacity, false);
       return;
     }
 
-    // Trạng thái đỗ tĩnh ổn định (Ready Idle at stopT = 0.62)
+    // Trạng thái đỗ tĩnh ổn định (Ready Idle at stopT)
     const defaultTransform = getVehicleTransformAt(stopT);
     rootRef.current.position.set(
       defaultTransform.position.x,
@@ -195,19 +225,8 @@ const VehicleSlotInstance: React.FC<{
       if (child.name === 'WHEEL_SPIN') {
         child.rotation.x = stopWheelAngle;
       }
-      if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh;
-        if (Array.isArray(mesh.material)) {
-          mesh.material.forEach((m) => {
-            m.transparent = false;
-            m.opacity = 1.0;
-          });
-        } else if (mesh.material) {
-          mesh.material.transparent = false;
-          mesh.material.opacity = 1.0;
-        }
-      }
     });
+    applyVehicleFade(rootRef.current, 1.0, true);
   });
 
   return (

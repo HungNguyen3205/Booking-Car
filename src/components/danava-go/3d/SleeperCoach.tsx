@@ -269,6 +269,36 @@ function createFrontHoodWaveTexture(): THREE.CanvasTexture {
   return texture;
 }
 
+/**
+ * Sinh Texture bóng gầm xe tiếp xúc mặt đường mềm mại (Soft Ground Contact Shadow)
+ * Dạng bo góc với radial gradient mượt, alpha rơi về 0 tuyệt đối ở 4 góc và viền ngoài
+ */
+function createCoachContactShadowTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  ctx.clearRect(0, 0, 256, 512);
+
+  // Gradient bóng gầm xe khách cỡ lớn hình oval bo tròn mềm mại
+  const gradient = ctx.createRadialGradient(128, 256, 24, 128, 256, 118);
+  gradient.addColorStop(0.0, 'rgba(10, 19, 31, 0.88)');
+  gradient.addColorStop(0.40, 'rgba(10, 19, 31, 0.48)');
+  gradient.addColorStop(0.78, 'rgba(10, 19, 31, 0.12)');
+  gradient.addColorStop(1.0, 'rgba(10, 19, 31, 0.0)');
+
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.roundRect(14, 20, 228, 472, 46);
+  ctx.fill();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.generateMipmaps = true;
+  return texture;
+}
+
 export const SleeperCoach: React.FC<SleeperCoachProps> = ({
   position,
   yawAngle,
@@ -310,24 +340,26 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
     prevReplayKey: replayKey,
   });
 
-  // Calculate default final stop state with 3/4 beauty angle offset
+  // Calculate default final stop state aligning 100% with road curve tangent
   const defaultTransform = useMemo(() => {
     return getVehicleTransformAt(ROAD_CONFIG.vehicleKeyframes.stopT);
   }, []);
-  const goldenYaw = defaultTransform.yawAngle - 0.20;
+  const naturalYaw = defaultTransform.yawAngle;
+
+  const shadowTexture = useMemo(() => createCoachContactShadowTexture(), []);
 
   // Initial starting transform (entry point if animated, or stop point if reduced motion/manual pos)
   const initialTransform = useMemo(() => {
     if (position) {
       return {
         pos: position,
-        yaw: yawAngle !== undefined ? yawAngle : goldenYaw,
+        yaw: yawAngle !== undefined ? yawAngle : naturalYaw,
       };
     }
     if (shouldReduceMotion || !autoAnimate) {
       return {
         pos: [defaultTransform.position.x, defaultTransform.position.y, defaultTransform.position.z] as [number, number, number],
-        yaw: goldenYaw,
+        yaw: naturalYaw,
       };
     }
     const entryTrans = getVehicleTransformAt(animation.entryT);
@@ -335,23 +367,27 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
       pos: [entryTrans.position.x, entryTrans.position.y, entryTrans.position.z] as [number, number, number],
       yaw: entryTrans.yawAngle,
     };
-  }, [position, yawAngle, shouldReduceMotion, autoAnimate, defaultTransform, goldenYaw, animation.entryT]);
+  }, [position, yawAngle, shouldReduceMotion, autoAnimate, defaultTransform, naturalYaw, animation.entryT]);
 
   // Frame update loop: mutates Three.js transforms directly (zero React setState calls)
   useFrame((_, delta) => {
+    // Khi position được truyền (được mount bên trong VehicleStage cha), toàn bộ transform do cha quản lý
+    // Tránh triệt để mọi xung đột hoặc nhân đôi vị trí (zero double transformation)
+    if (position) return;
+
     // 1. Nếu được timeline tập trung điều khiển trực tiếp
     const activeProgress = timelineRef?.current ? timelineRef.current.vehicleProgress : vehicleProgress;
     if (activeProgress !== undefined) {
       if (shouldReduceMotion) {
-        if (coachRootRef.current) {
+        if (!position && coachRootRef.current) {
           coachRootRef.current.position.set(
             defaultTransform.position.x,
             defaultTransform.position.y,
             defaultTransform.position.z
           );
-          coachRootRef.current.rotation.y = goldenYaw;
-          coachRootRef.current.visible = true;
+          coachRootRef.current.rotation.y = naturalYaw;
         }
+        if (coachRootRef.current) coachRootRef.current.visible = true;
         return;
       }
 
@@ -362,14 +398,13 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
       }
       if (coachRootRef.current) coachRootRef.current.visible = true;
 
-      const currentT = animation.entryT + (animation.stopT - animation.entryT) * p;
-      const pt = VEHICLE_PATH_CURVE.getPointAt(currentT);
-      const tangent = VEHICLE_PATH_CURVE.getTangentAt(currentT).normalize();
-      const baseYaw = Math.atan2(tangent.x, tangent.z);
-      const turnOffset = Math.pow(p, 2) * (-0.20);
-      const yaw = baseYaw + turnOffset;
-
-      if (coachRootRef.current) {
+      // Khi position được truyền (được mount bên trong VehicleStage), transform đã do cha quản lý
+      // Tuyệt đối không ghi đè transform toàn cục để tránh lỗi nhân đôi vị trí (double transformation)
+      if (!position && coachRootRef.current) {
+        const currentT = animation.entryT + (animation.stopT - animation.entryT) * p;
+        const pt = VEHICLE_PATH_CURVE.getPointAt(currentT);
+        const tangent = VEHICLE_PATH_CURVE.getTangentAt(currentT).normalize();
+        const yaw = Math.atan2(tangent.x, tangent.z);
         coachRootRef.current.position.set(pt.x, pt.y, pt.z);
         coachRootRef.current.rotation.y = yaw;
       }
@@ -1011,14 +1046,21 @@ export const SleeperCoach: React.FC<SleeperCoachProps> = ({
         </mesh>
       </group>
 
-      {/* Bóng ambient tiếp xúc mặt đường mềm mại dưới gầm xe (Ground Contact AO Shadow) */}
-      <mesh position={[0, 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[dimensions.width * 1.28, dimensions.length * 1.04]} />
+      {/* Bóng ambient tiếp xúc mặt đường mềm mại dưới gầm xe (Soft Ground Contact AO Shadow) */}
+      <mesh
+        position={[0, 0.001, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        renderOrder={1}
+      >
+        <planeGeometry args={[dimensions.width * 1.35, dimensions.length * 1.08]} />
         <meshBasicMaterial
-          color="#030712"
+          map={shadowTexture}
           transparent
-          opacity={0.50}
+          opacity={0.52}
           depthWrite={false}
+          polygonOffset
+          polygonOffsetFactor={-1}
+          polygonOffsetUnits={-1}
         />
       </mesh>
     </group>

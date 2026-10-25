@@ -1,8 +1,8 @@
 # DANAVA GO — Tài Liệu Chuyển Giao & Hiện Trạng Dự Án (Handoff Document)
 
 > **Cập nhật ngày:** 25/10/2026  
-> **Nhánh hiện tại:** `feature/danava-go`  
-> **Trạng thái:** Prototype Refinement — Bước 2 (Nâng cấp Asset Xe Coach Chân thực & Môi trường Phản xạ PBR IBL) đã hoàn thành và nghiệm thu đạt chuẩn.
+> **Nhánh hiện tại:** `feature/ver3D`  
+> **Trạng thái:** Prototype Refinement — Hoàn thiện BƯỚC 1 (Chiều sâu đa tầng, camera tiếp tuyến chuẩn, triệt tiêu bóng đen chữ nhật và thu hẹp gradient cream).
 
 ---
 

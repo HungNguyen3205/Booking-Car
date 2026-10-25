@@ -17,7 +17,7 @@
   }
 }
 
-/* 1. Lớp Gradient Cream bảo vệ độ tương phản chữ phía trái trên Desktop (0-60%) */
+/* 1. Lớp Gradient Cream bảo vệ độ tương phản chữ phía trái trên Desktop (thu hẹp vùng chữ, giữ trong trẻo Cầu Rồng & Đà Nẵng) */
 .danava-go-hero-gradient {
   position: absolute;
   inset: 0;
@@ -28,10 +28,9 @@
   background: linear-gradient(
     90deg,
     rgba(247, 244, 236, 0.96) 0%,
-    rgba(247, 244, 236, 0.92) 28%,
-    rgba(247, 244, 236, 0.45) 38%,
-    rgba(247, 244, 236, 0.08) 46%,
-    rgba(247, 244, 236, 0) 52%
+    rgba(247, 244, 236, 0.88) 16%,
+    rgba(247, 244, 236, 0.30) 25%,
+    rgba(247, 244, 236, 0) 32%
   );
 }
 

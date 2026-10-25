@@ -575,7 +575,27 @@
     - Chuyển đổi tab xe (Limousine, Cabin VIP, Giường nằm): hoạt động trơn tru, 0 lỗi console (`hasNoErrors: true`).
     - Luồng booking hạ nguồn: 100% nguyên vẹn (`hasResults: true`).
   - Ảnh nghiệm thu: [`docs/screenshots/step2_danava_coach_1440x900.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/step2_danava_coach_1440x900.png), [`docs/screenshots/coach_side_closeup.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/coach_side_closeup.png), [`docs/screenshots/step2_danava_coach_1280x800.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/step2_danava_coach_1280x800.png), [`docs/screenshots/step2_danava_coach_390px.png`](file:///d:/NamHung/Projects/Code/DatVeXeONL/docs/screenshots/step2_danava_coach_390px.png).
-- **Minh bạch Kỹ thuật**:
-  - Toàn bộ metadata `coachConfig.ts` duy trì minh bạch `isPlaceholderPrototype: true`. Đây là bản procedural PBR rig hoàn thiện cao cấp nhất có thể trước khi thay bằng file mô hình 3D nhị phân (`.glb`) bên ngoài.
+
+### Hoàn thiện Bước 1: Chiều Sâu Cảnh Quan Đa Tầng, Camera Tiếp Tuyến Chuẩn & Triệt Tiêu Mặt Phẳng Đen Dưới Xe — 25/10/2026
+- **Branch**: `feature/ver3D` (theo yêu cầu người dùng, tách riêng không merge vào main).
+- **Các Hạng Mục Đã Xử Lý Triệt Để**:
+  1. *Chiều sâu cảnh quan toàn cảnh (Layered Scenic Depth)*:
+     - Dựng hệ thống đồi núi đèo Hải Vân và Trường Sơn 3 tầng trong `CentralPassTransition.tsx` (Tầng 1 cận cảnh đèo $Z=-0.95$, Tầng 2 khối núi trung cảnh vươn cao $Y=1.55$ tại $Z=-2.60$, Tầng 3 dãy núi xa sương mờ $Y=2.10$ tại $Z=-5.80$).
+     - Cảnh quan vươn lên nửa trên canvas, tạo chiều sâu điện ảnh từ hậu cảnh phía trên đến dải đường tiền cảnh phía dưới, xóa bỏ dải mô hình co cụm ở đáy.
+  2. *Góc xe 3/4 phía trước bám thẳng 100% theo làn đường*:
+     - Tinh chỉnh điểm uốn tiền cảnh của `ROAD_CONTROL_POINTS` tại `[1.35, 0.020, 2.05]` và điểm đỗ tĩnh `stopT = 0.54`.
+     - Tiếp tuyến tự nhiên của đường cong đưa đầu xe về góc $\text{yaw} = 46.2^\circ$, góc nhìn với camera là $57.9^\circ$ (góc 3/4 kinh điển).
+     - Gỡ bỏ hoàn toàn biến xoay cưỡng bức `goldenYaw -0.20` và `turnOffset`.
+     - Khắc phục lỗi double transformation trong `SleeperCoach.tsx` khi mount bên trong `VehicleStage`, đảm bảo 4 bánh xe tiếp đất phẳng lỳ và song song tuyệt đối với tim đường.
+  3. *Thu hẹp Gradient Cream bảo vệ Cầu Rồng & Nhãn Đà Nẵng*:
+     - Thu hẹp `.danava-go-hero-gradient` từ dải $0 - 52\%$ xuống còn $0 - 32\%$ ($16\%$ bắt đầu giảm, $32\%$ trong suốt hoàn toàn).
+     - Bảo vệ tương phản cho chữ bên trái, đồng thời giải phóng hoàn toàn không gian cho Cầu Rồng và nhãn Đà Nẵng sáng rõ, trong vắt.
+  4. *Sửa triệt để mặt phẳng bóng đen hình chữ nhật dưới xe*:
+     - Xóa bỏ tấm plane mesh màu đen solid `#030712`.
+     - Tạo hàm `createCoachContactShadowTexture()` bằng Canvas 2D sinh radial gradient mềm bo góc, alpha rơi về 0 tuyệt đối ở viền.
+     - Sửa cơ chế transition trong `VehicleStage.tsx`: xây dựng hàm `applyVehicleFade()`, lưu cache thuộc tính gốc `userData.__danavaOrigMat` (`transparent`, `opacity`, `depthWrite`). Khi đỗ tĩnh khôi phục 100% thuộc tính gốc, TUYỆT ĐỐI không ép `transparent = false` lên mesh trong suốt (shadow texture, tinted glass, livery decal).
+  5. *Bảo toàn form, tabs và booking*:
+     - Giữ nguyên 100% dữ liệu, form tìm kiếm, tabs chọn xe và luồng booking hạ nguồn.
+     - Đã kiểm tra và nghiệm thu trên 1440×900, 1280×800 và mobile 390px (0 console errors).
 
 
