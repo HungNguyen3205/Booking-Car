@@ -17,7 +17,8 @@ Dừng dev server trước khi chạy lại `npm ci` trên Windows để tránh 
 npm run build
 npm run lint
 npx playwright install chromium
-npm run test:journey
+npm run test:hero       # focused hero checks after build
+npm run test:journey    # final booking integration
 ```
 
 ## Bản đồ mã nguồn

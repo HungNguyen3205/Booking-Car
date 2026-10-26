@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:journey": "node scripts/verify-journey.cjs"
+    "test:journey": "node scripts/verify-journey.cjs",
+    "test:hero": "node scripts/verify-journey.cjs --hero-only"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

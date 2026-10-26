@@ -1,10 +1,10 @@
 import { useJourneyReducedMotion, useJourneyMobile } from './useJourneyReducedMotion';
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useId, useState, memo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { decodeJourneyImage, getJourneyLandmark, JOURNEY_ROAD, type JourneyLandmark } from './journeyStageConfig';
 
 // Separate slots: changing one city never replaces the road or the other city.
-function Landmark({ city, role }: { city: string; role: 'origin' | 'destination' }) {
+const Landmark = memo(function Landmark({ city, role, introReady }: { city: string; role: 'origin' | 'destination'; introReady: boolean }) {
   const reduced = useJourneyReducedMotion();
   const mobile = useJourneyMobile();
   const slotId = useId().replace(/:/g, '');
@@ -16,9 +16,11 @@ function Landmark({ city, role }: { city: string; role: 'origin' | 'destination'
       .catch(() => { if (current) setScene({ ...target, image: '', landmark: 'Miền đất mới' }); });
     return () => { current = false; };
   }, [city]);
-  const clip = `${slotId}-${role}-${scene.id}-${scene.image ? 'photo' : 'fallback'}`;
+  const safeId = Array.from(scene.id).reduce((hash, ch) => (Math.imul(hash, 31) + ch.charCodeAt(0)) >>> 0, 0).toString(36);
+  const clip = `${slotId}-${role}-${safeId}-${scene.image ? 'photo' : 'fallback'}`;
   const [cx, cy, cw, ch] = scene.crop;
-  const x = role === 'origin' ? scene.frame.originX : scene.frame.destinationX;
+  const x = role === 'origin' ? (mobile ? scene.frame.mobileOriginX ?? scene.frame.originX : scene.frame.originX) : scene.frame.destinationX;
+  const y = role === 'origin' ? scene.frame.originY ?? scene.frame.y : scene.frame.y;
   const width = scene.frame.width;
   const height = scene.frame.height;
   const blend = scene.blend;
@@ -31,10 +33,10 @@ function Landmark({ city, role }: { city: string; role: 'origin' | 'destination'
         <motion.div
           className="journey-landmark-content"
           key={`${scene.id}:${scene.image}`}
-          initial={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : 8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : 10 }}
+          animate={{ opacity: introReady ? 1 : 0, y: introReady || reduced ? 0 : 10 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: reduced ? 0 : 0.5 }}
+          transition={{ duration: reduced ? 0 : .45, ease: [.22, 1, .36, 1] }}
         >
           <svg
             className="journey-landmark-plane"
@@ -45,11 +47,11 @@ function Landmark({ city, role }: { city: string; role: 'origin' | 'destination'
             {scene.image ? (
               <svg
                 x={x}
-                y={scene.frame.y}
+                y={y}
                 width={width}
                 height={height}
                 viewBox={`${cx} ${cy} ${cw} ${ch}`}
-                preserveAspectRatio="none"
+                preserveAspectRatio="xMidYMax meet"
                 data-bank-image={scene.id}
               >
                 <defs>
@@ -145,20 +147,25 @@ function Landmark({ city, role }: { city: string; role: 'origin' | 'destination'
       </AnimatePresence>
     </div>
   );
-}
-export const LayeredSceneStage: React.FC<{ fromCity: string; toCity: string; className?: string }> = ({ fromCity, toCity, className = '' }) => {
+});
+export const LayeredSceneStage: React.FC<{ fromCity: string; toCity: string; className?: string; introReady?: boolean }> = ({ fromCity, toCity, className = '', introReady = true }) => {
   const [roadError, setRoadError] = useState(false);
+  const backgroundId = useId().replace(/:/g, '');
   const mobile = useJourneyMobile();
   return <div className={`journey-scenery ${className}`} aria-hidden="true">
     <svg className="journey-road" data-testid="journey-fixed-road" viewBox="0 0 1600 1000" preserveAspectRatio={mobile ? "xMidYMax meet" : "xMidYMid slice"}>
-      {!roadError ? <image href={JOURNEY_ROAD} width="1600" height="1000" preserveAspectRatio="none" onError={() => setRoadError(true)} /> : <>
+      <g id={`${backgroundId}-base`}>{!roadError ? <image href={JOURNEY_ROAD} width="1600" height="1000" preserveAspectRatio="none" onError={() => setRoadError(true)} /> : <>
         <rect width="1600" height="1000" fill="#f7f4ec" />
         <path d="M180 650 C0 720 350 760 700 810 S1400 950 1700 980" stroke="#dad7c8" strokeWidth="180" fill="none" />
         <path d="M180 650 C0 720 350 760 700 810 S1400 950 1700 980" stroke="#646c73" strokeWidth="150" fill="none" />
         <path d="M180 650 C0 720 350 760 700 810 S1400 950 1700 980" stroke="#f5e5b7" strokeWidth="3" strokeDasharray="22 20" fill="none" />
-      </>}
+      </>}</g>
     </svg>
     <div className="journey-sky-softener" />
-    <Landmark city={fromCity} role="origin" /><Landmark city={toCity} role="destination" />
+    <Landmark city={fromCity} role="origin" introReady={introReady} /><Landmark city={toCity} role="destination" introReady={introReady} />
+    <svg className="journey-foreground" viewBox="0 0 1600 1000" preserveAspectRatio={mobile ? 'xMidYMax meet' : 'xMidYMid slice'} aria-hidden="true">
+      <defs><clipPath id={`${backgroundId}-near`}><path d="M0 585 C150 605 220 640 450 674 S1150 730 1600 770 V1000 H0Z" /></clipPath></defs>
+      <use href={`#${backgroundId}-base`} clipPath={`url(#${backgroundId}-near)`} />
+    </svg>
   </div>;
 };

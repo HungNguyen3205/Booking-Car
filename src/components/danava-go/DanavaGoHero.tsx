@@ -40,7 +40,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
           role="img"
           aria-label={`Cảnh hành trình từ ${preview.from} bên trái đến ${preview.to} bên phải, xe đi ra gần trên cung đường cố định.`}
         >
-          <LayeredSceneStage fromCity={preview.from} toCity={preview.to} />
+          <LayeredSceneStage fromCity={preview.from} toCity={preview.to} introReady={introReady} />
           <VehicleMotionStage
             selectedVehicle={selectedVehicle}
             introReady={introReady}

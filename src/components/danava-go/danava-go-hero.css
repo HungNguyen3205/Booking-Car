@@ -1,17 +1,17 @@
 /* One coordinate system for landscape, sprites and vehicle; DOM UI stays flat. */
-.danava-go-hero{position:relative;isolation:isolate;width:100%;min-height:max(760px,100svh);margin-top:-72px;background:#f7f4ec;color:#102744;font-family:'Be Vietnam Pro',system-ui,sans-serif}
+.danava-go-hero{position:relative;isolation:isolate;width:100%;min-height:max(760px,100svh,61vw);margin-top:-72px;background:#f7f4ec;color:#102744;font-family:'Be Vietnam Pro',system-ui,sans-serif}
 .go-scenery-backdrop{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.go-journey-stage,.journey-scenery,.journey-road,.journey-vehicle-layer,.journey-route-line,.journey-landmark-plane{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.go-journey-stage,.journey-scenery,.journey-road,.journey-vehicle-layer,.journey-route-line,.journey-foreground,.journey-landmark-plane{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .journey-atmosphere{position:absolute;inset:0;background:linear-gradient(#f7f4ec88,transparent 40%);pointer-events:none}
 .journey-road{z-index:0}.journey-landmark-plane{z-index:1}.journey-vehicle-layer{z-index:3;overflow:visible}.journey-route-line{z-index:2}
 .journey-landmark{position:absolute;inset:0;pointer-events:none}.journey-landmark-content{position:absolute;inset:0}
-.journey-landmark-label{position:absolute;top:13.5%;left:14%;transform:translateX(-50%);text-align:center;width:210px;color:#102744;text-shadow:0 1px 10px #fff9;z-index:10;pointer-events:none}
-.journey-landmark-destination .journey-landmark-label{left:89.5%;top:15.5%}
+.journey-landmark-label{position:absolute;top:20.5%;left:14%;transform:translateX(-50%);text-align:center;width:210px;color:#102744;text-shadow:0 1px 10px #fff9;z-index:10;pointer-events:none}
+.journey-landmark-destination .journey-landmark-label{left:90%;top:22%}
 .journey-landmark-label>span{display:block;font-size:10px;letter-spacing:.12em;font-weight:800;color:#0097a7;margin-bottom:5px}
 .journey-landmark-label strong{display:block;font-size:clamp(19px,1.65vw,26px);font-weight:800;line-height:1.25}
 .journey-landmark-label small{display:block;font-size:11px;line-height:1.5;color:#52657b;margin-top:4px}
 .journey-landmark-label:after{content:'';display:block;margin:12px auto 0;height:48px;width:1px;border-left:2px dashed #0097a780}
-.go-ui-container{position:relative;z-index:5;width:100%;max-width:1800px;margin:auto;min-height:max(760px,100svh);padding:106px 5.5% 6.2svh;display:flex;flex-direction:column;justify-content:space-between;align-items:center;pointer-events:none}
+.go-ui-container{position:relative;z-index:5;width:100%;max-width:1800px;margin:auto;min-height:max(760px,100svh,61vw);padding:106px 5.5% 6.2svh;display:flex;flex-direction:column;justify-content:space-between;align-items:center;pointer-events:none}
 .go-editorial-center{width:min(850px,70%);display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:auto}
 .go-eyebrow{display:flex;gap:8px;align-items:center;color:#008c9e;letter-spacing:.14em;font-size:10px;font-weight:800;margin-bottom:13px}
 .go-title{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-size:clamp(43px,3.7vw,60px);font-weight:800;line-height:1.14;letter-spacing:-.045em;margin:0 0 16px;overflow-wrap:normal}
@@ -63,3 +63,5 @@
 @media(min-width:1024px){
 .go-search-dock [data-search-grid]{grid-template-columns:minmax(0,1.25fr) 44px minmax(0,1.25fr) 1px minmax(176px,1fr) 1px minmax(150px,.85fr) minmax(170px,.95fr)}
 }
+
+.journey-foreground{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}

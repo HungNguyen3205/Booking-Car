@@ -16,7 +16,20 @@ const travelDate = new Date(Date.now() + 20 * 86400000).toISOString().slice(0,10
 const check = (name, value = true) => { assert.ok(value, name); results.push(name); };
 const scene = (p) => p.locator('.danava-go-hero');
 const vehicle = (p) => scene(p).locator('[data-vehicle]');
-const matrix = (p) => vehicle(p).evaluate((el) => { const m = new DOMMatrix(getComputedStyle(el).transform); return { scale: m.a, x: m.e, y: m.f, origin: getComputedStyle(el).transformOrigin }; });
+const matrix = (p) => vehicle(p).evaluate((el) => { const m = new DOMMatrix(getComputedStyle(el).transform); return { scale: m.a, x: m.e, y: m.f, origin: getComputedStyle(el).transformOrigin, opacity: Number(getComputedStyle(el).opacity) }; });
+async function visibleBus(p) {
+  return vehicle(p).locator('image').evaluate(async el => {
+    const source = new Image(); source.src = el.getAttribute('href'); await source.decode();
+    const canvas = document.createElement('canvas'); canvas.width=source.width;canvas.height=source.height;
+    const ctx=canvas.getContext('2d');ctx.drawImage(source,0,0);
+    const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+    let left=canvas.width,top=canvas.height,right=0,bottom=0;
+    for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++)if(pixels[(y*canvas.width+x)*4+3]>24){left=Math.min(left,x);right=Math.max(right,x+1);top=Math.min(top,y);bottom=Math.max(bottom,y+1);}
+    const scale=Number(el.getAttribute('width'))/source.width,matrix=el.getScreenCTM();
+    const a=new DOMPoint(left*scale,top*scale).matrixTransform(matrix),b=new DOMPoint(right*scale,bottom*scale).matrixTransform(matrix);
+    return {left:a.x,top:a.y,right:b.x,bottom:b.y,width:b.x-a.x,center:(a.x+b.x)/2,formTop:document.querySelector('#hero-search form').getBoundingClientRect().top,viewport:innerWidth};
+  });
+}
 async function choose(p, field, city) {
   await p.locator(`#search-${field}`).click();
   await p.locator(`#search-${field}-list [role=option]`).filter({ has: p.getByText(city, { exact: true }) }).click();
@@ -40,6 +53,7 @@ async function choose(p, field, city) {
     await p.waitForTimeout(1500);
     const last = await matrix(p);
     check('Bus grows and moves down/right along the near lane', first.scale < middle.scale && middle.scale <= last.scale && first.x < last.x && first.y < last.y);
+    check('Approach becomes opaque early, without a long ghost fade', middle.opacity > .99);
     check('Bus settles at its measured wheel anchor', Math.abs(last.scale - 1) < .001 && Math.abs(last.x - 650) < .1 && Math.abs(last.y - 782) < .1 && last.origin === '0px 0px');
     const layout = await p.evaluate(() => ({ hero: document.querySelector('.danava-go-hero').getBoundingClientRect().toJSON(), form: document.querySelector('#hero-search form').getBoundingClientRect().toJSON(), font:getComputedStyle(document.querySelector('h1')).fontFamily, canvas:document.querySelectorAll('canvas').length, overflow:document.documentElement.scrollWidth > innerWidth }));
     check('Fullscreen hero, sans typography and no WebGL canvas', layout.hero.height >= 900 && layout.hero.width === 1440 && layout.font.includes('Be Vietnam Pro') && layout.canvas === 0 && !layout.overflow);
@@ -58,23 +72,38 @@ async function choose(p, field, city) {
     for (let i = 0; i < 24; i++) { maxVisible = Math.max(maxVisible, await vehicle(p).count()); await p.waitForTimeout(100); }
     check('Rapid vehicle switches show only one bus', maxVisible === 1);
     check('Last selected vehicle wins', await vehicle(p).getAttribute('data-vehicle') === 'cabin');
+    for (const [label, id] of [['Giường nằm','sleeper'],['Limousine','limousine'],['Cabin VIP','cabin']]) {
+      await tabs.getByRole('button',{name:label,exact:true}).click(); await p.waitForTimeout(450);
+      check(`${label} replacement settles opaque at full scale`, await vehicle(p).getAttribute('data-vehicle')===id && (await matrix(p)).opacity>.99 && Math.abs((await matrix(p)).scale-1)<.001);
+      const box=await visibleBus(p);
+      check(`${label} is centered, correctly sized and clear of form`, Math.abs(box.center-box.viewport/2)<box.viewport*.025 && box.width/box.viewport>(id==='limousine'?.4:.48) && box.width/box.viewport<(id==='limousine'?.47:.53) && box.formTop-box.bottom>=8);
+      await p.screenshot({path:path.join(out,`vehicle-${id}.png`)});
+    }
+    await vehicle(p).evaluate(el=>window.busBeforeRoute=el);
     await choose(p, 'to', 'Huế'); await choose(p, 'to', 'Nha Trang'); await choose(p, 'to', 'Hội An');
-    await p.waitForTimeout(2400);
+    await p.waitForTimeout(120);
     check('Atlas clips and masks stay unique during crossfade', await p.evaluate(()=>{const ids=[...document.querySelectorAll('.journey-landmark [id]')].map(el=>el.id);return new Set(ids).size===ids.length}));
+    let routeStable=true;
+    for(let i=0;i<8;i++){const m=await matrix(p);routeStable&&=Math.abs(m.scale-1)<.001&&m.opacity>.99&&await vehicle(p).evaluate(el=>el===window.busBeforeRoute);await p.waitForTimeout(70);}
+    check('Route changes preserve the opaque full-size vehicle DOM node throughout',routeStable);
     check('Last selected destination wins', await p.locator('[data-landmark-slot=destination]').getAttribute('data-city') === 'hoi-an');
     await p.getByRole('button', { name: 'Đổi nơi đi và nơi đến', exact: true }).click();
-    await p.waitForTimeout(2300);
+    await p.waitForTimeout(600);
+    check('Reverse does not remount or shrink the vehicle',await vehicle(p).evaluate(el=>el===window.busBeforeRoute) && Math.abs((await matrix(p)).scale-1)<.001);
     check('Reverse moves origin left and destination right without mirroring architecture', await p.locator('[data-landmark-slot=origin]').getAttribute('data-city') === 'hoi-an' && await p.locator('[data-landmark-slot=destination]').getAttribute('data-city') === 'da-nang');
     check('Road is the same DOM node after route/vehicle switches', await p.locator('[data-testid=journey-fixed-road]').evaluate(el => window.journeyRoadBefore === el));
     assert.deepEqual(await roadBox(), roadBefore); results.push('Road position and dimensions stay fixed');
     check('Date and passenger count survive all switches', await p.locator('#search-date').inputValue() === travelDate && (await p.locator('#search-passengers').innerText()).includes('3 người'));
     await choose(p, 'from', 'Đà Nẵng'); await choose(p, 'to', 'Huế');
-    await p.waitForTimeout(2300); await p.screenshot({ path: path.join(out, 'desktop-hue.png') });
+    await p.waitForTimeout(600); await p.screenshot({ path: path.join(out, 'desktop-hue.png') });
     await p.setViewportSize({ width: 1280, height: 800 }); await p.waitForTimeout(200);
     check('Resize keeps the bus at rest', Math.abs((await matrix(p)).scale-1)<.001);
     check('1280px date text is not clipped', await p.locator('[data-search-field=date] .overflow-hidden').evaluate(el=>el.scrollWidth<=el.clientWidth));
     check('1280px has no horizontal overflow', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await p.screenshot({ path: path.join(out, 'desktop-1280.png') });
+    await p.setViewportSize({width:1440,height:760});await p.waitForTimeout(250);
+    const wideBox=await visibleBus(p);
+    check('Short desktop grows hero without hiding wheels behind form',wideBox.formTop-wideBox.bottom>=8);
     await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(200);
     check('390px has one scene and no horizontal overflow', await p.locator('[data-testid=danava-go-stage-scaffold]').count() === 1 && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await scene(p).screenshot({ path: path.join(out, 'mobile-390.png') });
@@ -85,6 +114,15 @@ async function choose(p, field, city) {
     await tabs.getByRole('button', { name: 'Limousine', exact: true }).click();
     await p.waitForTimeout(150);
     check('Reduced motion commits final vehicle directly', await vehicle(p).getAttribute('data-vehicle') === 'limousine' && Math.abs((await matrix(p)).scale - 1) < .001);
+    await p.emulateMedia({reducedMotion:'no-preference'});await p.waitForTimeout(250);
+    check('Turning reduced motion off does not replay intro',Math.abs((await matrix(p)).scale-1)<.001 && (await matrix(p)).opacity>.99);
+    await p.emulateMedia({reducedMotion:'reduce'});
+    if (process.argv.includes('--hero-only')) {
+      check('Hero has no runtime or unexpected HTTP errors', errors.length === 0 && httpErrors.length === 0);
+      writeFileSync(path.join(out,'hero-results.json'),JSON.stringify({mode:'hero',results,errors,httpErrors},null,2));
+      console.log(JSON.stringify({mode:'hero',passed:results.length,out},null,2));
+      return;
+    }
     const cities = [['Đà Nẵng','da-nang'],['Hội An','hoi-an'],['Huế','hue'],['Nha Trang','nha-trang'],['TP. Hồ Chí Minh','ho-chi-minh'],['Hà Nội','ha-noi'],['Quy Nhơn','quy-nhon'],['Đà Lạt','da-lat']];
     for (const [name,id] of cities) {
       await choose(p, 'to', name); await p.waitForTimeout(300);

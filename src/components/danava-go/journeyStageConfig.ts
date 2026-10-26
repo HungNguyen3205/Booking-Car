@@ -39,6 +39,8 @@ export interface JourneyLandmark {
     y: number;
     originX: number;
     destinationX: number;
+    mobileOriginX?: number;
+    originY?: number;
     width: number;
     height: number;
   };
@@ -51,32 +53,16 @@ const atlas = `${scenes}journey_city_banks.webp`;
 // Crop bounds follow the actual atlas rows, not assumed equal-height cells.
 const landmarks: Record<string, Omit<JourneyLandmark, 'id' | 'city'>> = {
   'da-nang': {
-    landmark: 'Cầu Rồng · Sông Hàn',
-    image: `${scenes}danang-bank-v2.webp`,
-    source: [1600, 1000],
-    crop: [0, 0, 1600, 1000],
-    frame: { y: 0, originX: 0, destinationX: 750, width: 1600, height: 1000 },
-    blend: {
-      hasAlpha: true,
-      skyFade: { start: 12, end: 20 },
-      edgeFade: {
-        right: { start: 40, end: 53 },
-      },
-    },
+    landmark: 'Cầu Rồng · Sông Hàn', image: `${scenes}journey_heritage_alpha.webp`,
+    source: [1585, 992], crop: [0, 0, 792, 992],
+    frame: { y: 0, originX: 0, destinationX: 1060, mobileOriginX: 140, width: 800, height: 1000 },
+    blend: { waterFade: { start: 68, end: 77 } },
   },
   'hoi-an': {
-    landmark: 'Phố cổ · Sông Hoài',
-    image: `${scenes}hoian-bank-v2.webp`,
-    source: [1600, 1000],
-    crop: [0, 0, 1600, 1000],
-    frame: { y: 0, originX: -920, destinationX: 0, width: 1600, height: 1000 },
-    blend: {
-      hasAlpha: true,
-      skyFade: { start: 14, end: 24 },
-      edgeFade: {
-        left: { start: 47, end: 59 },
-      },
-    },
+    landmark: 'Phố cổ · Sông Hoài', image: `${scenes}journey_heritage_alpha.webp`,
+    source: [1585, 992], crop: [792, 0, 793, 992],
+    frame: { y: 0, originX: 0, destinationX: 800, originY: 45, width: 800, height: 1000 },
+    blend: { waterFade: { start: 68, end: 77 } },
   },
   'hue': {
     landmark: 'Ngọ Môn · Hoàng thành',

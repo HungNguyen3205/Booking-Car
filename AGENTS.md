@@ -39,7 +39,8 @@ Respect live reduced motion and image failure paths.
 
 ## Checks
 
-`npm ci`, `npm run build`, `npm run lint`.
-`npx playwright install chromium` once, then `npm run test:journey` after build.
+`npm ci` for clean setup/dependency changes; `npm run build`, `npm run lint`.
+`npx playwright install chromium` once. After build, use `npm run test:hero` for focused hero checks; use `npm run test:journey` for final integration.
+Do not repeat full booking QA after every CSS/coordinate adjustment; inspect a fixed-viewport capture first.
 Optional `PLAYWRIGHT_CHROMIUM_EXECUTABLE` and `JOURNEY_QA_DIR` configure local QA.
 Review 1440×900, 1280×800, 390px screenshots. Do not commit test output or duplicate assets.
