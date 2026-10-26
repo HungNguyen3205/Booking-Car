@@ -4,8 +4,8 @@ import { HERO_VEHICLES_MANIFEST } from '../../data/heroAssetManifest';
 
 // Every layer uses this canvas. The shared ground was derived from the existing
 // road artwork; its near lane heads right. Vehicles/buildings are never mirrored.
-export const JOURNEY_CANVAS = { width: 1536, height: 1024 };
-export const JOURNEY_ROAD = '/assets/images/scenes/journey_ground_fixed.webp';
+export const JOURNEY_CANVAS = { width: 1376, height: 768 };
+export const JOURNEY_ROAD = '/assets/images/scenes/journey_panorama_fullbleed.webp';
 
 export interface JourneyLandmark {
   id: string;
@@ -43,11 +43,12 @@ export interface JourneyVehicle {
   // Pixel coordinates measured on each existing 1376 × 768 alpha image.
   wheels: [number, number][];
   anchor: [number, number];
+  rest: [number, number];
 }
 export const JOURNEY_VEHICLES: Record<VehicleCategory, JourneyVehicle> = {
-  sleeper: { image: HERO_VEHICLES_MANIFEST.sleeper.assetPath, width: 800, wheels: [[240, 650], [665, 706]], anchor: [452, 678] },
-  limousine: { image: HERO_VEHICLES_MANIFEST.limousine.assetPath, width: 660, wheels: [[230, 638], [850, 706]], anchor: [540, 672] },
-  cabin: { image: HERO_VEHICLES_MANIFEST.cabin.assetPath, width: 820, wheels: [[240, 650], [310, 665], [720, 710]], anchor: [480, 681] },
+  sleeper: { image: HERO_VEHICLES_MANIFEST.sleeper.assetPath, width: 650, wheels: [[240, 650], [665, 706]], anchor: [452, 678], rest: [740, 660] },
+  limousine: { image: HERO_VEHICLES_MANIFEST.limousine.assetPath, width: 630, wheels: [[230, 638], [850, 706]], anchor: [540, 672], rest: [740, 660] },
+  cabin: { image: HERO_VEHICLES_MANIFEST.cabin.assetPath, width: 650, wheels: [[240, 650], [310, 665], [720, 710]], anchor: [480, 681], rest: [740, 660] },
 };
 
 // A short, almost straight portion of the near lane matches the single camera

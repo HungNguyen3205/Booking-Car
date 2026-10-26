@@ -1,63 +1,247 @@
-/* One canvas and one persistent road, shared by desktop and mobile. */
-.danava-go-hero { position: relative; background: #f7f4ec; color: #102744; overflow: visible; isolation: isolate; }
-.go-shell { width: 100%; max-width: 1600px; margin: auto; padding: 12px 40px 36px; display: grid; grid-template-columns: minmax(0, .36fr) minmax(0, .64fr); align-items: center; }
-.go-copy { min-width: 0; position: relative; z-index: 4; padding: 30px 0; }
-.go-eyebrow { display: flex; align-items: center; gap: 8px; color: #008595; font-size: 10px; line-height: 1.8; letter-spacing: .15em; font-weight: 700; margin-bottom: 24px; }
-.go-eyebrow svg { flex-shrink: 0; }
-.go-title { font-family: var(--font-serif, 'Noto Serif', serif); font-size: clamp(40px, 4vw, 62px); font-weight: 700; line-height: 1.17; letter-spacing: -.045em; margin: 0 0 24px; overflow-wrap: normal; }
-.go-title > span { display: block; }
-.go-title-experience { color: #0097a7; }
-.go-copy > p { font-size: 15px; line-height: 1.9; color: #596775; margin-bottom: 28px; }
-.go-copy [role=group] { gap: 8px; }
-.go-copy [role=group] button { padding-inline: 14px; font-size: 12px; }
-.go-copy [role=group] button:focus-visible { outline: 2px solid #0097a7; outline-offset: 4px; }
-.go-journey-note { display: flex; align-items: center; gap: 9px; color: #7c867d; font-size: 11px; margin-top: 26px; }
-.go-journey-note > span { width: 22px; height: 1px; background: #afbaab; }
-.go-journey-stage { position: relative; min-width: 0; width: 108%; margin-left: -8%; aspect-ratio: 1536 / 1024; align-self: center; pointer-events: none; }
-.journey-scenery, .journey-vehicle-layer, .journey-road, .journey-route-line, .journey-terrain { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.journey-atmosphere { position: absolute; inset: 12% 0 8%; background: radial-gradient(ellipse at 48% 50%, #e0e9db66, transparent 68%); }
+/* DANAVA GO — Hero Fullscreen Layout & Be Vietnam Pro Typography */
+.danava-go-hero {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 76px);
+  background: #f7f4ec;
+  color: #102744;
+  overflow: visible;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* 1. SCENERY BACKDROP: Spans 100% full width, edge-to-edge, behind UI */
+.go-scenery-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.journey-atmosphere {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 28%, rgba(224, 242, 238, 0.45), transparent 70%),
+              linear-gradient(180deg, rgba(247, 244, 236, 0.5) 0%, transparent 45%, rgba(247, 244, 236, 0.3) 100%);
+  pointer-events: none;
+}
+
+.go-journey-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.journey-scenery,
+.journey-vehicle-layer,
+.journey-road,
+.journey-route-line,
+.journey-terrain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 .journey-road { z-index: 2; }
 .journey-route-line { z-index: 3; }
 .journey-vehicle-layer { z-index: 4; overflow: visible; }
-.journey-landmark { position: absolute; z-index: 1; top: 12%; height: 43%; }
-.journey-landmark-origin { left: 0; width: 54%; }
-.journey-landmark-destination { right: 0; width: 40%; top: 21%; }
-.journey-landmark-content { position: absolute; inset: 0; }
-.journey-landmark-art { width: 100%; height: 100%; display: block; overflow: hidden; }
-.journey-landmark-label { position: absolute; top: -4%; left: 50%; transform: translate(-50%, -100%); text-align: center; min-width: 140px; max-width: 230px; }
-.journey-landmark-label > span { display: block; font-size: 9px; letter-spacing: .18em; color: #008595; font-weight: 600; margin-bottom: 3px; }
-.journey-landmark-destination .journey-landmark-label > span { color: #9d783f; }
-.journey-landmark-label strong { display: block; font-family: var(--font-serif, 'Noto Serif', serif); font-size: clamp(16px, 1.5vw, 23px); line-height: 1.4; font-weight: 600; }
-.journey-landmark-label small { display: block; font-size: 10px; line-height: 1.6; color: #728077; margin-top: 3px; }
-.go-search-dock { position: relative; z-index: 20; grid-column: 1 / -1; margin-top: -8px; }
-/* Preserve labels used by the optional legacy 3D/debug route. */
-.go-label { position: absolute; transform: translate(-50%, -100%); opacity: 0; pointer-events: none; z-index: 25; }
-.go-label-content { padding: 7px 13px; border: 1px solid #e6e3d9; border-radius: 12px; background: #fffdf8f0; text-align: center; }
-.go-label-content strong { display: block; font-size: 13px; color: #102744; }
-.go-label-content small { font-size: 10px; color: #687988; }
-.go-label-pin { width: 7px; height: 7px; margin: 7px auto 0; background: #0097a7; border-radius: 50%; }
-@media (min-width: 1600px) { .go-shell { padding-top: 30px; } }
-@media (min-width: 1024px) and (max-width: 1280px) { .go-shell { padding-inline: 30px; } .go-title { font-size: 45px; } .go-copy [role=group] button { padding-inline: 10px; font-size: 11px; gap: 6px; } .go-eyebrow { font-size: 9px; } }
-@media (max-width: 1023px) {
-  .go-shell { padding: 28px 20px 28px; grid-template-columns: minmax(0, 1fr); }
-  .go-copy { padding: 0; }
-  .go-eyebrow { font-size: 9px; margin-bottom: 16px; letter-spacing: .1em; }
-  .go-title { font-size: clamp(36px, 8vw, 52px); margin-bottom: 16px; }
-  .go-title > span:nth-child(2), .go-title > span:nth-child(3) { display: inline; }
-  .go-title > span:nth-child(2)::after { content: ' '; }
-  .go-copy > p { font-size: 14px; margin-bottom: 20px; }
-  .go-copy > p br { display: none; }
-  .go-journey-note { display: none; }
-  .go-journey-stage { width: 100%; margin: 34px 0 4px; }
-  .journey-landmark-label { min-width: 105px; max-width: 160px; }
-  .journey-landmark-label strong { font-size: 16px; }
-  .journey-landmark-label small { font-size: 8px; }
-  .journey-landmark-label > span { font-size: 7px; }
-  .go-search-dock { grid-column: 1; margin-top: 0; }
-}
-@media (prefers-reduced-motion: reduce) { .danava-go-hero *, .danava-go-hero *::before { animation-duration: 0s !important; } }
 
-@media (max-width: 480px) { .go-copy [role=group] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; } .go-copy [role=group] button { padding-inline: 6px; font-size: 10px; justify-content: center; gap: 5px; } .go-copy [role=group] button svg { width: 14px; } }
+/* Landmarks: Origin on left, Destination on right in open sky */
+.journey-landmark {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+}
+.journey-landmark-origin {
+  top: clamp(80px, 12vh, 125px);
+  left: clamp(28px, 4vw, 80px);
+}
+.journey-landmark-destination {
+  top: clamp(80px, 12vh, 125px);
+  right: clamp(28px, 4vw, 80px);
+}
+.journey-landmark-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.journey-landmark-art {
+  width: clamp(240px, 22vw, 360px);
+  height: clamp(140px, 14vw, 220px);
+  display: block;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+/* Landmark Badges: Modern Sans-serif Be Vietnam Pro pill cards */
+.journey-landmark-label {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(220, 226, 235, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 8px 18px;
+  box-shadow: 0 4px 18px rgba(16, 39, 68, 0.08);
+  text-align: center;
+  min-width: 140px;
+  max-width: 220px;
+  pointer-events: auto;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.journey-landmark-label:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(16, 39, 68, 0.12);
+}
+.journey-landmark-label > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans, 'Be Vietnam Pro', sans-serif);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: #008595;
+  font-weight: 700;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+.journey-landmark-destination .journey-landmark-label > span {
+  color: #b47833;
+}
+.journey-landmark-label strong {
+  display: block;
+  font-family: var(--font-sans, 'Be Vietnam Pro', sans-serif);
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.25;
+  font-weight: 700;
+  color: #102744;
+}
+.journey-landmark-label small {
+  display: block;
+  font-family: var(--font-sans, 'Be Vietnam Pro', sans-serif);
+  font-size: 11px;
+  line-height: 1.35;
+  color: #647084;
+  margin-top: 2px;
+}
+
+/* 2. UI CONTAINER: Safe padding and max-width, overflow visible so dropdowns aren't clipped */
+.go-ui-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 16px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  min-height: calc(100vh - 76px);
+  pointer-events: auto;
+  overflow: visible;
+}
+
+/* Upper Editorial Region Centered */
+.go-editorial-center {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 15;
+  padding-top: 4px;
+}
+
+.go-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #008595;
+  font-family: var(--font-sans, 'Be Vietnam Pro', sans-serif);
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.go-eyebrow svg { flex-shrink: 0; }
+
+.go-title {
+  font-family: var(--font-sans, 'Be Vietnam Pro', sans-serif);
+  font-size: clamp(42px, 3.6vw, 54px);
+  font-weight: 800;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+  color: #102744;
+  margin: 0 0 10px;
+  text-align: center;
+  overflow-wrap: normal;
+}
+.go-title > span { display: block; }
+.go-title-experience { color: #0097a7; }
+
+.go-description {
+  font-family: var(--font-sans, 'Be Vietnam Pro', sans-serif);
+  font-size: clamp(14px, 1.05vw, 15px);
+  line-height: 1.5;
+  color: #596775;
+  margin: 0 0 16px;
+  text-align: center;
+  max-width: 580px;
+}
+
+/* Search Dock: Floats near the bottom foot of hero */
+.go-search-dock {
+  position: relative;
+  z-index: 25;
+  width: 100%;
+  max-width: 1260px;
+  margin: 0 auto;
+  padding-top: 24px;
+  padding-bottom: 8px;
+  overflow: visible;
+}
 
 /* Anchor transforms in canvas coordinates, not the changing bus bounding box. */
 .journey-bus { transform-origin: 0px 0px !important; transform-box: view-box !important; }
+
+/* Responsive adjustments */
+@media (min-width: 1600px) {
+  .go-ui-container { padding-top: 32px; }
+  .go-editorial-center { padding-top: 16px; }
+}
+
+@media (max-width: 1023px) {
+  .danava-go-hero { min-height: auto; }
+  .go-scenery-backdrop { position: relative; height: 380px; }
+  .go-ui-container { min-height: auto; padding: 24px 16px 28px; gap: 24px; }
+  .go-title { font-size: clamp(32px, 7vw, 42px); margin-bottom: 12px; }
+  .go-title > span:nth-child(2) { display: inline; }
+  .go-description { font-size: 14px; margin-bottom: 16px; }
+  .go-search-dock { padding-top: 0; }
+  .journey-landmark-label { min-width: 105px; max-width: 160px; }
+  .journey-landmark-label strong { font-size: 16px; }
+  .journey-landmark-label small { font-size: 9px; }
+  .journey-landmark-label > span { font-size: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .danava-go-hero *, .danava-go-hero *::before { animation-duration: 0s !important; }
+}

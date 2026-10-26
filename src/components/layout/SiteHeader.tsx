@@ -105,7 +105,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="font-serif font-extrabold text-2xl tracking-wide text-[#102744]">
+              <span className="font-sans font-bold text-2xl tracking-tight text-[#102744]">
                 DANAVA <span className="text-[#0097A7]">GO</span>
               </span>
             </div>
@@ -118,7 +118,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                 key={item.id}
                 type="button"
                 onClick={item.action}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-full text-sm font-sans font-medium transition-all cursor-pointer ${
                   currentTab === item.id
                     ? 'text-[#0097A7] bg-[#E0F7FA]/80 font-semibold'
                     : 'text-[#102744] hover:text-[#0097A7] hover:bg-black/5'
@@ -135,21 +135,21 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
-                className="flex items-center gap-2.5 px-3.5 py-1.5 bg-[#FAF8F5] hover:bg-[#F7F4EC] border border-[#E5E3DC] hover:border-[#0097A7] rounded-full transition-all cursor-pointer shadow-2xs group"
+                className="flex items-center gap-2.5 px-3.5 py-1.5 bg-[#FAF8F5] hover:bg-[#F7F4EC] border border-[#E5E3DC] hover:border-[#0097A7] rounded-full transition-all cursor-pointer shadow-2xs group font-sans"
                 title="Tài khoản thành viên (Sandbox)"
               >
-                <div className="w-7 h-7 rounded-full bg-[#102744] group-hover:bg-[#0097A7] text-white flex items-center justify-center text-xs font-bold font-serif transition-colors">
+                <div className="w-7 h-7 rounded-full bg-[#102744] group-hover:bg-[#0097A7] text-white flex items-center justify-center text-xs font-bold font-sans transition-colors">
                   {currentUser.fullName.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-[#102744] max-w-[130px] truncate leading-tight">
+                  <span className="text-xs font-bold text-[#102744] max-w-[130px] truncate leading-tight font-sans">
                     {currentUser.fullName}
                   </span>
-                  <span className="text-[9.5px] text-[#647084] leading-tight">
+                  <span className="text-[9.5px] text-[#647084] leading-tight font-sans">
                     Thành viên demo
                   </span>
                 </div>
-                <span className="text-[9px] font-bold uppercase bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded-md ml-1 border border-amber-300">
+                <span className="text-[9px] font-bold uppercase bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded-md ml-1 border border-amber-300 font-sans">
                   Demo
                 </span>
               </button>
@@ -157,7 +157,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
-                className="px-5 py-2 text-sm font-semibold text-[#102744] hover:text-white border-2 border-[#102744] hover:bg-[#102744] rounded-full transition-all active:scale-95 shadow-2xs cursor-pointer flex items-center gap-2"
+                className="px-5 py-2 text-sm font-medium font-sans text-[#102744] hover:text-white border border-[#102744] hover:bg-[#102744] rounded-full transition-all active:scale-95 shadow-2xs cursor-pointer flex items-center gap-2"
               >
                 <User className="w-4 h-4" />
                 <span>Đăng nhập</span>

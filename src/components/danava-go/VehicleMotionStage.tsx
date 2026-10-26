@@ -2,7 +2,7 @@ import { useJourneyReducedMotion } from './useJourneyReducedMotion';
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { VehicleCategory } from '../../types';
-import { decodeJourneyImage, getJourneyLandmark, JOURNEY_DRIVE, JOURNEY_VEHICLES } from './journeyStageConfig';
+import { decodeJourneyImage, getJourneyLandmark, JOURNEY_VEHICLES } from './journeyStageConfig';
 
 interface VehicleMotionStageProps {
   selectedVehicle: VehicleCategory;
@@ -42,29 +42,29 @@ export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selected
   const anchorX = cfg ? cfg.anchor[0] * factor : 0;
   const anchorY = cfg ? cfg.anchor[1] * factor : 0;
   return (
-    <svg className="journey-vehicle-layer" viewBox="0 0 1536 1024" aria-hidden="true" data-testid="journey-vehicle-layer">
-      {/* Only one bus is visible. The old one fades out before the decoded new one enters. */}
-      <AnimatePresence mode="wait">
-        {shown && cfg && !broken && <motion.g key={`${shown.category}:${shown.route}`} data-vehicle={shown.category} className="journey-bus"
-          initial={reduced ? false : { transform: `translate(${JOURNEY_DRIVE.x[0]}px, ${JOURNEY_DRIVE.y[0]}px) scale(${JOURNEY_DRIVE.scale[0]})`, opacity: 0 }}
-          animate={reduced ? { transform: 'translate(1000px, 785px) scale(1)', opacity: 1 } : {
-            transform: JOURNEY_DRIVE.x.map((x, i) => `translate(${x}px, ${JOURNEY_DRIVE.y[i]}px) scale(${JOURNEY_DRIVE.scale[i]})`), opacity: 1,
-          }}
-          exit={{ opacity: 0 }}
-          transition={reduced ? { duration: 0 } : {
-            duration: JOURNEY_DRIVE.duration, times: JOURNEY_DRIVE.times, ease: [0.22, 0.61, 0.36, 1],
-            opacity: { duration: 0.24 },
-          }}
-          style={{ transformOrigin: '0px 0px' }}>
-          {/* Shadows and image share the exact wheel anchor throughout the journey. */}
-          <g transform={`translate(${-anchorX} ${-anchorY})`}>
-            <ellipse cx={anchorX + cfg.width * 0.09} cy={anchorY + 4} rx={cfg.width * 0.34} ry="13" fill="#102744" opacity=".12" />
-            {cfg.wheels.map(([x, y], i) => <ellipse key={i} cx={x * factor} cy={y * factor + 2} rx={cfg.width * 0.036} ry="5" fill="#112033" opacity=".48" />)}
-            <image href={cfg.image} width={cfg.width} height={cfg.width * 768 / 1376}
-              onError={() => { setBroken(true); callbackRef.current(shown.category, 'Ảnh xe gặp sự cố hiển thị. Vui lòng tải lại trang.'); }} />
-          </g>
-        </motion.g>}
-      </AnimatePresence>
+    <svg className="journey-vehicle-layer" viewBox="0 0 1376 768" preserveAspectRatio="xMidYMax slice" aria-hidden="true" data-testid="journey-vehicle-layer">
+      <g id="layer-vehicle" data-testid="layer-vehicle">
+        <AnimatePresence mode="wait">
+          {shown && cfg && !broken && <motion.g key={`${shown.category}:${shown.route}`} data-vehicle={shown.category} className="journey-bus"
+            initial={{ transform: `translate(${cfg.rest[0]}px, ${cfg.rest[1]}px) scale(1)`, opacity: 0 }}
+            animate={{ transform: `translate(${cfg.rest[0]}px, ${cfg.rest[1]}px) scale(1)`, opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduced ? 0 : 0.2 }}
+            style={{ transformOrigin: '0px 0px' }}>
+            {/* Shadows and image share the exact wheel anchor throughout the journey. */}
+            <g transform={`translate(${-anchorX} ${-anchorY})`}>
+              {/* Soft ambient undercarriage shadow */}
+              <ellipse cx={anchorX + cfg.width * 0.04} cy={anchorY + 4} rx={cfg.width * 0.35} ry="14" fill="#102744" opacity=".22" />
+              {/* Dark tire contact patches grounding wheels directly on asphalt */}
+              {cfg.wheels.map(([x, y], i) => (
+                <ellipse key={i} cx={x * factor} cy={y * factor + 2} rx={cfg.width * 0.038} ry="6" fill="#0d1b2a" opacity=".62" />
+              ))}
+              <image href={cfg.image} width={cfg.width} height={cfg.width * 768 / 1376}
+                onError={() => { setBroken(true); callbackRef.current(shown.category, 'Ảnh xe gặp sự cố hiển thị. Vui lòng tải lại trang.'); }} />
+            </g>
+          </motion.g>}
+        </AnimatePresence>
+      </g>
     </svg>
   );
 };

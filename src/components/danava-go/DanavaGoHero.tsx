@@ -33,31 +33,70 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
 
   return (
     <section className="danava-go-hero" aria-label="DANAVA GO — Hành trình khám phá Việt Nam">
-      <div className="go-shell">
-        <motion.div className="go-copy"
-          initial={reduced ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduced ? 0 : 0.4 }}>
-          <div className="go-eyebrow"><Sparkles size={14} /><span>HÀNH TRÌNH / KHÁM PHÁ VIỆT NAM</span></div>
-          <h1 className="go-title"><span>Đi một chuyến.</span><span>Mở ngàn</span><span className="go-title-experience">trải nghiệm.</span></h1>
-          <p>Chọn chuyến yêu thích.<br />Chạm đến những miền đất mới.</p>
-          <HeroVehicleSelector selectedVehicle={selectedVehicle} onSelectVehicle={(category) => {
-            setToast(null); setSelectedVehicle(category);
-          }} toast={toast} onCloseToast={() => setToast(null)} />
-          <div className="go-journey-note"><span />Mỗi hành trình, một miền cảm hứng.</div>
+      {/* 1. SCENERY BACKDROP: Full-width edge-to-edge, unconstrained by UI max-width */}
+      <div className="go-scenery-backdrop" aria-hidden="true">
+        <div className="journey-atmosphere" />
+        <div
+          className="go-journey-stage"
+          data-testid="danava-go-stage-scaffold"
+          role="img"
+          aria-label={`Cảnh hành trình từ ${preview.from} bên trái đến ${preview.to} bên phải, xe đi ra gần trên cung đường cố định.`}
+        >
+          <LayeredSceneStage fromCity={preview.from} toCity={preview.to} />
+          <VehicleMotionStage
+            selectedVehicle={selectedVehicle}
+            routeKey={routeKey}
+            fromCity={preview.from}
+            toCity={preview.to}
+            introReady={introReady}
+            onVehicleError={(fallback, message) => {
+              setSelectedVehicle(fallback);
+              setToast({ text: message, id: Date.now() });
+            }}
+          />
+        </div>
+      </div>
+
+      {/* 2. UI CONTAINER: Centered with max-width, safe padding, overflow visible */}
+      <div className="go-ui-container">
+        {/* Upper Editorial Block */}
+        <motion.div
+          className="go-editorial-center"
+          initial={reduced ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduced ? 0 : 0.4 }}
+        >
+          <div className="go-eyebrow">
+            <Sparkles size={14} className="text-[#0097A7]" />
+            <span>HÀNH TRÌNH / KHÁM PHÁ VIỆT NAM</span>
+          </div>
+          <h1 className="go-title">
+            <span>Đi một chuyến.</span>
+            <span>Mở ngàn <span className="go-title-experience">trải nghiệm.</span></span>
+          </h1>
+          <p className="go-description">
+            Chọn chuyến yêu thích. Chạm đến những miền đất mới.
+          </p>
+          <HeroVehicleSelector
+            selectedVehicle={selectedVehicle}
+            onSelectVehicle={(category) => {
+              setToast(null);
+              setSelectedVehicle(category);
+            }}
+            toast={toast}
+            onCloseToast={() => setToast(null)}
+          />
         </motion.div>
 
-        {/* A single responsive stage: no hidden desktop copy running on mobile. */}
-        <div className="go-journey-stage" data-testid="danava-go-stage-scaffold" role="img"
-          aria-label={`Cảnh hành trình từ ${preview.from} bên trái đến ${preview.to} bên phải, xe đi ra gần trên cung đường cố định.`}>
-          <LayeredSceneStage fromCity={preview.from} toCity={preview.to} />
-          <VehicleMotionStage selectedVehicle={selectedVehicle} routeKey={routeKey}
-            fromCity={preview.from} toCity={preview.to} introReady={introReady}
-            onVehicleError={(fallback, message) => { setSelectedVehicle(fallback); setToast({ text: message, id: Date.now() }); }} />
-        </div>
-
+        {/* Search Dock: Near bottom of hero */}
         <div className="go-search-dock" id="hero-search">
-          <TripSearchForm variant="horizontal-bar" initialParams={{ ...initialParams, from: preview.from, to: preview.to }}
-            onRouteChange={(from, to) => setPreview({ from, to })} onSearch={onSearch} isLoading={isSearching} />
+          <TripSearchForm
+            variant="horizontal-bar"
+            initialParams={{ ...initialParams, from: preview.from, to: preview.to }}
+            onRouteChange={(from, to) => setPreview({ from, to })}
+            onSearch={onSearch}
+            isLoading={isSearching}
+          />
         </div>
       </div>
     </section>
