@@ -11,3 +11,13 @@ function subscribe(onChange: () => void) {
 export function useJourneyReducedMotion() {
   return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, () => true);
 }
+
+const mobileQuery = '(max-width: 1023px)';
+function subscribeMobile(onChange: () => void) {
+  const media = window.matchMedia(mobileQuery);
+  media.addEventListener('change', onChange);
+  return () => media.removeEventListener('change', onChange);
+}
+export function useJourneyMobile() {
+  return useSyncExternalStore(subscribeMobile, () => window.matchMedia(mobileQuery).matches, () => false);
+}

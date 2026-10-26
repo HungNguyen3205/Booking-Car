@@ -1,11 +1,11 @@
 import type { VehicleCategory } from '../../types';
 import { getCanonicalLocationId, getLocationDisplayName } from '../../data/sceneManifest';
-import { HERO_VEHICLES_MANIFEST } from '../../data/heroAssetManifest';
+import { VEHICLE_MODELS } from '../../data/mockData';
 
 // Every layer uses this canvas. The shared ground was derived from the existing
 // road artwork; its near lane heads right. Vehicles/buildings are never mirrored.
-export const JOURNEY_CANVAS = { width: 1376, height: 768 };
-export const JOURNEY_ROAD = '/assets/images/scenes/journey_panorama_fullbleed.webp';
+export const JOURNEY_CANVAS = { width: 1600, height: 1000 };
+export const JOURNEY_ROAD = '/assets/images/scenes/journey_landscape.webp';
 
 export interface JourneyLandmark {
   id: string;
@@ -20,13 +20,14 @@ export interface JourneyLandmark {
 const scenes = '/assets/images/scenes/';
 const atlas = `${scenes}journey_landmarks_atlas.webp`;
 const landmarks: Record<string, Omit<JourneyLandmark, 'id' | 'city'>> = {
-  'da-nang': { landmark: 'Cầu Rồng · Sông Hàn', image: atlas, source: [1536, 1024], crop: [0, 330, 552, 420], photographic: true },
-  'hoi-an': { landmark: 'Phố cổ · Sông Hoài', image: atlas, source: [1536, 1024], crop: [552, 330, 498, 420], photographic: true },
+  'da-nang': { landmark: 'Cầu Rồng · Sông Hàn', image: atlas, source: [1536, 1024], crop: [0, 345, 552, 370], photographic: true },
+  'hoi-an': { landmark: 'Phố cổ · Sông Hoài', image: atlas, source: [1536, 1024], crop: [552, 335, 498, 400], photographic: true },
   'hue': { landmark: 'Ngọ Môn · Hoàng thành', image: atlas, source: [1536, 1024], crop: [1050, 320, 486, 420], photographic: true },
-  'nha-trang': { landmark: 'Tháp Trầm Hương · Vịnh biển', image: `${scenes}scene_nha_trang.jpg`, source: [1376, 768], crop: [50, 50, 1200, 650], photographic: false },
-  'ho-chi-minh': { landmark: 'Landmark 81 · Sông Sài Gòn', image: `${scenes}scene_hcm.jpg`, source: [1376, 768], crop: [150, 30, 1220, 700], photographic: false },
-  'ha-noi': { landmark: 'Hồ Gươm · Tháp Rùa', image: `${scenes}scene_hanoi.jpg`, source: [1376, 768], crop: [150, 80, 1200, 650], photographic: false },
-  'quy-nhon': { landmark: 'Eo Gió · Tháp Đôi', image: `${scenes}scene_quy_nhon.jpg`, source: [1376, 768], crop: [50, 50, 1300, 700], photographic: false },
+  'nha-trang': { landmark: 'Tháp Trầm Hương · Vịnh biển', image: `${scenes}journey_locations_atlas.webp`, source: [1983, 793], crop: [0, 300, 397, 493], photographic: true },
+  'ho-chi-minh': { landmark: 'Landmark 81 · Sông Sài Gòn', image: `${scenes}journey_locations_atlas.webp`, source: [1983, 793], crop: [397, 50, 396, 743], photographic: true },
+  'ha-noi': { landmark: 'Hồ Gươm · Tháp Rùa', image: `${scenes}journey_locations_atlas.webp`, source: [1983, 793], crop: [793, 420, 397, 373], photographic: true },
+  'quy-nhon': { landmark: 'Tháp Đôi · Biển Quy Nhơn', image: `${scenes}journey_locations_atlas.webp`, source: [1983, 793], crop: [1190, 350, 396, 443], photographic: true },
+  'da-lat': { landmark: 'Ga Đà Lạt · Thành phố ngàn hoa', image: `${scenes}journey_locations_atlas.webp`, source: [1983, 793], crop: [1586, 320, 397, 473], photographic: true },
 };
 
 export function getJourneyLandmark(city: string): JourneyLandmark {
@@ -46,16 +47,16 @@ export interface JourneyVehicle {
   rest: [number, number];
 }
 export const JOURNEY_VEHICLES: Record<VehicleCategory, JourneyVehicle> = {
-  sleeper: { image: HERO_VEHICLES_MANIFEST.sleeper.assetPath, width: 650, wheels: [[240, 650], [665, 706]], anchor: [452, 678], rest: [740, 660] },
-  limousine: { image: HERO_VEHICLES_MANIFEST.limousine.assetPath, width: 630, wheels: [[230, 638], [850, 706]], anchor: [540, 672], rest: [740, 660] },
-  cabin: { image: HERO_VEHICLES_MANIFEST.cabin.assetPath, width: 650, wheels: [[240, 650], [310, 665], [720, 710]], anchor: [480, 681], rest: [740, 660] },
+  sleeper: { image: VEHICLE_MODELS.sleeper.heroImage!, width: 900, wheels: [[240, 650], [665, 706]], anchor: [452, 678], rest: [650, 782] },
+  limousine: { image: VEHICLE_MODELS.limousine.heroImage!, width: 770, wheels: [[230, 638], [850, 706]], anchor: [540, 672], rest: [650, 782] },
+  cabin: { image: VEHICLE_MODELS.cabin.heroImage!, width: 900, wheels: [[240, 650], [310, 665], [720, 710]], anchor: [480, 681], rest: [650, 782] },
 };
 
 // A short, almost straight portion of the near lane matches the single camera
 // angle available for each bus. No rotation or artificial steering around the bend.
 export const JOURNEY_DRIVE = {
-  x: [420, 650, 850, 1000],
-  y: [590, 700, 752, 785],
+  x: [210, 360, 520, 650],
+  y: [700, 735, 765, 782],
   scale: [0.42, 0.58, 0.8, 1],
   times: [0, 0.3, 0.65, 1],
   duration: 1.7,
@@ -85,7 +86,7 @@ export function decodeJourneyImage(src: string): Promise<void> {
 
 export function preloadJourney(from: string, to: string) {
   return Promise.allSettled([...new Set([
-    JOURNEY_ROAD, JOURNEY_VEHICLES.sleeper.image,
+    JOURNEY_ROAD, JOURNEY_VEHICLES.cabin.image,
     getJourneyLandmark(from).image, getJourneyLandmark(to).image,
   ].filter(Boolean))].map(decodeJourneyImage));
 }

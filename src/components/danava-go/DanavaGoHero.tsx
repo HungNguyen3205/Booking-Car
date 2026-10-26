@@ -19,7 +19,7 @@ interface DanavaGoHeroProps {
 
 export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSearch, isSearching = false, introReady = true }) => {
   const reduced = useJourneyReducedMotion();
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleCategory>('sleeper');
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleCategory>('cabin');
   const [toast, setToast] = useState<{ text: string; id: number } | null>(null);
   const [preview, setPreview] = useState({ from: initialParams.from, to: initialParams.to });
   const [previous, setPrevious] = useState(initialParams);

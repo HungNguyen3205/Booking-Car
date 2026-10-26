@@ -70,7 +70,8 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
   return (
     <>
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-200 border-b ${
+        data-scrolled={isScrolled}
+        className={`${currentTab === 'home' ? 'go-home-header' : ''} sticky top-0 z-40 w-full transition-all duration-200 border-b ${
           isCompact || isScrolled
             ? 'h-[64px] sm:h-[68px] lg:h-[70px] bg-[#FFFEFA]/95 backdrop-blur-md shadow-xs border-[#E5E3DC]'
             : 'h-[64px] sm:h-[70px] lg:h-[72px] bg-[#F7F4EC] border-[#E5E3DC]/60'

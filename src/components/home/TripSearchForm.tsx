@@ -208,20 +208,6 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
       }`}
       aria-label="Form tìm kiếm chuyến xe"
     >
-      {/* Decorative Ticket Side Notches */}
-      {isHorizontalBar && (
-        <>
-          <div
-            className="hidden sm:block absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#F7F4EC] rounded-full border-r border-[#E5E3DC] pointer-events-none z-10"
-            aria-hidden="true"
-          />
-          <div
-            className="hidden sm:block absolute -right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#F7F4EC] rounded-full border-l border-[#E5E3DC] pointer-events-none z-10"
-            aria-hidden="true"
-          />
-        </>
-      )}
-
       {errorMsg && (
         <div
           role="alert"
@@ -241,6 +227,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
 
       {/* Grid Layout: Nơi đi / Đảo chiều / Nơi đến / Divider / Ngày đi / Divider / Hành khách / CTA */}
       <div
+        data-search-grid
         className={
           isHorizontalBar
             ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.3fr_auto_1.3fr_auto_1.15fr_auto_1.05fr_auto] items-center gap-1.5 sm:gap-2'
@@ -250,7 +237,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         {/* ========================================================
             FIELD 1: NƠI ĐI
             ======================================================== */}
-        <div ref={fromContainerRef} className="relative min-w-0">
+        <div data-search-field="from" ref={fromContainerRef} className="relative min-w-0">
           <button
             id="search-from"
             type="button"
@@ -318,7 +305,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         {/* ========================================================
             FIELD 2: NÚT ĐẢO CHIỀU (SWAP)
             ======================================================== */}
-        <div className="flex justify-center items-center shrink-0 px-0.5">
+        <div data-search-field="swap" className="flex justify-center items-center shrink-0 px-0.5">
           <button
             type="button"
             onClick={handleSwap}
@@ -339,7 +326,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         {/* ========================================================
             FIELD 3: NƠI ĐẾN
             ======================================================== */}
-        <div ref={toContainerRef} className="relative min-w-0">
+        <div data-search-field="to" ref={toContainerRef} className="relative min-w-0">
           <button
             id="search-to"
             type="button"
@@ -412,7 +399,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         {/* ========================================================
             FIELD 4: NGÀY ĐI
             ======================================================== */}
-        <div className="relative min-w-0">
+        <div data-search-field="date" className="relative min-w-0">
           <div
             className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus-within:bg-[#FFFEFA] focus-within:ring-2 focus-within:ring-[#0097A7] cursor-pointer transition-all ${
               !isHorizontalBar ? 'border border-[#E5E3DC] bg-[#F7F4EC]/60' : ''
@@ -450,7 +437,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         {/* ========================================================
             FIELD 5: SỐ HÀNH KHÁCH
             ======================================================== */}
-        <div ref={passengersContainerRef} className="relative min-w-0">
+        <div data-search-field="passengers" ref={passengersContainerRef} className="relative min-w-0">
           <button
             id="search-passengers"
             type="button"
@@ -510,7 +497,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         {/* ========================================================
             FIELD 6: NÚT TÌM CHUYẾN (SUBMIT CTA)
             ======================================================== */}
-        <div className="min-w-0 p-1">
+        <div data-search-field="submit" className="min-w-0 p-1">
           <button
             type="submit"
             disabled={isLoading}

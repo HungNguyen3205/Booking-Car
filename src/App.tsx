@@ -5,10 +5,6 @@ import { SiteHeader } from './components/layout/SiteHeader';
 import { SiteFooter } from './components/layout/SiteFooter';
 import { DanavaGoHero } from './components/danava-go/DanavaGoHero';
 
-// Lazy-load legacy hero comparison to exclude from initial production bundle
-const AnimatedBusHero = React.lazy(() =>
-  import('./components/home/AnimatedBusHero').then((m) => ({ default: m.AnimatedBusHero }))
-);
 import { FeaturedRoutes } from './components/home/FeaturedRoutes';
 import { VehicleExperience } from './components/home/VehicleExperience';
 import { BookingSteps } from './components/home/BookingSteps';
@@ -17,8 +13,6 @@ import { FaqSection } from './components/home/FaqSection';
 import { TripResultsView } from './components/search/TripResultsView';
 import type { Booking, BookingStep, PassengerInfo, SearchParams, Seat, Trip } from './types';
 import { bookingService } from './services/bookingService';
-import { VEHICLE_MODELS } from './data/mockData';
-import { preloadCriticalHeroAssets } from './data/sceneData';
 import { preloadJourney } from './components/danava-go/journeyStageConfig';
 import { getVietnamTodayDateStr, isValidBookingDate } from './utils/dateUtils';
 
@@ -114,7 +108,6 @@ export const App: React.FC = () => {
     if (shouldReduceMotion) return;
 
     let isMounted = true;
-    const defaultVehicle = VEHICLE_MODELS['sleeper']?.image || '';
     const { from, to } = initialParamsRef.current;
 
     // Fast safety fallback in case network hangs
@@ -124,9 +117,7 @@ export const App: React.FC = () => {
       }
     }, 600);
 
-    (new URLSearchParams(window.location.search).get('hero') === 'legacy'
-      ? preloadCriticalHeroAssets(from, to, defaultVehicle)
-      : preloadJourney(from, to))
+    preloadJourney(from, to)
       .then(() => {
         if (isMounted) {
           clearTimeout(safetyTimer);
@@ -309,22 +300,12 @@ export const App: React.FC = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
               >
-                {/* Hero Variant: DANAVA GO (default) or Legacy Hero (?hero=legacy) for dev comparison */}
-                {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('hero') === 'legacy' ? (
-                  <AnimatedBusHero
-                    initialParams={searchParams}
-                    onSearch={handleSearch}
-                    isSearching={false}
-                    introReady={heroIntroReady}
-                  />
-                ) : (
-                  <DanavaGoHero
-                    introReady={heroIntroReady}
-                    initialParams={searchParams}
-                    onSearch={handleSearch}
-                    isSearching={false}
-                  />
-                )}
+                <DanavaGoHero
+                  introReady={heroIntroReady}
+                  initialParams={searchParams}
+                  onSearch={handleSearch}
+                  isSearching={false}
+                />
                 <FeaturedRoutes
                   onSelectRoute={(from, to) => {
                     handleSearch({

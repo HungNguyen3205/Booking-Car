@@ -80,7 +80,7 @@ export const FeaturedRoutes: React.FC<FeaturedRoutesProps> = ({
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-[#647084] max-w-md">
-            Chọn tuyến để xem mô hình 3D độc bản và đặt vé nhanh chóng, an toàn.
+            Chọn hành trình yêu thích, khám phá miền đất mới và đặt vé an toàn.
           </p>
         </div>
 
@@ -129,11 +129,11 @@ export const FeaturedRoutes: React.FC<FeaturedRoutesProps> = ({
                     type="button"
                     onClick={() => handleCardClick(card.from, card.to)}
                     className="inline-flex items-center justify-center gap-1 py-1.5 px-2 bg-white/20 hover:bg-white/35 active:scale-95 text-white text-[11px] font-semibold rounded-lg backdrop-blur-xs transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-white"
-                    title="Xem phối cảnh 3D và cập nhật form"
-                    aria-label={`Xem cảnh 3D tuyến ${card.title}`}
+                    title="Khám phá cảnh hành trình và cập nhật form"
+                    aria-label={`Xem cảnh hành trình tuyến ${card.title}`}
                   >
                     <Sparkles className="w-3 h-3 text-[#00E5FF]" />
-                    <span>Xem cảnh 3D</span>
+                    <span>Xem hành trình</span>
                   </button>
 
                   <button

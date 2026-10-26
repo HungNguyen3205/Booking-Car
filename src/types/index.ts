@@ -8,6 +8,7 @@ export interface Vehicle {
   seatsTotal: number;
   floors: 1 | 2;
   image: string;
+  heroImage?: string;
   amenities: string[];
   description: string;
   rating: number;
