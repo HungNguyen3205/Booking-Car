@@ -1,11 +1,13 @@
+import departureViews from '../../data/departureViews.json';
 import { useJourneyReducedMotion, useJourneyMobile } from './useJourneyReducedMotion';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from 'framer-motion';
 import type { VehicleCategory } from '../../types';
 import { decodeJourneyImage, JOURNEY_VEHICLES, JOURNEY_DRIVE, JOURNEY_TURN_ATLAS, getJourneyDrivePose, getVehicleRest } from './journeyStageConfig';
 
-function DrivingVehicle({ category, mobile, approach, reduced, atlasReady, onSettled, onLoad, onError }: {
+function DrivingVehicle({ category, mobile, approach, reduced, atlasReady, departureReady, departing, onDepartureComplete, onSettled, onLoad, onError }: {
   category: VehicleCategory; mobile: boolean; approach: boolean; reduced: boolean; atlasReady: boolean;
+  departureReady: boolean; departing: boolean; onDepartureComplete?: () => void;
   onSettled: () => void; onLoad: () => void; onError: () => void;
 }) {
   const cfg = JOURNEY_VEHICLES[category];
@@ -14,11 +16,25 @@ function DrivingVehicle({ category, mobile, approach, reduced, atlasReady, onSet
   const anchorX = cfg.anchor[0]*factor, anchorY = cfg.anchor[1]*factor;
   const [restX, restY] = getVehicleRest(category, mobile);
   const progress = useMotionValue(approach ? 0 : 1);
-  const transform = useTransform(progress, p => {
+  const departure = useMotionValue(0);
+  const transform = useTransform(() => {
+    const p = progress.get(), d = departure.get();
+    if (d > 0) return `translate(${restX + 30*d}px, ${restY - 85*d}px) scale(${1-.35*d})`;
     // Without the atlas, restrict entry to the compatible near camera angle.
     const pose = getJourneyDrivePose(atlasReady ? p : .72 + p*.28, [restX, restY]);
     return `translate(${pose.x}px, ${pose.y}px) scale(${pose.scale})`;
   });
+  const departFront = useTransform(departure, [0, .23], [1, 0]);
+  const departRear = useTransform(departure, [0, .23], [0, 1]);
+  const departOpacity = useTransform(departure, [0, .72, 1], [1, 1, 0]);
+  const departCrop = departureViews.views[category];
+  useEffect(() => {
+    if (!departing) return;
+    progress.set(1);
+    if (reduced) { onDepartureComplete?.(); return; }
+    const controls = animate(departure, 1, { duration: .8, ease: [.4, 0, .8, 1], onComplete: onDepartureComplete });
+    return () => controls.stop();
+  }, [departing, reduced, departure, progress, onDepartureComplete]);
   const near = useTransform(progress, [.46, .54], atlasReady ? [0, 1] : [1, 1]);
   const front = useTransform(progress, p => {
     const rear = Math.min(1, Math.max(0, (p-.22)/.05)) * (1-Math.min(1, Math.max(0, (p-.36)/.08)));
@@ -26,14 +42,15 @@ function DrivingVehicle({ category, mobile, approach, reduced, atlasReady, onSet
   });
   const rear = useTransform(() => 1-near.get()-front.get());
   useEffect(() => {
-    if (!approach || reduced) { progress.set(1); return; }
+    if (!approach || reduced || departing) { progress.set(1); return; }
     const controls = animate(progress, 1, { duration: JOURNEY_DRIVE.duration, ease: 'linear', onComplete: onSettled });
     return () => controls.stop();
-  }, [approach, reduced, progress, onSettled]);
-  return <motion.g data-vehicle={category} data-drive-state={approach ? 'driving' : 'parked'}
+  }, [approach, reduced, departing, progress, onSettled]);
+  return <motion.g data-vehicle={category} data-drive-state={departing ? 'departing' : approach ? 'driving' : 'parked'}
     className="journey-bus" style={{ transform, transformOrigin: '0px 0px' }}
     initial={{ opacity: reduced ? 1 : 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     transition={{ duration: reduced ? 0 : .12 }}>
+    <motion.g style={{ opacity: departureReady ? departFront : departOpacity }}>
     {atlasReady && cfg.views.map(([vx, vy, vw, vh], i) => {
       const bodyWidth = width*(category === 'cabin' ? .887 : .951);
       const bodyHeight = bodyWidth*vh/vw;
@@ -49,16 +66,27 @@ function DrivingVehicle({ category, mobile, approach, reduced, atlasReady, onSet
       {cfg.wheels.map(([px, py], i) => <ellipse key={i} cx={px*factor} cy={py*factor-2} rx={width*.033} ry="3" fill="#0d1b2a" opacity=".4" />)}
       <image data-vehicle-photo="true" href={cfg.image} width={width} height={cfg.source[1]*factor} onLoad={onLoad} onError={onError} />
     </motion.g>
+    </motion.g>
+    {departureReady && <motion.g style={{opacity:departRear}}>
+      <motion.g style={{opacity:departOpacity}}>
+        <ellipse cx="0" cy="-2" rx="155" ry="9" fill="#102744" opacity=".2"/>
+        <svg x="-240" y={-480*departCrop[3]/departCrop[2]} width="480" height={480*departCrop[3]/departCrop[2]} viewBox={departCrop.join(' ')} overflow="hidden" data-departure-photo={category}>
+          <image href="/assets/images/fleet-departure.webp" width={departureViews.source[0]} height={departureViews.source[1]}/>
+        </svg>
+      </motion.g>
+    </motion.g>}
   </motion.g>;
 }
 
 interface VehicleMotionStageProps {
   selectedVehicle: VehicleCategory;
   introReady?: boolean;
+  departing?: boolean;
+  onDepartureComplete?: () => void;
   onVehicleError?: (fallback: VehicleCategory, message: string) => void;
 }
 
-export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selectedVehicle, introReady = true, onVehicleError }) => {
+export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selectedVehicle, introReady = true, onVehicleError, departing = false, onDepartureComplete }) => {
   const reduced = useJourneyReducedMotion();
   const mobile = useJourneyMobile();
   const reducedRef = useRef(reduced);
@@ -67,6 +95,12 @@ export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selected
   const [introDone, setIntroDone] = useState(reduced);
   const [broken, setBroken] = useState(false);
   const [atlasReady, setAtlasReady] = useState(false);
+  const [departureReady, setDepartureReady] = useState(false);
+  useEffect(() => {
+    let current = true;
+    void decodeJourneyImage('/assets/images/fleet-departure.webp').then(() => { if (current) setDepartureReady(true); }).catch(() => {});
+    return () => { current = false; };
+  }, []);
   const shownRef = useRef<VehicleCategory | null>(null);
   const lastGood = useRef<VehicleCategory | null>(null);
   const requests = useRef(0);
@@ -124,7 +158,7 @@ export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selected
     <g id="layer-vehicle" data-testid="layer-vehicle">
       <AnimatePresence mode="wait">
         {shown && !broken && <DrivingVehicle key={shown} category={shown} mobile={mobile}
-          approach={!introDone && !reduced} reduced={reduced} atlasReady={atlasReady} onSettled={settle}
+          approach={!introDone && !reduced} reduced={reduced} atlasReady={atlasReady} departureReady={departureReady} departing={departing} onDepartureComplete={onDepartureComplete} onSettled={settle}
           onLoad={() => { lastGood.current = shown; }}
           onError={() => {
             const previous = lastGood.current;

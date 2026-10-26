@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Trip, Seat } from '../../types';
 import { SeatMap } from './SeatMap';
@@ -62,6 +62,8 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
   onBack,
   onProceedToPassenger,
 }) => {
+  const limitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (limitTimer.current) clearTimeout(limitTimer.current); }, []);
   const [limitNotice, setLimitNotice] = useState<string | null>(null);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
 
@@ -82,7 +84,8 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
 
   const handleLimitExceeded = () => {
     setLimitNotice(`Bạn đã chọn đủ ${passengersCount} ghế theo yêu cầu. Hãy bỏ chọn ghế đang chọn để đổi chỗ.`);
-    setTimeout(() => {
+    if (limitTimer.current) clearTimeout(limitTimer.current);
+    limitTimer.current = setTimeout(() => {
       setLimitNotice((prev) => (prev ? null : prev));
     }, 3500);
   };
@@ -147,7 +150,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
           SOLD-OUT ALERT BANNER (NẾU HẾT GHẾ)
           ============================================================ */}
       {isTripSoldOut && (
-        <div className="max-w-[1200px] w-full mx-auto px-3 sm:px-6 mt-4">
+        <div className="max-w-[1440px] w-full mx-auto px-3 sm:px-6 mt-4">
           <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-rose-900 text-xs sm:text-sm shadow-xs">
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
@@ -196,7 +199,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
       {/* ============================================================
           2. KHUNG VÉ NGANG KHỔ LỚN CHỨA THÂN XE Ở GIỮA (~1180px)
           ============================================================ */}
-      <div className="max-w-[1200px] w-full mx-auto px-3 sm:px-6 mt-5 sm:mt-7 flex-1">
+      <div className="max-w-[1440px] w-full mx-auto px-3 sm:px-6 mt-5 sm:mt-7 flex-1">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -206,7 +209,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
           {/* ==========================================================
               MAIN TICKET AREA (KHOANG XE TRUNG TÂM)
               ========================================================== */}
-          <div className="flex-1 p-4 sm:p-6 lg:p-7">
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-7">
             {/* Ticket Header Label */}
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#E5E3DC]">
               <div className="flex items-center gap-2">

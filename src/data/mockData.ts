@@ -1,15 +1,7 @@
+import { SUPPORTED_LOCATIONS } from './sceneManifest';
 import type { Trip, Vehicle, Seat, StopPoint } from '../types';
 
-export const POPULAR_CITIES = [
-  { id: 'da-nang', name: 'Đà Nẵng', province: 'Đà Nẵng' },
-  { id: 'hue', name: 'Huế', province: 'Thừa Thiên Huế' },
-  { id: 'hoi-an', name: 'Hội An', province: 'Quảng Nam' },
-  { id: 'quy-nhon', name: 'Quy Nhơn', province: 'Bình Định' },
-  { id: 'nha-trang', name: 'Nha Trang', province: 'Khánh Hòa' },
-  { id: 'ha-noi', name: 'Hà Nội', province: 'Hà Nội' },
-  { id: 'ho-chi-minh', name: 'TP. Hồ Chí Minh', province: 'Hồ Chí Minh' },
-  { id: 'da-lat', name: 'Đà Lạt', province: 'Lâm Đồng' },
-];
+export const POPULAR_CITIES = SUPPORTED_LOCATIONS;
 
 export const VEHICLE_MODELS: Record<string, Vehicle> = {
   sleeper: {

@@ -8,20 +8,20 @@ const Landmark = memo(function Landmark({ city, role, introReady }: { city: stri
   const reduced = useJourneyReducedMotion();
   const mobile = useJourneyMobile();
   const slotId = useId().replace(/:/g, '');
-  const [scene, setScene] = useState<JourneyLandmark>(() => getJourneyLandmark(city));
+  const [scene, setScene] = useState<JourneyLandmark>(() => getJourneyLandmark(city, role));
   useEffect(() => {
     let current = true;
-    const target = getJourneyLandmark(city);
+    const target = getJourneyLandmark(city, role);
     decodeJourneyImage(target.image).then(() => { if (current) setScene(target); })
       .catch(() => { if (current) setScene({ ...target, image: '', landmark: 'Miền đất mới' }); });
     return () => { current = false; };
-  }, [city]);
+  }, [city, role]);
   const safeId = Array.from(scene.id).reduce((hash, ch) => (Math.imul(hash, 31) + ch.charCodeAt(0)) >>> 0, 0).toString(36);
   const clip = `${slotId}-${role}-${safeId}-${scene.image ? 'photo' : 'fallback'}`;
   const [cx, cy, cw, ch] = scene.crop;
-  const x = role === 'origin' ? (mobile ? scene.frame.mobileOriginX ?? scene.frame.originX : scene.frame.originX) : scene.frame.destinationX;
+  const x = role === 'origin' ? (mobile ? scene.frame.mobileOriginX ?? scene.frame.originX : scene.frame.originX) : (mobile ? scene.frame.mobileDestinationX ?? scene.frame.destinationX : scene.frame.destinationX);
   const y = role === 'origin' ? scene.frame.originY ?? scene.frame.y : scene.frame.y;
-  const width = scene.frame.width;
+  const width = mobile ? scene.frame.mobileWidth ?? scene.frame.width : scene.frame.width;
   const height = scene.frame.height;
   const blend = scene.blend;
   const hasEdgeFade = Boolean(blend?.edgeFade?.left || blend?.edgeFade?.right);
@@ -53,6 +53,7 @@ const Landmark = memo(function Landmark({ city, role, introReady }: { city: stri
                 viewBox={`${cx} ${cy} ${cw} ${ch}`}
                 preserveAspectRatio="xMidYMax meet"
                 data-bank-image={scene.id}
+                data-bank-role={role}
               >
                 <defs>
                   <clipPath id={`${clip}-crop`}>

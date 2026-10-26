@@ -1,194 +1,69 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import type { Seat } from '../../types';
+import React, { useId } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Check, Lock, Ban } from 'lucide-react';
+import type { Seat } from '../../types';
+import './seat-experience.css';
 
 interface SeatButtonProps {
-  seat: Seat;
-  isSelected: boolean;
-  onToggle: (seat: Seat) => void;
-  disabled?: boolean;
-  orientation?: 'horizontal' | 'vertical';
-  onLimitExceeded?: () => void;
+  seat: Seat; isSelected: boolean; onToggle: (seat: Seat) => void;
+  disabled?: boolean; orientation?: 'horizontal' | 'vertical'; onLimitExceeded?: () => void;
 }
 
-export const SeatButton: React.FC<SeatButtonProps> = ({
-  seat,
-  isSelected,
-  onToggle,
-  disabled = false,
-  orientation = 'horizontal',
-  onLimitExceeded,
-}) => {
-  const isBooked = seat.status === 'booked';
-  const isUnavailable = seat.status === 'disabled';
-  const isSelectable = !isBooked && !isUnavailable;
-  const isLimitReached = disabled && !isSelected;
-
-  const handleClick = () => {
-    if (!isSelectable) return;
-    if (isLimitReached) {
-      if (onLimitExceeded) onLimitExceeded();
-      return;
-    }
-    onToggle(seat);
-  };
-
-  const statusLabel = isBooked
-    ? 'Đã đặt'
-    : isUnavailable
-    ? 'Không khả dụng'
-    : isSelected
-    ? 'Đang chọn'
-    : isLimitReached
-    ? 'Còn trống (Đã đủ số khách)'
-    : 'Còn trống';
-
-  // Format currency for title
-  const formattedPrice = new Intl.NumberFormat('vi-VN').format(seat.price);
-
-  // Distinct dimensional classes based on vehicle category and orientation
-  const isHorizontal = orientation === 'horizontal';
-
-  // Base dimensions and aspect ratios per seat type
-  const getDimensionClasses = () => {
-    if (seat.type === 'cabin') {
-      return isHorizontal
-        ? 'w-[74px] sm:w-[86px] h-[52px] sm:h-[58px]'
-        : 'w-[64px] sm:w-[74px] h-[70px] sm:h-[78px]';
-    }
-    if (seat.type === 'sleeper') {
-      return isHorizontal
-        ? 'w-[64px] sm:w-[76px] h-[46px] sm:h-[50px]'
-        : 'w-[52px] sm:w-[58px] h-[68px] sm:h-[74px]';
-    }
-    // Default Limousine luxury armchair
-    return isHorizontal
-      ? 'w-[54px] sm:w-[62px] h-[48px] sm:h-[52px]'
-      : 'w-[50px] sm:w-[56px] h-[52px] sm:h-[58px]';
-  };
-
-  return (
-    <motion.button
-      type="button"
-      role="checkbox"
-      whileHover={isSelectable && !isLimitReached ? { scale: 1.04 } : undefined}
-      whileTap={isSelectable ? { scale: 0.96 } : undefined}
-      disabled={!isSelectable}
-      onClick={handleClick}
-      aria-checked={isSelected}
-      aria-pressed={isSelected}
-      aria-disabled={!isSelectable}
-      aria-label={`Ghế ${seat.code}, loại ${seat.type}, ${statusLabel}, giá ${formattedPrice} đồng`}
-      title={`Ghế ${seat.code} • ${statusLabel}${isSelectable ? ` • ${formattedPrice} ₫` : ''}`}
-      className={`relative ${getDimensionClasses()} min-w-[44px] min-h-[44px] touch-manipulation rounded-xl flex flex-col justify-between p-1 sm:p-1.5 transition-all text-xs select-none cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0097A7] shrink-0 ${
-        isSelected
-          ? 'bg-[#0097A7] text-white shadow-md shadow-[#0097A7]/35 ring-2 ring-[#00695C] border-2 border-[#004D40]'
-          : isBooked
-          ? 'bg-[#1E293B] text-slate-400 cursor-not-allowed border border-slate-700 opacity-90'
-          : isUnavailable
-          ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-2 border-dashed border-slate-300 opacity-60'
-          : isLimitReached
-          ? 'bg-[#FFFEFA] text-slate-600 border border-slate-300 hover:border-amber-400 shadow-2xs'
-          : 'bg-[#FFFEFA] text-[#102744] border-2 border-[#CBD5E1] hover:border-[#0097A7] hover:shadow-xs shadow-2xs'
-      }`}
-    >
-      {/* ----------------------------------------------------
-          TOP ACCENT / HEADREST CONTOUR PER VEHICLE TYPE
-          ---------------------------------------------------- */}
-      <div className="w-full flex items-center justify-between px-0.5">
-        {/* Headrest / Pillow Contour */}
-        {seat.type === 'cabin' ? (
-          <div className="flex items-center gap-1">
-            <span
-              className={`h-1.5 w-6 sm:w-8 rounded-full ${
-                isSelected
-                  ? 'bg-teal-200/80'
-                  : isBooked
-                  ? 'bg-slate-600'
-                  : 'bg-amber-400/80'
-              }`}
-            />
-            <span className="text-[7.5px] uppercase font-bold tracking-widest text-[#0097A7] hidden sm:inline">
-              VIP
-            </span>
-          </div>
-        ) : seat.type === 'sleeper' ? (
-          <div className="flex items-center gap-1">
-            {/* Pillow graphic indicator */}
-            <span
-              className={`h-1.5 w-6 rounded-full transition-colors ${
-                isSelected
-                  ? 'bg-teal-200/70'
-                  : isBooked
-                  ? 'bg-slate-600'
-                  : 'bg-sky-200'
-              }`}
-            />
-            <span className="text-[7px] text-[#647084] font-semibold hidden sm:inline">
-              Gối
-            </span>
-          </div>
-        ) : (
-          /* Limousine armchair headrest */
-          <span
-            className={`h-1.5 w-6 rounded-full transition-colors ${
-              isSelected
-                ? 'bg-teal-200/70'
-                : isBooked
-                ? 'bg-slate-600'
-                : 'bg-slate-300'
-            }`}
-          />
-        )}
-
-        {/* Status Badge Icon */}
-        {isSelected ? (
-          <span className="w-4 h-4 rounded-full bg-white text-[#0097A7] flex items-center justify-center shrink-0 shadow-2xs">
-            <Check className="w-3 h-3 stroke-[3]" />
-          </span>
-        ) : isBooked ? (
-          <Lock className="w-3 h-3 text-slate-400 shrink-0" />
-        ) : isUnavailable ? (
-          <Ban className="w-3 h-3 text-slate-400 shrink-0" />
-        ) : null}
-      </div>
-
-      {/* ----------------------------------------------------
-          CENTER SEAT CODE BADGE
-          ---------------------------------------------------- */}
-      <div className="w-full text-center my-auto py-0.5">
-        <span
-          className={`font-mono font-bold tracking-tight text-xs sm:text-[13px] leading-tight block ${
-            isSelected
-              ? 'text-white'
-              : isBooked
-              ? 'text-slate-300'
-              : 'text-[#102744]'
-          }`}
-        >
-          {seat.code}
-        </span>
-      </div>
-
-      {/* ----------------------------------------------------
-          BOTTOM CUSHION / MATTRESS ACCENT
-          ---------------------------------------------------- */}
-      <div className="w-full flex items-center justify-between px-0.5 pt-0.5">
-        <span
-          className={`h-1 rounded-full ${
-            isSelected
-              ? 'w-full bg-white/50'
-              : isBooked
-              ? 'w-full bg-slate-700'
-              : seat.type === 'cabin'
-              ? 'w-full bg-amber-200/80'
-              : seat.type === 'sleeper'
-              ? 'w-full bg-sky-100'
-              : 'w-full bg-slate-200'
-          }`}
-        />
-      </div>
-    </motion.button>
-  );
+export const SeatButton: React.FC<SeatButtonProps> = ({ seat, isSelected, onToggle, disabled = false, orientation = 'horizontal', onLimitExceeded }) => {
+  const id = useId().replace(/:/g, '');
+  const reduced = useReducedMotion();
+  const locked = seat.status === 'booked' || seat.status === 'disabled';
+  const limited = disabled && !isSelected;
+  const status = seat.status === 'booked' ? 'Đã đặt' : seat.status === 'disabled' ? 'Không khả dụng' : isSelected ? 'Đang chọn' : limited ? 'Còn trống (Đã đủ số khách)' : 'Còn trống';
+  const price = new Intl.NumberFormat('vi-VN').format(seat.price);
+  const vertical = orientation === 'vertical' && seat.type !== 'seat';
+  const leather = `${id}-leather`, cushion = `${id}-cushion`;
+  return <motion.button type="button" role="checkbox" aria-checked={isSelected} disabled={locked}
+    aria-label={`Ghế ${seat.code}, loại ${seat.type}, ${status}, giá ${price} đồng`}
+    title={`${seat.code} · ${status} · ${price} ₫`}
+    data-seat-code={seat.code} data-seat-kind={seat.type} data-seat-state={isSelected ? 'selected' : seat.status}
+    className={`seat-object seat-object-${seat.type} seat-${orientation} ${isSelected ? 'is-selected' : ''} ${locked ? 'is-locked' : ''} ${limited ? 'is-limited' : ''}`}
+    whileHover={!locked && !reduced ? { y: -2 } : undefined} whileTap={!locked && !reduced ? { scale: .97 } : undefined}
+    onClick={() => { if (locked) return; if (limited) { onLimitExceeded?.(); return; } onToggle(seat); }}>
+    <svg viewBox={seat.type === 'seat' ? '0 0 100 100' : vertical ? '0 0 84 144' : '0 0 144 84'} aria-hidden="true" className="seat-illustration">
+      <defs>
+        <linearGradient id={leather} x1="0" y1="0" x2="1" y2="1"><stop stopColor="var(--seat-light)"/><stop offset=".48" stopColor="var(--seat-body)"/><stop offset="1" stopColor="var(--seat-dark)"/></linearGradient>
+        <linearGradient id={cushion} x1="0" y1="0" x2="0" y2="1"><stop stopColor="var(--seat-pillow)"/><stop offset="1" stopColor="var(--seat-body)"/></linearGradient>
+      </defs>
+      {seat.type === 'seat' ? <g>
+        <rect x="18" y="9" width="64" height="82" rx="19" fill="#081525" opacity=".4"/>
+        <rect x="22" y="13" width="56" height="72" rx="17" fill={`url(#${leather})`} stroke="#c7aa76" strokeWidth="1.5"/>
+        <rect x="30" y="9" width="40" height="22" rx="8" fill={`url(#${cushion})`} stroke="#a5b7c8" strokeOpacity=".5"/>
+        <path d="M32 37q18 -6 36 0v34q-18 10-36 0z" fill={`url(#${cushion})`} stroke="#f0e5cb" strokeOpacity=".22"/>
+        <path d="M36 43l28 23m0-23L36 66M50 39v34" stroke="#f4e9d1" strokeOpacity=".16" fill="none"/>
+        <rect x="12" y="35" width="14" height="44" rx="6" fill={`url(#${leather})`} stroke="#bfa77e"/>
+        <rect x="74" y="35" width="14" height="44" rx="6" fill={`url(#${leather})`} stroke="#bfa77e"/>
+        <circle cx="19" cy="66" r="3" fill="#cfba91"/><circle cx="81" cy="66" r="3" fill="#cfba91"/>
+        <path d="M31 83h38" stroke="#d8c49c" strokeWidth="3" strokeLinecap="round"/>
+      </g> : <g transform={vertical ? 'translate(84 0) rotate(90)' : undefined}>
+        {seat.type === 'cabin' ? <>
+          <rect x="2" y="3" width="140" height="78" rx="9" fill="#182330" stroke="#d4b177" strokeWidth="2"/>
+          <rect x="8" y="9" width="128" height="64" rx="5" fill="#645546"/>
+          <path d="M12 13h120M12 69h120" stroke="#efc985" strokeWidth="2"/>
+          <rect x="15" y="17" width="91" height="46" rx="9" fill={`url(#${leather})`} stroke="#bba98c"/>
+          <rect x="21" y="22" width="21" height="34" rx="6" fill="#e7dcc8"/>
+          <path d="M48 20v40m8-40v40" stroke="#c8bca6" strokeOpacity=".45"/>
+          <rect x="113" y="19" width="15" height="24" rx="3" fill="#132b40" stroke="#c6a36c"/>
+          <circle cx="121" cy="52" r="5" fill="#e6c28b"/>
+          <path d="M87 78h43" stroke="#f6e4bf" strokeWidth="4"/>
+          <path d="M87 77v-17q19 0 19 17" stroke="#d9ba80" fill="none" strokeDasharray="3 2"/>
+        </> : <>
+          <rect x="3" y="9" width="138" height="66" rx="29" fill="#0b192b" stroke="#bbab8b" strokeWidth="2"/>
+          <rect x="10" y="15" width="124" height="54" rx="23" fill={`url(#${leather})`} stroke="#cdd7dd" strokeOpacity=".55"/>
+          <rect x="16" y="21" width="29" height="42" rx="11" fill="#e6dfce"/>
+          <path d="M51 20v44m5-44v44" stroke="#a5c0cd" strokeWidth="2" strokeOpacity=".6"/>
+          <path d="M63 25h55M63 58h55" stroke="#b7d3de" strokeOpacity=".25"/>
+          <path d="M29 12h82" stroke="#b0edee" strokeWidth="2" strokeLinecap="round"/>
+          <rect x="119" y="29" width="7" height="26" rx="3" fill="#10202d"/>
+        </>}
+      </g>}
+    </svg>
+    <span className="seat-code-badge">{seat.code}</span>
+    {isSelected ? <Check className="seat-state-icon" size={13}/> : locked ? (seat.status === 'booked' ? <Lock className="seat-state-icon" size={12}/> : <Ban className="seat-state-icon" size={12}/>) : null}
+  </motion.button>;
 };

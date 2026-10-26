@@ -1,0 +1,275 @@
+{
+  "da-nang": {
+    "image": "/assets/images/scenes/banks-primary.webp",
+    "source": [
+      1448,
+      1086
+    ],
+    "crops": [
+      [
+        4,
+        202,
+        720,
+        372
+      ],
+      [
+        757,
+        195,
+        685,
+        373
+      ]
+    ]
+  },
+  "hoi-an": {
+    "image": "/assets/images/scenes/banks-primary.webp",
+    "source": [
+      1448,
+      1086
+    ],
+    "crops": [
+      [
+        6,
+        646,
+        718,
+        397
+      ],
+      [
+        724,
+        670,
+        717,
+        374
+      ]
+    ]
+  },
+  "hue": {
+    "image": "/assets/images/scenes/banks-heritage.webp",
+    "source": [
+      1254,
+      1254
+    ],
+    "crops": [
+      [
+        16,
+        77,
+        611,
+        361
+      ],
+      [
+        627,
+        130,
+        610,
+        308
+      ]
+    ]
+  },
+  "ha-noi": {
+    "image": "/assets/images/scenes/banks-heritage.webp",
+    "source": [
+      1254,
+      1254
+    ],
+    "crops": [
+      [
+        18,
+        519,
+        607,
+        309
+      ],
+      [
+        632,
+        545,
+        603,
+        285
+      ]
+    ]
+  },
+  "ho-chi-minh": {
+    "image": "/assets/images/scenes/banks-heritage.webp",
+    "source": [
+      1254,
+      1254
+    ],
+    "crops": [
+      [
+        19,
+        835,
+        608,
+        399
+      ],
+      [
+        627,
+        857,
+        609,
+        378
+      ]
+    ]
+  },
+  "hai-phong": {
+    "image": "/assets/images/scenes/banks-river.webp",
+    "source": [
+      1254,
+      1254
+    ],
+    "crops": [
+      [
+        13,
+        115,
+        614,
+        329
+      ],
+      [
+        641,
+        145,
+        597,
+        297
+      ]
+    ]
+  },
+  "can-tho": {
+    "image": "/assets/images/scenes/banks-river.webp",
+    "source": [
+      1254,
+      1254
+    ],
+    "crops": [
+      [
+        16,
+        478,
+        611,
+        362
+      ],
+      [
+        641,
+        502,
+        597,
+        337
+      ]
+    ]
+  },
+  "dong-nai": {
+    "image": "/assets/images/scenes/banks-river.webp",
+    "source": [
+      1254,
+      1254
+    ],
+    "crops": [
+      [
+        18,
+        882,
+        604,
+        329
+      ],
+      [
+        632,
+        894,
+        606,
+        316
+      ]
+    ]
+  },
+  "quang-ninh": {
+    "image": "/assets/images/scenes/banks-northern.webp",
+    "source": [
+      1448,
+      1086
+    ],
+    "crops": [
+      [
+        6,
+        110,
+        716,
+        428
+      ],
+      [
+        735,
+        106,
+        713,
+        438
+      ]
+    ]
+  },
+  "bac-ninh": {
+    "image": "/assets/images/scenes/banks-northern.webp",
+    "source": [
+      1448,
+      1086
+    ],
+    "crops": [
+      [
+        7,
+        629,
+        708,
+        444
+      ],
+      [
+        736,
+        622,
+        712,
+        452
+      ]
+    ]
+  },
+  "nha-trang": {
+    "image": "/assets/images/scenes/banks-coastal.webp",
+    "source": [
+      1254,
+      1254
+    ],
+    "crops": [
+      [
+        19,
+        60,
+        600,
+        394
+      ],
+      [
+        639,
+        61,
+        603,
+        390
+      ]
+    ]
+  },
+  "da-lat": {
+    "image": "/assets/images/scenes/banks-coastal.webp",
+    "source": [
+      1254,
+      1254
+    ],
+    "crops": [
+      [
+        12,
+        473,
+        607,
+        359
+      ],
+      [
+        632,
+        497,
+        614,
+        336
+      ]
+    ]
+  },
+  "quy-nhon": {
+    "image": "/assets/images/scenes/banks-coastal.webp",
+    "source": [
+      1254,
+      1254
+    ],
+    "crops": [
+      [
+        12,
+        869,
+        612,
+        360
+      ],
+      [
+        642,
+        881,
+        602,
+        346
+      ]
+    ]
+  }
+}

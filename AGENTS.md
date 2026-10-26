@@ -15,13 +15,17 @@ Load only skills relevant to the current task. Review the actual browser result 
 - `src/components/danava-go/DanavaGoHero.tsx`: only homepage hero.
 - `danava-go-hero.css`: full-screen desktop and separate mobile layout.
 - `LayeredSceneStage.tsx`: persistent landscape plus independent origin/destination panoramic city banks.
-- `VehicleMotionStage.tsx`: alpha bus photographs, shared multi-angle turn atlas and 2.8s curved approach.
+- `VehicleMotionStage.tsx`: alpha bus photographs, shared multi-angle turn atlas and 2.8s curved approach and800ms guarded search departure.
 - `journeyStageConfig.ts`: coordinates, cubic drive path, vehicle/city atlas crops and decode cache.
-- `src/data/sceneManifest.ts`: canonical city IDs and aliases.
+- `src/data/sceneManifest.ts`: canonical city IDs and aliases for13 destinations.
+- `src/data/landmarkBanks.json`:26 complete left/right scenery crops across5 atlases.
+- `src/data/departureViews.json`:3 rear-facing vehicle crops for search departure.
 - `src/data/mockData.ts`: cities, vehicles, routes and demo trips.
 - `src/components/home/TripSearchForm.tsx`: existing search/validation, shared by hero.
 - `src/App.tsx`: booking navigation and shared SearchParams.
-- `src/components/search`, `seats`, `checkout`, `tickets`: booking flow. Preserve unless requested.
+- `src/components/seats/SeatButton.tsx`, `SeatMap.tsx`, `seat-experience.css`: capsule / leather armchair / private-suite artwork and inventory-driven layout.
+- `src/components/seats/SeatSelectionModal.tsx`: existing selection totals and passenger limit.
+- `src/components/search`, `checkout`, `tickets`: booking flow; preserve behavior.
 - `docs/hero.md`: composition, asset provenance, limitations and verification.
 - `docs/cleanup.md`: removed resources and context-reduction rationale.
 

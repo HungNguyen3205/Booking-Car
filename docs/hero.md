@@ -1,71 +1,137 @@
-# DANAVA GO hero
+# DANAVA GO — current frontend
 
-## Current implementation
+## Scope and file map
 
-One 1600×1000 scene camera, cream/navy/teal DOM UI, existing Be Vietnam Pro and alpha vehicle images. No WebGL or 3D dependency. Desktop reference comparison uses 1586×992, Đà Nẵng→Hội An, Cabin VIP. Other targets: 1440×900, 1280×800, short desktop 1440×760 and mobile width390. Short desktop grows the hero so wheels/form remain separate.
+Existing React/TypeScript/Vite application. This revision continues main `5b23859`;
+there is no new app, WebGL, Three.js dependency, deployment or booking backend.
 
-Shared neutral sky/mountains/curved road stay mounted. The foreground uses the same decoded background through an SVG clip, above city water and below the vehicle. No second road image is downloaded. It keeps the original roadside vegetation/guardrail instead of painting a straight artificial ribbon.
+| Area | Files |
+|---|---|
+| Hero UI / search handoff | `src/components/danava-go/DanavaGoHero.tsx` |
+| Persistent road / city layers | `LayeredSceneStage.tsx`, `journeyStageConfig.ts` |
+| Vehicle entry / departure | `VehicleMotionStage.tsx` |
+| Exact city atlas rectangles | `src/data/landmarkBanks.json` |
+| Rear departure atlas rectangles | `src/data/departureViews.json` |
+| City IDs / names / aliases | `src/data/sceneManifest.ts` |
+| Vehicle catalog / mock trip inventory | `src/data/mockData.ts` |
+| Seat geometry and state | `src/components/seats/SeatButton.tsx` |
+| Floor layout / coach interior | `SeatMap.tsx`, `seat-experience.css` |
+| Seat selection page / totals | `SeatSelectionModal.tsx` |
+| Browser acceptance checks | `scripts/verify-journey.cjs` |
 
-## Assets and city mapping
+Read only the area being changed. Do not scan every skill or source file.
 
-| City | Image | Landmark |
-|---|---|---|
-| Đà Nẵng | journey_heritage_alpha.webp, left crop | Cầu Rồng / Sông Hàn |
-| Hội An | journey_heritage_alpha.webp, right crop | Old-town riverfront |
-| Huế | journey_city_banks.webp | Ngọ Môn |
-| Nha Trang | journey_city_banks.webp | Tháp Trầm Hương |
-| TP. Hồ Chí Minh | journey_hcm_bank.webp | Landmark81 |
-| Hà Nội | journey_city_banks.webp | Tháp Rùa |
-| Quy Nhơn | journey_city_banks.webp | Twin towers / coastline |
-| Đà Lạt | journey_city_banks.webp | Railway station / gardens |
+## City composition
 
-All files are under public/assets/images/scenes. Actual source dimensions/crops and role-specific framing are in journeyStageConfig.ts. The primary asset has true-alpha sky, so it needs no sky fade to hide opaque rectangular sky remnants. Water blending is confined below architecture. Reverse changes positions, never mirrors architecture. DaNang destination framing keeps its dragon outside the centered tabs; mobile origin framing preserves the dragon head.
+There are thirteen selectable destinations, including the nine core city entries
+Hà Nội, Hải Phòng, Huế, Đà Nẵng, TP.HCM, Cần Thơ, Đồng Nai, Quảng Ninh and Bắc Ninh.
+Hội An, Nha Trang, Đà Lạt and Quy Nhơn remain available.
 
-One new production asset was prepared with the built-in image generation tool, using the user reference as the edit target, then encoded as WebP without changing image content:
+Every destination has **two separately composed banks**, one for origin/left and
+one for destination/right: 26 role crops in five shared WebP atlases. They are
+not CSS mirrored copies or the halves of a single scene. Roofs, towers and
+shoreline silhouettes are complete before cropping. Crop coordinates are measured
+against actual alpha content and actual row separators, not assumed equal rows.
 
-`public/assets/images/scenes/journey_heritage_alpha.webp` (1585×992 RGBA).
-Prompt: preserve photographic left DragonBridge/DaNang skyline and right HoiAn yellow riverfront/boats/reflections at the reference camera and scale; complete scenery behind the removed bus; remove all UI, text, vehicle, sky, distant mountains, road, guardrail and foreground flowers; true transparent silhouette around architecture/trees/cables; keep architecture opaque, feather only bottom water; no miniature islands, pedestals or new invented architecture. Keep the 1.6:1 composition.
+| Atlas under `public/assets/images/scenes/` | Rows |
+|---|---|
+| `banks-primary.webp` | Đà Nẵng / Hội An |
+| `banks-heritage.webp` | Huế / Hà Nội / TP.HCM |
+| `banks-river.webp` | Hải Phòng / Cần Thơ / Đồng Nai |
+| `banks-northern.webp` | Quảng Ninh / Bắc Ninh |
+| `banks-coastal.webp` | Nha Trang / Đà Lạt / Quy Nhơn |
 
-The three unused v2/preview files with residual sky were removed after auditing source references. Existing city banks, HCM bank, neutral landscape and all three right-facing vehicles were retained. No reference screenshot is rendered as production UI. Labels, tabs and search form are HTML.
+Sky is alpha around the architectural/vegetation silhouette. Water fades only
+near the bottom; there is no vertical edge fade to disguise a sliced building.
+A common 1600×1000 camera holds the original neutral sky/road/foreground fixed.
+Banks sit below labels and use the correct role crop on reverse. Road foreground
+occludes the lower scenery naturally. Cities are a travel illustration sharing
+a visual horizon, not a geographically contiguous or surveyed map.
 
-## Motion and async lifecycle
+Scene changes decode first and crossfade/rise over450ms; cancellation ignores
+stale requests. Clip IDs are unique. Unknown or failed images show neutral terrain
+and the selected location's own name. New locations have no invented trips: the
+existing service still returns an empty result where inventory does not exist.
+Only active atlas files load; images are never generated during user interaction.
 
-Vehicle movement uses a Framer Motion progress value (no React state updates per frame). A three-segment cubic path traces the far right bend, the return to the left, and the approach to the center of the existing road. Travel duration is 2.8s, once on entry and once per new vehicle category, with an eased stop. All three stop at a common visible center/ground anchor; native image padding is measured independently.
+## Fleet size and movement
 
-A shared atlas supplies front/right and rear/left views for each category; these are genuinely different generated views, never mirrored artwork. Short distant crossfades select the heading. The final front-right photograph blends in while the vehicle is still small (46–54% of progress), avoiding a large double silhouette. Shadow travels/scales with its vehicle and stops with it. Atlas errors fall back to a short near-camera entry; hero UI does not depend on animation completion.
+The visible alpha width of all three parked vehicles matches Sleeper (about800.5
+scene units), measured without transparent canvas padding. Source proportions
+are preserved; the van is not stretched into a coach. Anchors keep all three
+centered at800,800 desktop /800,849 mobile, with shadows under their tires.
 
-Vehicle identity depends only on category. Route changes/reverse do not reload/remount/shrink/fade the bus. Request tokens and effect cleanup ignore stale async work after selection changes/unmount. Failed target retains previous vehicle; initial failure tries a decoded fallback. Reduced motion settles directly and switching it off does not replay intro. Resize settles an in-flight approach instead of starting over.
+The existing2.8s curved approach uses a MotionValue and three cubic segments.
+Category changes decode first, retain the old vehicle while loading, then run the
+new category along the road with front/rear views. No React state updates per
+animation frame. City changes do not restart/remount/shrink the vehicle.
 
-Selected city swaps decode first, ignore stale requests, then fade/rise10px over450ms. Initial city entrance waits for introReady, so it does not play behind the loader. Unchanged slots are memoized. Mask/clip IDs include slot, hashed city ID and photo/fallback state. Missing/failed scene uses its own name and neutral terrain. Form remains mounted, retaining date/passengers and validation.
+After the form validates, search enters a single guarded departure state. The
+vehicle changes to a prepared rear view, moves slightly upward/forward and
+recedes over800ms, then calls the existing onSearch exactly once. A1100ms safety
+guard handles a missing/failed vehicle or animation callback. Repeated submissions
+cannot cause a second navigation. Reduced motion searches immediately; enabling
+it during departure also completes navigation. Timers and animations clean up.
+The selected date/passengers are the validated snapshot from the submit event.
 
-## Validation workflow
+`public/assets/images/fleet-departure.webp` supplies one rear view per category.
+It preloads independently and never blocks the normal hero. If unavailable, the
+current photo makes a short departure instead; navigation still completes.
+This is layered2.5D with discrete angles, not a continuous3D turning/wheel rig.
 
-- `npm run build`, `npm run lint`.
-- For layout/motion iterations after build: `npm run test:hero` (focused hero checks).
-- Final integration: `npm run test:journey` (hero + all8 cities in both roles + failure paths + booking through ticket issuance).
-- Do not rerun the complete booking suite after every CSS edit. Inspect a fixed-viewport browser capture first; rerun checks when code changes or a failure needs resolution.
-- Optional PLAYWRIGHT_CHROMIUM_EXECUTABLE / JOURNEY_QA_DIR configure local Chromium/output. Outputs are ignored, not copied into public.
+## Distinct seat experiences
 
-Browser checks measure actual nontransparent vehicle pixels independently of PNG canvas padding: center, size, wheel/form clearance. They also sample DOM identity/opacity/scale throughout route changes, verify all3 replacements, reverse, fixed road, latest selection, short/mobile layout, live motion preference, fallback, no runtime/HTTP errors and existing booking flow.
+All seat objects are actual keyboard-accessible buttons, exposed as checkboxes
+with aria-checked, real codes, prices, status and selected state. SVG artwork is
+decorative; no seat numbers are embedded in a raster image.
 
-## Limits
+- Sleeper: long navy capsule pods with pillow, mattress and light strip; real17
+  positions per floor, two floors, three lanes and two aisles.
+- Limousine: individual leather armchairs with headrests, upholstery seams,
+  armrests and cup controls; real16 positions, one floor, two lanes.
+- Cabin VIP: separate suites with bed, pillow, partitions, side console, lighting
+  and door opening; real11 positions per floor, two floors, two lanes.
 
-This is an independently layered travel composition, not a pixel-identical raster copy of the reference. Existing coach geometry/font details differ from the generated concept. Secondary cities remain panoramic illustrations; their arrangement is not a geographically exact map. Single-view vehicle photos are not free-camera 3D models or independent wheel rigs. Functional test success does not establish subjective visual approval.
+Rows/columns come directly from trip.seats. Holes stay holes; no duplicated,
+renumbered or sellable driver seats. Horizontal coach on desktop, vertical option
+for mobile; horizontal view scrolls within its region, not the whole page.
+Selections persist across floors/orientations. Booked/disabled seats stay locked.
+Reaching the passenger limit preserves selections and shows the existing notice.
+Totals and proceed validation still use the application's actual seat records.
+The notice timer is cleared on unmount and before replacement.
 
-## Vehicle assets / generation provenance
+## Asset provenance
 
-Three project assets were prepared with the built-in image generation skill and encoded as WebP with alpha preserved:
+Built-in image generation produced the five role-paired city atlases and the
+rear-view vehicle atlas; outputs were encoded to WebP with alpha preserved.
+Unselected drafts and source PNGs are not included in the repository.
 
-- `public/assets/images/sleeper-premium.webp`, 1678×937: upgraded two-axle sleeper, navy/gold/teal livery, warm interior, refined headlights and tires. Image target was the old sleeper; Cabin VIP supplied fleet lighting/material reference. Prompt constrained front-right camera, nose right, whole mirrors/wheels, true alpha, no floor/shadow/scenery, restrained DANAVA GO branding, no giant windshield text.
-- `public/assets/images/limousine-premium.webp`, 1678×937: same constraints applied to the original compact high-roof van, retaining van identity and two axles. Navy hood/body, thin champagne/teal trim, tan interior; Cabin VIP supplied lighting/material reference.
-- `public/assets/images/fleet-turns.webp`, 1254×1254: six isolated sprites in two columns and three rows. Rows follow sleeper/van/cabin; columns front-right and rear-left. Generated from the new vehicle references and existing Cabin VIP, then refined with separated cells and true alpha. Measured alpha bounds are recorded in `journeyStageConfig.ts`; nested SVG crops retain whole wheels/mirrors.
+Prompt set: photographic golden-hour Vietnam scenery; exact2columns with
+left-role/right-role compositions; complete architecture on both ends; tree/bank
+transitions and transparent sky; short alpha water-reflection skirt; consistent
+camera/light; no bus, UI, labels, road, rectangular sky or diorama plinth. Rows
+explicitly named the landmarks in the table. Northern atlas was refined to show
+three storeys on Chùa Dâu's Hòa Phong tower. Departure prompt preserved the navy/
+gold fleet identities, required three separated rear views facing away/upward,
+true alpha and no scenery or UI. These are illustrative generated reconstructions,
+not documentary photographs or architecturally surveyed models.
 
-The first generated travel atlas was rejected because row spacing could clip wheel/mirror edges. Only the refined asset is shipped. Source PNGs remain outside the repository. The two old unreferenced right-facing sleeper/van PNGs were removed after searching source/scripts/docs; catalog vehicle images and the existing Cabin VIP remain. New WebP assets total about874KiB, replacing about1841KiB of old hero PNGs, so tracked image weight decreases about967KiB.
+## Verification
 
-## Current handoff
+Build and lint, then `npm run test:hero` for local hero iterations or
+`npm run test:journey` for integration. Optional PLAYWRIGHT_CHROMIUM_EXECUTABLE
+and JOURNEY_QA_DIR set browser/output locations. Do not commit test output.
 
-- Base: GitHub main4166a78. Header, form, landmark scene and booking components are unchanged.
-- Updated: VehicleMotionStage, journeyStageConfig, the two heroImage fields in mockData, QA script, asset files, agent map and this guide.
-- Final integration:64 checks passed including actual sampled left/right motion and rear-view usage for all3 vehicles, all8 city images in both roles, missing assets, preserved form values and booking through ticket issuance. The subsequent small visual crossfade refinement is checked again with the focused hero suite and a new actual browser recording.
-- This remains 2.5D with discrete photographed/generated angles. It is not a free-camera 3D model, continuous physical steering rig or independently rotating-wheel model. Functional success does not substitute for the user's visual approval.
-- Compare actual screenshots and recorded runtime video; concept images are not runtime proof.
+Acceptance covers actual alpha vehicle bounds, all three curved paths, equal
+vehicle widths,13 cities in both roles, fixed road, preserved form values,
+responsive widths, live reduced motion, asset failure, each category's seat
+inventory/floors/limits/keyboard selection/mobile overflow, single departure
+navigation and booking through demo payment/ticket issuance. Actual browser
+screenshots/video are reviewed separately; passing tests does not establish
+pixel identity or replace the user's visual approval.
+
+Latest acceptance run: build/lint passed;96 integration checks passed. After the
+last mobile-only bank framing adjustment,40 focused hero checks passed and all13
+mobile city canvases were checked in both roles. Separate runtime recording
+verified rear departures for all3 categories (about0.9s each), invalid-date
+rejection, missing-departure-image navigation and immediate reduced-motion search.

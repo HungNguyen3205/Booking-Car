@@ -1,3 +1,4 @@
+import bankData from '../../data/landmarkBanks.json';
 import type { VehicleCategory } from '../../types';
 import { getCanonicalLocationId, getLocationDisplayName } from '../../data/sceneManifest';
 import { VEHICLE_MODELS } from '../../data/mockData';
@@ -40,6 +41,8 @@ export interface JourneyLandmark {
     originX: number;
     destinationX: number;
     mobileOriginX?: number;
+    mobileDestinationX?: number;
+    mobileWidth?: number;
     originY?: number;
     width: number;
     height: number;
@@ -47,124 +50,27 @@ export interface JourneyLandmark {
   blend?: LandmarkBlendConfig;
 }
 
-const scenes = '/assets/images/scenes/';
-const atlas = `${scenes}journey_city_banks.webp`;
-// Wide, continuous city banks rather than isolated monument islands.
-// Crop bounds follow the actual atlas rows, not assumed equal-height cells.
-const landmarks: Record<string, Omit<JourneyLandmark, 'id' | 'city'>> = {
-  'da-nang': {
-    landmark: 'Cầu Rồng · Sông Hàn', image: `${scenes}journey_heritage_alpha.webp`,
-    source: [1585, 992], crop: [0, 0, 792, 992],
-    frame: { y: 0, originX: 0, destinationX: 1060, mobileOriginX: 140, width: 800, height: 1000 },
-    blend: { waterFade: { start: 68, end: 77 } },
-  },
-  'hoi-an': {
-    landmark: 'Phố cổ · Sông Hoài', image: `${scenes}journey_heritage_alpha.webp`,
-    source: [1585, 992], crop: [792, 0, 793, 992],
-    frame: { y: 0, originX: 0, destinationX: 800, originY: 45, width: 800, height: 1000 },
-    blend: { waterFade: { start: 68, end: 77 } },
-  },
-  'hue': {
-    landmark: 'Ngọ Môn · Hoàng thành',
-    image: atlas,
-    source: [1774, 887],
-    crop: [0, 248, 884, 237],
-    frame: { y: 310, originX: -350, destinationX: 760, width: 1200, height: 322 },
-    blend: {
-      waterFade: { start: 88, end: 100 },
-      edgeFade: {
-        left: { start: 0, end: 4 },
-        right: { start: 96, end: 100 },
-      },
-    },
-  },
-  'nha-trang': {
-    landmark: 'Tháp Trầm Hương · Vịnh biển',
-    image: atlas,
-    source: [1774, 887],
-    crop: [890, 250, 884, 235],
-    frame: { y: 320, originX: -600, destinationX: 450, width: 1200, height: 319 },
-    blend: {
-      waterFade: { start: 88, end: 100 },
-      edgeFade: {
-        left: { start: 0, end: 4 },
-        right: { start: 96, end: 100 },
-      },
-    },
-  },
-  'ho-chi-minh': {
-    landmark: 'Landmark 81 · Sông Sài Gòn',
-    image: `${scenes}journey_hcm_bank.webp`,
-    source: [2172, 724],
-    crop: [0, 0, 2172, 724],
-    frame: { y: 270, originX: -300, destinationX: 800, width: 1380, height: 460 },
-    blend: {
-      hasAlpha: true,
-      waterFade: { start: 88, end: 100 },
-      edgeFade: {
-        left: { start: 0, end: 4 },
-        right: { start: 96, end: 100 },
-      },
-    },
-  },
-  'ha-noi': {
-    landmark: 'Hồ Gươm · Tháp Rùa',
-    image: atlas,
-    source: [1774, 887],
-    crop: [890, 490, 884, 215],
-    frame: { y: 330, originX: -400, destinationX: 600, width: 1200, height: 292 },
-    blend: {
-      waterFade: { start: 88, end: 100 },
-      edgeFade: {
-        left: { start: 0, end: 4 },
-        right: { start: 96, end: 100 },
-      },
-    },
-  },
-  'quy-nhon': {
-    landmark: 'Tháp Đôi · Biển Quy Nhơn',
-    image: atlas,
-    source: [1774, 887],
-    crop: [0, 714, 884, 173],
-    frame: { y: 350, originX: -750, destinationX: 360, width: 1200, height: 235 },
-    blend: {
-      waterFade: { start: 88, end: 100 },
-      edgeFade: {
-        left: { start: 0, end: 4 },
-        right: { start: 96, end: 100 },
-      },
-    },
-  },
-  'da-lat': {
-    landmark: 'Ga Đà Lạt · Thành phố ngàn hoa',
-    image: atlas,
-    source: [1774, 887],
-    crop: [890, 714, 884, 173],
-    frame: { y: 360, originX: -320, destinationX: 760, width: 1200, height: 235 },
-    blend: {
-      skyFade: { start: 0, end: 8 },
-      waterFade: { start: 88, end: 100 },
-      edgeFade: {
-        left: { start: 0, end: 4 },
-        right: { start: 96, end: 100 },
-      },
-    },
-  },
+const bankLabels: Record<string, string> = {
+  'da-nang':'Cầu Rồng · Sông Hàn', 'hoi-an':'Phố cổ · Sông Hoài',
+  hue:'Ngọ Môn · Hoàng thành', 'ha-noi':'Hồ Gươm · Tháp Rùa',
+  'ho-chi-minh':'Landmark 81 · Sông Sài Gòn', 'hai-phong':'Nhà hát thành phố · Hoa phượng đỏ',
+  'can-tho':'Bến Ninh Kiều · Sông Hậu', 'dong-nai':'Văn miếu Trấn Biên',
+  'quang-ninh':'Vịnh Hạ Long', 'bac-ninh':'Chùa Dâu · Tháp Hòa Phong',
+  'nha-trang':'Tháp Trầm Hương · Vịnh biển', 'da-lat':'Ga Đà Lạt · Thành phố ngàn hoa',
+  'quy-nhon':'Tháp Đôi · Biển Quy Nhơn',
 };
 
-export function getJourneyLandmark(city: string): JourneyLandmark {
+// Each role has separately composed, complete architecture. Crop bounds include
+// the entire alpha silhouette, not a half of a shared destination photograph.
+export function getJourneyLandmark(city: string, role: 'origin' | 'destination' = 'origin'): JourneyLandmark {
   const id = getCanonicalLocationId(city);
-  const spec = landmarks[id];
-  return {
-    id,
-    city: getLocationDisplayName(city),
-    ...(spec || {
-      landmark: 'Miền đất mới',
-      image: '',
-      source: [1, 1],
-      crop: [0, 0, 1, 1],
-      frame: { y: 330, originX: 0, destinationX: 900, width: 1200, height: 300 },
-    }),
+  const banks = bankData as unknown as Record<string, {image:string; source:[number,number]; crops:[number,number,number,number][]}>;
+  const bank = banks[id];
+  return { id, city:getLocationDisplayName(city), landmark:bankLabels[id] || 'Miền đất mới',
+    image: bank?.image || '', source:bank?.source || [1,1],
+    crop:bank?.crops[role === 'origin' ? 0 : 1] || [0,0,1,1],
+    frame:{y:310,originX:-90,destinationX:790,mobileOriginX:160,mobileDestinationX:640,mobileWidth:756,width:900,height:400},
+    blend:{hasAlpha:true,waterFade:{start:73,end:100}},
   };
 }
 
@@ -184,10 +90,10 @@ export const JOURNEY_VEHICLES: Record<VehicleCategory, JourneyVehicle> = {
   sleeper: { image: VEHICLE_MODELS.sleeper.heroImage!, source: [1678, 937], width: 840,
     wheels: [[262, 835], [867, 890]], anchor: [858.5, 895], rest: [800, 800], mobileRest: [800, 849],
     views: [[39, 141, 580, 273], [659, 142, 563, 273]] },
-  limousine: { image: VEHICLE_MODELS.limousine.heroImage!, source: [1678, 937], width: 740,
+  limousine: { image: VEHICLE_MODELS.limousine.heroImage!, source: [1678, 937], width: 843.2,
     wheels: [[229, 794], [1005, 883]], anchor: [840.5, 889], rest: [800, 800], mobileRest: [800, 849],
     views: [[55, 519, 552, 274], [646, 516, 572, 280]] },
-  cabin: { image: VEHICLE_MODELS.cabin.heroImage!, source: [1376, 768], width: 900,
+  cabin: { image: VEHICLE_MODELS.cabin.heroImage!, source: [1376, 768], width: 902.1,
     wheels: [[240, 650], [310, 665], [720, 710]], anchor: [712.5, 709], rest: [800, 800], mobileRest: [800, 849],
     views: [[31, 877, 595, 263], [640, 872, 583, 269]] },
 };

@@ -1,5 +1,5 @@
 import { useJourneyReducedMotion } from './useJourneyReducedMotion';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { TripSearchForm } from '../home/TripSearchForm';
@@ -18,6 +18,29 @@ interface DanavaGoHeroProps {
 
 export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSearch, isSearching = false, introReady = true }) => {
   const reduced = useJourneyReducedMotion();
+  const [pendingSearch, setPendingSearch] = useState<SearchParams | null>(null);
+  const pendingRef = useRef<SearchParams | null>(null);
+  const completeSearch = useCallback(() => {
+    const params = pendingRef.current;
+    if (!params) return;
+    pendingRef.current = null;
+    setPendingSearch(null);
+    onSearch(params);
+  }, [onSearch]);
+  useEffect(() => {
+    if (!pendingSearch) return;
+    // Asset/animation failure must never trap navigation. The normal path is
+    // the animation completion callback; this is only a bounded fallback.
+    if (reduced) { completeSearch(); return; }
+    const timeout = window.setTimeout(completeSearch, 1100);
+    return () => window.clearTimeout(timeout);
+  }, [pendingSearch, reduced, completeSearch]);
+  const startSearch = (params: SearchParams) => {
+    if (pendingRef.current) return;
+    if (reduced) { onSearch(params); return; }
+    pendingRef.current = params;
+    setPendingSearch(params);
+  };
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleCategory>('cabin');
   const [toast, setToast] = useState<{ text: string; id: number } | null>(null);
   const [preview, setPreview] = useState({ from: initialParams.from, to: initialParams.to });
@@ -30,7 +53,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
   }
 
   return (
-    <section className="danava-go-hero" aria-label="DANAVA GO — Hành trình khám phá Việt Nam">
+    <section data-search-transition={pendingSearch ? 'departing' : 'idle'} className="danava-go-hero" aria-label="DANAVA GO — Hành trình khám phá Việt Nam">
       {/* 1. SCENERY BACKDROP: Full-width edge-to-edge, unconstrained by UI max-width */}
       <div className="go-scenery-backdrop" aria-hidden="true">
         <div className="journey-atmosphere" />
@@ -44,6 +67,8 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
           <VehicleMotionStage
             selectedVehicle={selectedVehicle}
             introReady={introReady}
+            departing={pendingSearch !== null}
+            onDepartureComplete={completeSearch}
             onVehicleError={(fallback, message) => {
               setSelectedVehicle(fallback);
               setToast({ text: message, id: Date.now() });
@@ -75,6 +100,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
           <HeroVehicleSelector
             selectedVehicle={selectedVehicle}
             onSelectVehicle={(category) => {
+              if (pendingRef.current) return;
               setToast(null);
               setSelectedVehicle(category);
             }}
@@ -89,8 +115,8 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
             variant="horizontal-bar"
             initialParams={{ ...initialParams, from: preview.from, to: preview.to }}
             onRouteChange={(from, to) => setPreview({ from, to })}
-            onSearch={onSearch}
-            isLoading={isSearching}
+            onSearch={startSearch}
+            isLoading={isSearching || pendingSearch !== null}
           />
         </div>
       </div>

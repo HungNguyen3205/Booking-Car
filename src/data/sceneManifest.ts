@@ -13,10 +13,21 @@ export const SUPPORTED_LOCATIONS: LocationInfo[] = [
   { id: 'nha-trang', name: 'Nha Trang', province: 'Khánh Hòa' },
   { id: 'ha-noi', name: 'Hà Nội', province: 'Hà Nội' },
   { id: 'ho-chi-minh', name: 'TP. Hồ Chí Minh', province: 'Hồ Chí Minh' },
+  { id:'hai-phong',name:'Hải Phòng',province:'Hải Phòng' },
+  { id:'can-tho',name:'Cần Thơ',province:'Cần Thơ' },
+  { id:'dong-nai',name:'Đồng Nai',province:'Đồng Nai' },
+  { id:'quang-ninh',name:'Quảng Ninh',province:'Quảng Ninh' },
+  { id:'bac-ninh',name:'Bắc Ninh',province:'Bắc Ninh' },
 ];
 
 // Exact canonical ID mapping - avoids arbitrary 'includes' searching
 export const LOCATION_ALIAS_MAP: Record<string, string> = {
+  'hai-phong':'hai-phong', 'hải phòng':'hai-phong', 'hai phong':'hai-phong',
+  'can-tho':'can-tho', 'cần thơ':'can-tho', 'can tho':'can-tho',
+  'dong-nai':'dong-nai', 'đồng nai':'dong-nai', 'dong nai':'dong-nai',
+  'quang-ninh':'quang-ninh', 'quảng ninh':'quang-ninh', 'quang ninh':'quang-ninh',
+  'bac-ninh':'bac-ninh', 'bắc ninh':'bac-ninh', 'bac ninh':'bac-ninh',
+
   'da-lat': 'da-lat', 'đà lạt': 'da-lat', 'da lat': 'da-lat', 'dalat': 'da-lat',
   'da-nang': 'da-nang',
   'đà nẵng': 'da-nang',

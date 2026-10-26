@@ -72,6 +72,7 @@ async function choose(p, field, city) {
     for (let i = 0; i < 32; i++) { maxVisible = Math.max(maxVisible, await vehicle(p).count()); await p.waitForTimeout(100); }
     check('Rapid vehicle switches show only one bus', maxVisible === 1);
     check('Last selected vehicle wins', await vehicle(p).getAttribute('data-vehicle') === 'cabin');
+    const visibleWidths=[];
     for (const [label, id] of [['Giường nằm','sleeper'],['Limousine','limousine'],['Cabin VIP','cabin']]) {
       await tabs.getByRole('button',{name:label,exact:true}).click();
       await p.waitForFunction(id => document.querySelector('[data-vehicle]')?.dataset.vehicle === id, id);
@@ -92,10 +93,11 @@ async function choose(p, field, city) {
       check(`${label} uses a rear view at the bend and grows toward the camera`, drive.some(pose=>pose.rear>.8) && drive[0].scale<.5 && drive.at(-1).scale>.999);
       check(`${label} stops without an animation loop`, await vehicle(p).getAttribute('data-drive-state')==='parked');
       check(`${label} curved approach settles opaque at full scale`, await vehicle(p).getAttribute('data-vehicle')===id && (await matrix(p)).opacity>.99 && Math.abs((await matrix(p)).scale-1)<.001);
-      const box=await visibleBus(p);
-      check(`${label} is centered, correctly sized and clear of form`, Math.abs(box.center-box.viewport/2)<box.viewport*.025 && box.width/box.viewport>(id==='limousine'?.4:.48) && box.width/box.viewport<(id==='limousine'?.47:.53) && box.formTop-box.bottom>=8);
+      const box=await visibleBus(p); visibleWidths.push(box.width);
+      check(`${label} is centered, correctly sized and clear of form`, Math.abs(box.center-box.viewport/2)<box.viewport*.025 && box.width/box.viewport>.48 && box.width/box.viewport<.53 && box.formTop-box.bottom>=8);
       await p.screenshot({path:path.join(out,`vehicle-${id}.png`)});
     }
+    check('All three visible vehicle widths match the sleeper within 1 pixel',Math.max(...visibleWidths)-Math.min(...visibleWidths)<1);
     await vehicle(p).evaluate(el=>window.busBeforeRoute=el);
     await choose(p, 'to', 'Huế'); await choose(p, 'to', 'Nha Trang'); await choose(p, 'to', 'Hội An');
     await p.waitForTimeout(120);
@@ -140,11 +142,11 @@ async function choose(p, field, city) {
       console.log(JSON.stringify({mode:'hero',passed:results.length,out},null,2));
       return;
     }
-    const cities = [['Đà Nẵng','da-nang'],['Hội An','hoi-an'],['Huế','hue'],['Nha Trang','nha-trang'],['TP. Hồ Chí Minh','ho-chi-minh'],['Hà Nội','ha-noi'],['Quy Nhơn','quy-nhon'],['Đà Lạt','da-lat']];
+    const cities = [['Đà Nẵng','da-nang'],['Hội An','hoi-an'],['Huế','hue'],['Nha Trang','nha-trang'],['TP. Hồ Chí Minh','ho-chi-minh'],['Hà Nội','ha-noi'],['Quy Nhơn','quy-nhon'],['Đà Lạt','da-lat'],['Hải Phòng','hai-phong'],['Cần Thơ','can-tho'],['Đồng Nai','dong-nai'],['Quảng Ninh','quang-ninh'],['Bắc Ninh','bac-ninh']];
     for (const [name,id] of cities) {
       await choose(p, 'to', name); await p.waitForTimeout(300);
       const dest = p.locator('[data-landmark-slot=destination]');
-      check(`Destination ${name} has its matching image and label`, await dest.getAttribute('data-city') === id && await dest.locator('image').count() === 1 && !(await dest.innerText()).includes('Miền đất mới'));
+      check(`Destination ${name} has its matching image and label`, await dest.getAttribute('data-city') === id && await dest.locator('image').count() === 1 && await dest.locator('[data-bank-role=destination]').count()===1 && !(await dest.innerText()).includes('Miền đất mới'));
       await p.setViewportSize({ width: 1440, height: 900 }); await p.waitForTimeout(100); await p.evaluate(()=>window.scrollTo(0,0)); await p.waitForTimeout(100); await p.screenshot({path:path.join(out,`location-${id}.png`)});
       await p.getByRole('button', {name:'Đổi nơi đi và nơi đến',exact:true}).click(); await p.waitForTimeout(120);
       check(`Origin ${name} keeps the same architecture after reverse`, await p.locator('[data-landmark-slot=origin]').getAttribute('data-city') === id && await p.locator('[data-landmark-slot=origin] image').count() === 1);
@@ -154,7 +156,7 @@ async function choose(p, field, city) {
     // Error paths: block a fresh image request, not an already-decoded cache hit.
     const failed = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
     failed.on('pageerror', e => errors.push(e.message));
-    await failed.route('**/journey_city_banks.webp', r => r.abort());
+    await failed.route('**/banks-heritage.webp', r => r.abort());
     await failed.route('**/limousine-premium.webp', r => r.abort());
     await failed.goto(`${base}/?from=Đà%20Nẵng&to=Huế`, { waitUntil: 'domcontentloaded' }); await failed.waitForTimeout(600);
     check('Failed landmark shows neutral fallback, never another city', (await failed.locator('[data-landmark-slot=destination]').innerText()).includes('Miền đất mới'));
@@ -171,6 +173,48 @@ async function choose(p, field, city) {
     await atlasFailure.goto(base); await vehicle(atlasFailure).waitFor();
     check('Missing turn atlas keeps the near vehicle and usable form', await atlasFailure.locator('[data-travel-view]').count()===0 && Math.abs((await matrix(atlasFailure)).scale-1)<.001 && await atlasFailure.locator('#search-from').isEnabled());
     await atlasFailure.close();
+    // Category-specific floor layouts must keep actual inventory and selection.
+    for (const [category,kind,total] of [['sleeper','sleeper',17],['limousine','seat',16],['cabin','cabin',11]]) {
+      const seatPage = await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'});
+      await seatPage.goto(`${base}/?step=search&from=Đà%20Nẵng&to=Huế&date=${travelDate}&passengers=2`);
+      await seatPage.locator(`[data-trip-category=${category}]`).filter({has:seatPage.getByRole('button',{name:/Chọn chuyến đi lúc/})}).first().getByRole('button',{name:/Chọn chuyến đi lúc/}).click();
+      await seatPage.locator(`[data-seat-map=${category}]`).waitFor();
+      check(`${category} renders its own seat artwork and actual floor inventory`, await seatPage.locator(`[data-seat-kind=${kind}]`).count()===total);
+      check(`${category} booked seats remain disabled`, await seatPage.locator('[data-seat-state=booked]').first().isDisabled());
+      const one=seatPage.locator('[data-seat-state=available]').first(); const code=await one.getAttribute('data-seat-code');
+      await one.click();
+      if(category!=='limousine') await seatPage.getByRole('button',{name:/Tầng 2/}).click();
+      await seatPage.locator('[data-seat-state=available]').first().click();
+      const proceed=seatPage.getByRole('button',{name:'Tiếp tục điền thông tin',exact:true});
+      check(`${category} preserves selections across floors and enables the next step`,await proceed.isEnabled());
+      await seatPage.locator('[data-seat-state=available]').first().click();
+      check(`${category} prevents a third selection without replacing existing seats`,await proceed.isEnabled() && await seatPage.getByText(/Bạn đã chọn đủ 2 ghế/).isVisible());
+      if(category!=='limousine') await seatPage.getByRole('button',{name:/Tầng 1/}).click();
+      await seatPage.locator(`[data-seat-code=${code}]`).focus(); await seatPage.keyboard.press('Space');
+      check(`${category} keyboard deselection updates the passenger limit`,await proceed.isDisabled());
+      await seatPage.locator(`[data-seat-code=${code}]`).click();
+      await seatPage.screenshot({path:path.join(out,`seat-map-${category}-desktop.png`),fullPage:true});
+      await seatPage.setViewportSize({width:390,height:844});await seatPage.getByRole('button',{name:'Dọc',exact:true}).click();
+      check(`${category} mobile layout has no page overflow`,await seatPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+      await seatPage.screenshot({path:path.join(out,`seat-map-${category}-mobile.png`),fullPage:true});
+      await seatPage.close();
+    }
+    // Navigation waits for the real departure, rejects duplicate submissions,
+    // and remains usable with missing imagery and reduced motion.
+    const departure = await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'});
+    await departure.goto(base);await vehicle(departure).waitFor();
+    await departure.locator('#search-date').fill(travelDate);
+    await departure.emulateMedia({reducedMotion:'no-preference'});
+    await departure.evaluate(()=>{window.searchWrites=0;const old=history.replaceState.bind(history);history.replaceState=(...args)=>{if(String(args[2]).includes('step=search'))window.searchWrites++;return old(...args)}});
+    await scene(departure).getByRole('button',{name:'Tìm chuyến',exact:true}).click();
+    check('Valid search starts departure before leaving the homepage',await scene(departure).getAttribute('data-search-transition')==='departing' && !departure.url().includes('step=search'));
+    await departure.evaluate(()=>{const form=document.querySelector('#hero-search form');form.requestSubmit();form.requestSubmit()});
+    await departure.waitForFunction(()=>{const el=document.querySelector('[data-vehicle]');return el && new DOMMatrix(getComputedStyle(el).transform).f<790});
+    check('Search vehicle moves forward/upward with a rear-view asset',await departure.locator('[data-departure-photo]').count()===1);
+    await departure.waitForURL(/step=search/);
+    check('Departure performs exactly one search navigation',await departure.evaluate(()=>window.searchWrites)===1);
+    await departure.getByRole('button',{name:/Chọn chuyến đi lúc/}).first().waitFor();
+    await departure.close();
     // Booking smoke checks use the existing flow and do not change its code.
     await p.setViewportSize({ width: 1440, height: 900 });
     await choose(p, 'from', 'Đà Nẵng'); await choose(p, 'to', 'Huế');

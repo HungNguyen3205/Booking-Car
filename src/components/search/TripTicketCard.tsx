@@ -32,7 +32,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
   }, [trip]);
 
   return (
-    <div className="group relative bg-[#FFFEFA] rounded-2xl border border-[#E5E3DC] shadow-2xs hover:shadow-xs hover:border-[#CBD5E1] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden">
+    <div data-trip-category={trip.vehicle.category} data-trip-id={trip.id} className="group relative bg-[#FFFEFA] rounded-2xl border border-[#E5E3DC] shadow-2xs hover:shadow-xs hover:border-[#CBD5E1] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden">
       {/* ============================================================
           DESKTOP VIEW (>= md): Low-profile compact ticket (~115-145px)
           Horizontal ticket layout with thumbnail, route line & perforated stub
