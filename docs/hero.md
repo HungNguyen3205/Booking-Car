@@ -47,3 +47,12 @@ Run build/lint then test:journey. Browser script checks approach, final anchor, 
 ## Visual limits
 
 Matches the approved full-screen composition with existing bus cutouts; this is not pixel-identical to the generated concept. Landmark silhouettes and coach detail differ because they are independently reusable images. No actual 3D models or free camera, no physically independent wheel rig. User visual approval is separate from automated functional checks.
+
+## Current handoff
+
+- Files modified / created: `danang-bank-v2.webp`, `hoian-bank-v2.webp`, `preview-danang-hoian-v2.webp`. Chưa sửa code hiển thị runtime hay xóa asset cũ.
+- Asset specs: 1600×1000 RGBA, cùng hệ tọa độ. Cầu Rồng có trụ cắm nước, skyline Đà Nẵng phía sau; Hội An có dãy nhà vàng, đèn lồng, thuyền nan, phối cảnh xa-gần. Trời alpha thật, không xe/UI/chữ.
+- Kiểm tra chức năng (A) - ĐẠT: Bộ asset mới sinh từ composition tổng thống nhất, alpha sky sạch (>74% trong suốt), mép nước hòa vào sông, chưa ảnh hưởng runtime test.
+- Đối chiếu hình ảnh (B) - ĐẠT BƯỚC PREVIEW: Đã xuất preview composite 1600×1000 kèm xe Cabin VIP, khớp phối cảnh và ánh sáng với ảnh mẫu đính kèm.
+- Bước tiếp theo: Nhận chỉ định cập nhật `journeyStageConfig.ts` và `LayeredSceneStage.tsx` để tích hợp hai asset v2 vào runtime hero.
+

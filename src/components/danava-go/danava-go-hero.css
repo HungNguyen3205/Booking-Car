@@ -4,9 +4,9 @@
 .go-journey-stage,.journey-scenery,.journey-road,.journey-vehicle-layer,.journey-route-line,.journey-landmark-plane{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .journey-atmosphere{position:absolute;inset:0;background:linear-gradient(#f7f4ec88,transparent 40%);pointer-events:none}
 .journey-road{z-index:0}.journey-landmark-plane{z-index:1}.journey-vehicle-layer{z-index:3;overflow:visible}.journey-route-line{z-index:2}
-.journey-landmark{position:absolute;inset:0;pointer-events:none;z-index:1}.journey-landmark-content{position:absolute;inset:0}
-.journey-landmark-label{position:absolute;top:20.5%;left:14%;transform:translateX(-50%);text-align:center;width:210px;color:#102744;text-shadow:0 1px 10px #fff9}
-.journey-landmark-destination .journey-landmark-label{left:90%;top:22%}
+.journey-landmark{position:absolute;inset:0;pointer-events:none}.journey-landmark-content{position:absolute;inset:0}
+.journey-landmark-label{position:absolute;top:13.5%;left:14%;transform:translateX(-50%);text-align:center;width:210px;color:#102744;text-shadow:0 1px 10px #fff9;z-index:10;pointer-events:none}
+.journey-landmark-destination .journey-landmark-label{left:89.5%;top:15.5%}
 .journey-landmark-label>span{display:block;font-size:10px;letter-spacing:.12em;font-weight:800;color:#0097a7;margin-bottom:5px}
 .journey-landmark-label strong{display:block;font-size:clamp(19px,1.65vw,26px);font-weight:800;line-height:1.25}
 .journey-landmark-label small{display:block;font-size:11px;line-height:1.5;color:#52657b;margin-top:4px}

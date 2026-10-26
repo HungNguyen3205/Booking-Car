@@ -7,7 +7,6 @@ import type { SearchParams, VehicleCategory } from '../../types';
 import { LayeredSceneStage } from './LayeredSceneStage';
 import { VehicleMotionStage } from './VehicleMotionStage';
 import { HeroVehicleSelector } from './HeroVehicleSelector';
-import { getCanonicalLocationId } from '../../data/sceneManifest';
 import './danava-go-hero.css';
 
 interface DanavaGoHeroProps {
@@ -29,7 +28,6 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
     setPrevious(initialParams);
     setPreview({ from: initialParams.from, to: initialParams.to });
   }
-  const routeKey = `${getCanonicalLocationId(preview.from)}:${getCanonicalLocationId(preview.to)}`;
 
   return (
     <section className="danava-go-hero" aria-label="DANAVA GO — Hành trình khám phá Việt Nam">
@@ -45,9 +43,6 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
           <LayeredSceneStage fromCity={preview.from} toCity={preview.to} />
           <VehicleMotionStage
             selectedVehicle={selectedVehicle}
-            routeKey={routeKey}
-            fromCity={preview.from}
-            toCity={preview.to}
             introReady={introReady}
             onVehicleError={(fallback, message) => {
               setSelectedVehicle(fallback);

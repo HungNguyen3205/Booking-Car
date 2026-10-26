@@ -7,6 +7,27 @@ import { VEHICLE_MODELS } from '../../data/mockData';
 export const JOURNEY_CANVAS = { width: 1600, height: 1000 };
 export const JOURNEY_ROAD = '/assets/images/scenes/journey_landscape.webp';
 
+export interface LandmarkEdgeFade {
+  start: number;
+  end: number;
+}
+
+export interface LandmarkBlendConfig {
+  hasAlpha?: boolean;
+  edgeFade?: {
+    left?: LandmarkEdgeFade;
+    right?: LandmarkEdgeFade;
+  };
+  waterFade?: {
+    start: number;
+    end: number;
+  };
+  skyFade?: {
+    start: number;
+    end: number;
+  };
+}
+
 export interface JourneyLandmark {
   id: string;
   city: string;
@@ -14,7 +35,14 @@ export interface JourneyLandmark {
   image: string;
   source: [number, number];
   crop: [number, number, number, number];
-  frame: { y: number; originX: number; destinationX: number };
+  frame: {
+    y: number;
+    originX: number;
+    destinationX: number;
+    width: number;
+    height: number;
+  };
+  blend?: LandmarkBlendConfig;
 }
 
 const scenes = '/assets/images/scenes/';
@@ -22,22 +50,136 @@ const atlas = `${scenes}journey_city_banks.webp`;
 // Wide, continuous city banks rather than isolated monument islands.
 // Crop bounds follow the actual atlas rows, not assumed equal-height cells.
 const landmarks: Record<string, Omit<JourneyLandmark, 'id' | 'city'>> = {
-  'da-nang': { landmark: 'Cầu Rồng · Sông Hàn', image: atlas, source: [1774, 887], crop: [0, 0, 886, 244], frame: { y: 270, originX: -30, destinationX: 880 } },
-  'hoi-an': { landmark: 'Phố cổ · Sông Hoài', image: atlas, source: [1774, 887], crop: [890, 0, 884, 243], frame: { y: 330, originX: -330, destinationX: 440 } },
-  'hue': { landmark: 'Ngọ Môn · Hoàng thành', image: atlas, source: [1774, 887], crop: [0, 248, 884, 237], frame: { y: 310, originX: -350, destinationX: 760 } },
-  'nha-trang': { landmark: 'Tháp Trầm Hương · Vịnh biển', image: atlas, source: [1774, 887], crop: [890, 250, 884, 235], frame: { y: 320, originX: -600, destinationX: 450 } },
-  'ho-chi-minh': { landmark: 'Landmark 81 · Sông Sài Gòn', image: `${scenes}journey_hcm_bank.webp`, source: [2172, 724], crop: [0, 0, 2172, 724], frame: { y: 270, originX: -300, destinationX: 800 } },
-  'ha-noi': { landmark: 'Hồ Gươm · Tháp Rùa', image: atlas, source: [1774, 887], crop: [890, 490, 884, 215], frame: { y: 330, originX: -400, destinationX: 600 } },
-  'quy-nhon': { landmark: 'Tháp Đôi · Biển Quy Nhơn', image: atlas, source: [1774, 887], crop: [0, 714, 884, 173], frame: { y: 350, originX: -750, destinationX: 360 } },
-  'da-lat': { landmark: 'Ga Đà Lạt · Thành phố ngàn hoa', image: atlas, source: [1774, 887], crop: [890, 714, 884, 173], frame: { y: 360, originX: -320, destinationX: 760 } },
+  'da-nang': {
+    landmark: 'Cầu Rồng · Sông Hàn',
+    image: `${scenes}danang-bank-v2.webp`,
+    source: [1600, 1000],
+    crop: [0, 0, 1600, 1000],
+    frame: { y: 0, originX: 0, destinationX: 750, width: 1600, height: 1000 },
+    blend: {
+      hasAlpha: true,
+      skyFade: { start: 12, end: 20 },
+      edgeFade: {
+        right: { start: 40, end: 53 },
+      },
+    },
+  },
+  'hoi-an': {
+    landmark: 'Phố cổ · Sông Hoài',
+    image: `${scenes}hoian-bank-v2.webp`,
+    source: [1600, 1000],
+    crop: [0, 0, 1600, 1000],
+    frame: { y: 0, originX: -920, destinationX: 0, width: 1600, height: 1000 },
+    blend: {
+      hasAlpha: true,
+      skyFade: { start: 14, end: 24 },
+      edgeFade: {
+        left: { start: 47, end: 59 },
+      },
+    },
+  },
+  'hue': {
+    landmark: 'Ngọ Môn · Hoàng thành',
+    image: atlas,
+    source: [1774, 887],
+    crop: [0, 248, 884, 237],
+    frame: { y: 310, originX: -350, destinationX: 760, width: 1200, height: 322 },
+    blend: {
+      waterFade: { start: 88, end: 100 },
+      edgeFade: {
+        left: { start: 0, end: 4 },
+        right: { start: 96, end: 100 },
+      },
+    },
+  },
+  'nha-trang': {
+    landmark: 'Tháp Trầm Hương · Vịnh biển',
+    image: atlas,
+    source: [1774, 887],
+    crop: [890, 250, 884, 235],
+    frame: { y: 320, originX: -600, destinationX: 450, width: 1200, height: 319 },
+    blend: {
+      waterFade: { start: 88, end: 100 },
+      edgeFade: {
+        left: { start: 0, end: 4 },
+        right: { start: 96, end: 100 },
+      },
+    },
+  },
+  'ho-chi-minh': {
+    landmark: 'Landmark 81 · Sông Sài Gòn',
+    image: `${scenes}journey_hcm_bank.webp`,
+    source: [2172, 724],
+    crop: [0, 0, 2172, 724],
+    frame: { y: 270, originX: -300, destinationX: 800, width: 1380, height: 460 },
+    blend: {
+      hasAlpha: true,
+      waterFade: { start: 88, end: 100 },
+      edgeFade: {
+        left: { start: 0, end: 4 },
+        right: { start: 96, end: 100 },
+      },
+    },
+  },
+  'ha-noi': {
+    landmark: 'Hồ Gươm · Tháp Rùa',
+    image: atlas,
+    source: [1774, 887],
+    crop: [890, 490, 884, 215],
+    frame: { y: 330, originX: -400, destinationX: 600, width: 1200, height: 292 },
+    blend: {
+      waterFade: { start: 88, end: 100 },
+      edgeFade: {
+        left: { start: 0, end: 4 },
+        right: { start: 96, end: 100 },
+      },
+    },
+  },
+  'quy-nhon': {
+    landmark: 'Tháp Đôi · Biển Quy Nhơn',
+    image: atlas,
+    source: [1774, 887],
+    crop: [0, 714, 884, 173],
+    frame: { y: 350, originX: -750, destinationX: 360, width: 1200, height: 235 },
+    blend: {
+      waterFade: { start: 88, end: 100 },
+      edgeFade: {
+        left: { start: 0, end: 4 },
+        right: { start: 96, end: 100 },
+      },
+    },
+  },
+  'da-lat': {
+    landmark: 'Ga Đà Lạt · Thành phố ngàn hoa',
+    image: atlas,
+    source: [1774, 887],
+    crop: [890, 714, 884, 173],
+    frame: { y: 360, originX: -320, destinationX: 760, width: 1200, height: 235 },
+    blend: {
+      skyFade: { start: 0, end: 8 },
+      waterFade: { start: 88, end: 100 },
+      edgeFade: {
+        left: { start: 0, end: 4 },
+        right: { start: 96, end: 100 },
+      },
+    },
+  },
 };
 
 export function getJourneyLandmark(city: string): JourneyLandmark {
   const id = getCanonicalLocationId(city);
   const spec = landmarks[id];
-  return { id, city: getLocationDisplayName(city), ...(spec || {
-    landmark: 'Miền đất mới', image: '', source: [1, 1], crop: [0, 0, 1, 1], frame: { y: 330, originX: 0, destinationX: 900 },
-  }) };
+  return {
+    id,
+    city: getLocationDisplayName(city),
+    ...(spec || {
+      landmark: 'Miền đất mới',
+      image: '',
+      source: [1, 1],
+      crop: [0, 0, 1, 1],
+      frame: { y: 330, originX: 0, destinationX: 900, width: 1200, height: 300 },
+    }),
+  };
 }
 
 export interface JourneyVehicle {
@@ -47,12 +189,18 @@ export interface JourneyVehicle {
   wheels: [number, number][];
   anchor: [number, number];
   rest: [number, number];
+  mobileRest: [number, number];
 }
 export const JOURNEY_VEHICLES: Record<VehicleCategory, JourneyVehicle> = {
-  sleeper: { image: VEHICLE_MODELS.sleeper.heroImage!, width: 900, wheels: [[240, 650], [665, 706]], anchor: [452, 678], rest: [650, 782] },
-  limousine: { image: VEHICLE_MODELS.limousine.heroImage!, width: 770, wheels: [[230, 638], [850, 706]], anchor: [540, 672], rest: [650, 782] },
-  cabin: { image: VEHICLE_MODELS.cabin.heroImage!, width: 900, wheels: [[240, 650], [310, 665], [720, 710]], anchor: [480, 681], rest: [650, 782] },
+  sleeper: { image: VEHICLE_MODELS.sleeper.heroImage!, width: 900, wheels: [[240, 650], [665, 706]], anchor: [452, 678], rest: [633.5, 782], mobileRest: [583.6, 825] },
+  limousine: { image: VEHICLE_MODELS.limousine.heroImage!, width: 770, wheels: [[230, 638], [850, 706]], anchor: [540, 672], rest: [707, 782], mobileRest: [678.88, 825] },
+  cabin: { image: VEHICLE_MODELS.cabin.heroImage!, width: 900, wheels: [[240, 650], [310, 665], [720, 710]], anchor: [480, 681], rest: [650, 782], mobileRest: [602.31, 825] },
 };
+
+export function getVehicleRest(category: VehicleCategory, mobile: boolean = false): [number, number] {
+  const cfg = JOURNEY_VEHICLES[category];
+  return mobile ? cfg.mobileRest : cfg.rest;
+}
 
 // A short, almost straight portion of the near lane matches the single camera
 // angle available for each bus. No rotation or artificial steering around the bend.
@@ -61,7 +209,7 @@ export const JOURNEY_DRIVE = {
   y: [700, 735, 765, 782],
   scale: [0.42, 0.58, 0.8, 1],
   times: [0, 0.3, 0.65, 1],
-  duration: 1.7,
+  duration: 1.6,
 };
 
 const decoded = new Map<string, Promise<void>>();

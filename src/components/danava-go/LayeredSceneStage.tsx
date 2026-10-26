@@ -16,44 +16,135 @@ function Landmark({ city, role }: { city: string; role: 'origin' | 'destination'
       .catch(() => { if (current) setScene({ ...target, image: '', landmark: 'Miền đất mới' }); });
     return () => { current = false; };
   }, [city]);
-  const clip = `${slotId}-${scene.id}-${scene.image ? 'photo' : 'fallback'}-crop`;
+  const clip = `${slotId}-${role}-${scene.id}-${scene.image ? 'photo' : 'fallback'}`;
   const [cx, cy, cw, ch] = scene.crop;
   const x = role === 'origin' ? scene.frame.originX : scene.frame.destinationX;
-  const width = 1200;
-  const height = width * ch / cw;
-  return <div className={`journey-landmark journey-landmark-${role}`} data-landmark-slot={role} data-city={scene.id}>
-    <AnimatePresence initial={false}>
-      <motion.div className="journey-landmark-content" key={`${scene.id}:${scene.image}`}
-        initial={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : .5 }}>
-        <svg className="journey-landmark-plane" viewBox="0 0 1600 1000" preserveAspectRatio={mobile ? "xMidYMax meet" : "xMidYMid slice"} aria-hidden="true">
-          <defs>
-            <linearGradient id={`${clip}-zone`}>
-              {role === 'origin' ? <><stop offset="32%" stopColor="white"/><stop offset="57%" stopColor="black"/></> : <><stop offset="49%" stopColor="black"/><stop offset="68%" stopColor="white"/></>}
-            </linearGradient>
-            <linearGradient id={`${clip}-water`} x1="0" y1="0" x2="0" y2="1"><stop offset="57%" stopColor="white"/><stop offset="69%" stopColor="black"/></linearGradient>
-            <mask id={`${clip}-bank-mask`} maskUnits="userSpaceOnUse" x="0" y="0" width="1600" height="1000"><rect width="1600" height="1000" fill={`url(#${clip}-zone)`}/></mask>
-            <mask id={`${clip}-water-mask`} maskUnits="userSpaceOnUse" x="0" y="0" width="1600" height="1000"><rect width="1600" height="1000" fill={`url(#${clip}-water)`}/></mask>
-          </defs>
-          {scene.image ? <g mask={`url(#${clip}-bank-mask)`}><g mask={`url(#${clip}-water-mask)`}>
-            <svg x={x} y={scene.frame.y} width={width} height={height} viewBox={`${cx} ${cy} ${cw} ${ch}`} preserveAspectRatio="none" data-bank-image={scene.id}>
-              <defs>
-                <clipPath id={clip}><rect x={cx} y={cy} width={cw} height={ch}/></clipPath>
-                <linearGradient id={`${clip}-edge`}><stop offset="0" stopColor="black"/><stop offset="3%" stopColor="white"/><stop offset="97%" stopColor="white"/><stop offset="100%" stopColor="black"/></linearGradient>
-                <linearGradient id={`${clip}-surface`} x1="0" y1="0" x2="0" y2="1"><stop offset="92%" stopColor="white"/><stop offset="100%" stopColor="black"/></linearGradient>
-                <mask id={`${clip}-edge-mask`} maskUnits="userSpaceOnUse" x={cx} y={cy} width={cw} height={ch}><rect x={cx} y={cy} width={cw} height={ch} fill={`url(#${clip}-edge)`}/></mask>
-                <mask id={`${clip}-surface-mask`} maskUnits="userSpaceOnUse" x={cx} y={cy} width={cw} height={ch}><rect x={cx} y={cy} width={cw} height={ch} fill={`url(#${clip}-surface)`}/></mask>
-              </defs>
-              <g clipPath={`url(#${clip})`} mask={`url(#${clip}-edge-mask)`}><g mask={`url(#${clip}-surface-mask)`}>
-                <image href={scene.image} width={scene.source[0]} height={scene.source[1]}
-                  onError={() => setScene(old => old.image === scene.image ? { ...old, image: '', landmark: 'Miền đất mới' } : old)} />
-              </g></g>
-            </svg>
-          </g></g> : <path d={`M${role === 'origin' ? 0 : 1000} 660 q100 -150 220 -25 t300 25 v40 h-520z`} fill="#52796f" opacity=".4" />}
-        </svg>
-        <div className="journey-landmark-label"><span>{role === 'origin' ? 'ĐIỂM ĐI' : 'ĐIỂM ĐẾN'}</span><strong>{scene.city}</strong><small>{scene.landmark}</small></div>
-      </motion.div>
-    </AnimatePresence>
-  </div>;
+  const width = scene.frame.width;
+  const height = scene.frame.height;
+  const blend = scene.blend;
+  const hasEdgeFade = Boolean(blend?.edgeFade?.left || blend?.edgeFade?.right);
+  const hasVerticalFade = Boolean(blend?.waterFade || blend?.skyFade);
+
+  return (
+    <div className={`journey-landmark journey-landmark-${role}`} data-landmark-slot={role} data-city={scene.id}>
+      <AnimatePresence initial={false}>
+        <motion.div
+          className="journey-landmark-content"
+          key={`${scene.id}:${scene.image}`}
+          initial={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: reduced ? 0 : 0.5 }}
+        >
+          <svg
+            className="journey-landmark-plane"
+            viewBox="0 0 1600 1000"
+            preserveAspectRatio={mobile ? 'xMidYMax meet' : 'xMidYMid slice'}
+            aria-hidden="true"
+          >
+            {scene.image ? (
+              <svg
+                x={x}
+                y={scene.frame.y}
+                width={width}
+                height={height}
+                viewBox={`${cx} ${cy} ${cw} ${ch}`}
+                preserveAspectRatio="none"
+                data-bank-image={scene.id}
+              >
+                <defs>
+                  <clipPath id={`${clip}-crop`}>
+                    <rect x={cx} y={cy} width={cw} height={ch} />
+                  </clipPath>
+                  {hasVerticalFade && (
+                    <>
+                      <linearGradient id={`${clip}-v`} x1="0" y1={cy} x2="0" y2={cy + ch} gradientUnits="userSpaceOnUse">
+                        {blend?.skyFade ? (
+                          <>
+                            <stop offset="0%" stopColor="black" />
+                            <stop offset={`${blend.skyFade.start}%`} stopColor="black" />
+                            <stop offset={`${blend.skyFade.end}%`} stopColor="white" />
+                          </>
+                        ) : (
+                          <stop offset="0%" stopColor="white" />
+                        )}
+                        {blend?.waterFade ? (
+                          <>
+                            <stop offset={`${blend.waterFade.start}%`} stopColor="white" />
+                            <stop offset={`${blend.waterFade.end}%`} stopColor="black" />
+                            <stop offset="100%" stopColor="black" />
+                          </>
+                        ) : (
+                          <stop offset="100%" stopColor="white" />
+                        )}
+                      </linearGradient>
+                      <mask id={`${clip}-v-mask`} maskUnits="userSpaceOnUse" x={cx} y={cy} width={cw} height={ch}>
+                        <rect x={cx} y={cy} width={cw} height={ch} fill={`url(#${clip}-v)`} />
+                      </mask>
+                    </>
+                  )}
+                  {hasEdgeFade && (
+                    <>
+                      <linearGradient id={`${clip}-h`} x1={cx} y1="0" x2={cx + cw} y2="0" gradientUnits="userSpaceOnUse">
+                        {blend?.edgeFade?.left ? (
+                          <>
+                            <stop offset="0%" stopColor="black" />
+                            <stop offset={`${blend.edgeFade.left.start}%`} stopColor="black" />
+                            <stop offset={`${blend.edgeFade.left.end}%`} stopColor="white" />
+                          </>
+                        ) : (
+                          <stop offset="0%" stopColor="white" />
+                        )}
+                        {blend?.edgeFade?.right ? (
+                          <>
+                            <stop offset={`${blend.edgeFade.right.start}%`} stopColor="white" />
+                            <stop offset={`${blend.edgeFade.right.end}%`} stopColor="black" />
+                            <stop offset="100%" stopColor="black" />
+                          </>
+                        ) : (
+                          <stop offset="100%" stopColor="white" />
+                        )}
+                      </linearGradient>
+                      <mask id={`${clip}-h-mask`} maskUnits="userSpaceOnUse" x={cx} y={cy} width={cw} height={ch}>
+                        <rect x={cx} y={cy} width={cw} height={ch} fill={`url(#${clip}-h)`} />
+                      </mask>
+                    </>
+                  )}
+                </defs>
+                <g clipPath={`url(#${clip}-crop)`}>
+                  <g {...(hasEdgeFade ? { mask: `url(#${clip}-h-mask)` } : {})}>
+                    <g {...(hasVerticalFade ? { mask: `url(#${clip}-v-mask)` } : {})}>
+                      <image
+                        href={scene.image}
+                        width={scene.source[0]}
+                        height={scene.source[1]}
+                        onError={() =>
+                          setScene((old) =>
+                            old.image === scene.image ? { ...old, image: '', landmark: 'Miền đất mới' } : old
+                          )
+                        }
+                      />
+                    </g>
+                  </g>
+                </g>
+              </svg>
+            ) : (
+              <path
+                d={`M${role === 'origin' ? 0 : 1000} 660 q100 -150 220 -25 t300 25 v40 h-520z`}
+                fill="#52796f"
+                opacity=".4"
+              />
+            )}
+          </svg>
+          <div className="journey-landmark-label">
+            <span>{role === 'origin' ? 'ĐIỂM ĐI' : 'ĐIỂM ĐẾN'}</span>
+            <strong>{scene.city}</strong>
+            <small>{scene.landmark}</small>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
 }
 export const LayeredSceneStage: React.FC<{ fromCity: string; toCity: string; className?: string }> = ({ fromCity, toCity, className = '' }) => {
   const [roadError, setRoadError] = useState(false);
