@@ -18,7 +18,7 @@ const scene = (p) => p.locator('.danava-go-hero');
 const vehicle = (p) => scene(p).locator('[data-vehicle]');
 const matrix = (p) => vehicle(p).evaluate((el) => { const m = new DOMMatrix(getComputedStyle(el).transform); return { scale: m.a, x: m.e, y: m.f, origin: getComputedStyle(el).transformOrigin, opacity: Number(getComputedStyle(el).opacity) }; });
 async function visibleBus(p) {
-  return vehicle(p).locator('image').evaluate(async el => {
+  return vehicle(p).locator('[data-vehicle-photo]').evaluate(async el => {
     const source = new Image(); source.src = el.getAttribute('href'); await source.decode();
     const canvas = document.createElement('canvas'); canvas.width=source.width;canvas.height=source.height;
     const ctx=canvas.getContext('2d');ctx.drawImage(source,0,0);
@@ -50,11 +50,11 @@ async function choose(p, field, city) {
     await p.waitForTimeout(500);
     const middle = await matrix(p);
     await p.screenshot({ path: path.join(out, 'intro-middle.png') });
-    await p.waitForTimeout(1500);
+    await p.waitForTimeout(2500);
     const last = await matrix(p);
     check('Bus grows and moves down/right along the near lane', first.scale < middle.scale && middle.scale <= last.scale && first.x < last.x && first.y < last.y);
     check('Approach becomes opaque early, without a long ghost fade', middle.opacity > .99);
-    check('Bus settles at its measured wheel anchor', Math.abs(last.scale - 1) < .001 && Math.abs(last.x - 650) < .1 && Math.abs(last.y - 782) < .1 && last.origin === '0px 0px');
+    check('Bus settles at its measured wheel anchor', Math.abs(last.scale - 1) < .001 && Math.abs(last.x - 800) < .1 && Math.abs(last.y - 800) < .1 && last.origin === '0px 0px');
     const layout = await p.evaluate(() => ({ hero: document.querySelector('.danava-go-hero').getBoundingClientRect().toJSON(), form: document.querySelector('#hero-search form').getBoundingClientRect().toJSON(), font:getComputedStyle(document.querySelector('h1')).fontFamily, canvas:document.querySelectorAll('canvas').length, overflow:document.documentElement.scrollWidth > innerWidth }));
     check('Fullscreen hero, sans typography and no WebGL canvas', layout.hero.height >= 900 && layout.hero.width === 1440 && layout.font.includes('Be Vietnam Pro') && layout.canvas === 0 && !layout.overflow);
     check('Full horizontal form fits the first viewport', layout.form.bottom <= 900 && layout.form.width > 1200);
@@ -69,12 +69,29 @@ async function choose(p, field, city) {
       await tabs.getByRole('button', { name, exact: true }).click(); await p.waitForTimeout(60);
     }
     let maxVisible = 0;
-    for (let i = 0; i < 24; i++) { maxVisible = Math.max(maxVisible, await vehicle(p).count()); await p.waitForTimeout(100); }
+    for (let i = 0; i < 32; i++) { maxVisible = Math.max(maxVisible, await vehicle(p).count()); await p.waitForTimeout(100); }
     check('Rapid vehicle switches show only one bus', maxVisible === 1);
     check('Last selected vehicle wins', await vehicle(p).getAttribute('data-vehicle') === 'cabin');
     for (const [label, id] of [['Giường nằm','sleeper'],['Limousine','limousine'],['Cabin VIP','cabin']]) {
-      await tabs.getByRole('button',{name:label,exact:true}).click(); await p.waitForTimeout(450);
-      check(`${label} replacement settles opaque at full scale`, await vehicle(p).getAttribute('data-vehicle')===id && (await matrix(p)).opacity>.99 && Math.abs((await matrix(p)).scale-1)<.001);
+      await tabs.getByRole('button',{name:label,exact:true}).click();
+      await p.waitForFunction(id => document.querySelector('[data-vehicle]')?.dataset.vehicle === id, id);
+      const drive = await p.evaluate(() => new Promise(resolve => {
+        const samples=[], started=performance.now(); let last=0;
+        const frame = now => {
+          const el=document.querySelector('[data-vehicle]');
+          if(now-last>45 && el) {
+            const m=new DOMMatrix(getComputedStyle(el).transform);
+            samples.push({x:m.e,y:m.f,scale:m.a,rear:Number(getComputedStyle(el.querySelector('[data-travel-view="rear-left"]')).opacity)});last=now;
+          }
+          if(now-started<3000) requestAnimationFrame(frame); else resolve(samples);
+        };
+        requestAnimationFrame(frame);
+      }));
+      const steps=drive.slice(1).map((pose,i)=>pose.x-drive[i].x);
+      check(`${label} follows the S bend in both horizontal directions`, steps.some(dx=>dx < -1) && steps.some(dx=>dx > 1));
+      check(`${label} uses a rear view at the bend and grows toward the camera`, drive.some(pose=>pose.rear>.8) && drive[0].scale<.5 && drive.at(-1).scale>.999);
+      check(`${label} stops without an animation loop`, await vehicle(p).getAttribute('data-drive-state')==='parked');
+      check(`${label} curved approach settles opaque at full scale`, await vehicle(p).getAttribute('data-vehicle')===id && (await matrix(p)).opacity>.99 && Math.abs((await matrix(p)).scale-1)<.001);
       const box=await visibleBus(p);
       check(`${label} is centered, correctly sized and clear of form`, Math.abs(box.center-box.viewport/2)<box.viewport*.025 && box.width/box.viewport>(id==='limousine'?.4:.48) && box.width/box.viewport<(id==='limousine'?.47:.53) && box.formTop-box.bottom>=8);
       await p.screenshot({path:path.join(out,`vehicle-${id}.png`)});
@@ -138,7 +155,7 @@ async function choose(p, field, city) {
     const failed = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
     failed.on('pageerror', e => errors.push(e.message));
     await failed.route('**/journey_city_banks.webp', r => r.abort());
-    await failed.route('**/bus_limousine_right.png', r => r.abort());
+    await failed.route('**/limousine-premium.webp', r => r.abort());
     await failed.goto(`${base}/?from=Đà%20Nẵng&to=Huế`, { waitUntil: 'domcontentloaded' }); await failed.waitForTimeout(600);
     check('Failed landmark shows neutral fallback, never another city', (await failed.locator('[data-landmark-slot=destination]').innerText()).includes('Miền đất mới'));
     await scene(failed).getByRole('button', { name: 'Limousine', exact: true }).click(); await failed.waitForTimeout(300);
@@ -149,6 +166,11 @@ async function choose(p, field, city) {
     await initialFailure.goto(base); await initialFailure.waitForTimeout(600);
     check('Failed initial vehicle loads an available fallback without blocking form', await vehicle(initialFailure).getAttribute('data-vehicle') === 'sleeper' && await initialFailure.locator('#search-from').isEnabled());
     await initialFailure.close();
+    const atlasFailure = await browser.newPage({ reducedMotion: 'reduce' });
+    await atlasFailure.route('**/fleet-turns.webp',r=>r.abort());
+    await atlasFailure.goto(base); await vehicle(atlasFailure).waitFor();
+    check('Missing turn atlas keeps the near vehicle and usable form', await atlasFailure.locator('[data-travel-view]').count()===0 && Math.abs((await matrix(atlasFailure)).scale-1)<.001 && await atlasFailure.locator('#search-from').isEnabled());
+    await atlasFailure.close();
     // Booking smoke checks use the existing flow and do not change its code.
     await p.setViewportSize({ width: 1440, height: 900 });
     await choose(p, 'from', 'Đà Nẵng'); await choose(p, 'to', 'Huế');

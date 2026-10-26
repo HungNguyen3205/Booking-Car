@@ -1,8 +1,56 @@
 import { useJourneyReducedMotion, useJourneyMobile } from './useJourneyReducedMotion';
-import React, { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, animate, motion, useMotionValue, useTransform } from 'framer-motion';
 import type { VehicleCategory } from '../../types';
-import { decodeJourneyImage, JOURNEY_VEHICLES, JOURNEY_DRIVE, getVehicleRest } from './journeyStageConfig';
+import { decodeJourneyImage, JOURNEY_VEHICLES, JOURNEY_DRIVE, JOURNEY_TURN_ATLAS, getJourneyDrivePose, getVehicleRest } from './journeyStageConfig';
+
+function DrivingVehicle({ category, mobile, approach, reduced, atlasReady, onSettled, onLoad, onError }: {
+  category: VehicleCategory; mobile: boolean; approach: boolean; reduced: boolean; atlasReady: boolean;
+  onSettled: () => void; onLoad: () => void; onError: () => void;
+}) {
+  const cfg = JOURNEY_VEHICLES[category];
+  const width = cfg.width * (mobile ? 1.3 : 1);
+  const factor = width/cfg.source[0];
+  const anchorX = cfg.anchor[0]*factor, anchorY = cfg.anchor[1]*factor;
+  const [restX, restY] = getVehicleRest(category, mobile);
+  const progress = useMotionValue(approach ? 0 : 1);
+  const transform = useTransform(progress, p => {
+    // Without the atlas, restrict entry to the compatible near camera angle.
+    const pose = getJourneyDrivePose(atlasReady ? p : .72 + p*.28, [restX, restY]);
+    return `translate(${pose.x}px, ${pose.y}px) scale(${pose.scale})`;
+  });
+  const near = useTransform(progress, [.46, .54], atlasReady ? [0, 1] : [1, 1]);
+  const front = useTransform(progress, p => {
+    const rear = Math.min(1, Math.max(0, (p-.22)/.05)) * (1-Math.min(1, Math.max(0, (p-.36)/.08)));
+    return (1-near.get())*(1-rear);
+  });
+  const rear = useTransform(() => 1-near.get()-front.get());
+  useEffect(() => {
+    if (!approach || reduced) { progress.set(1); return; }
+    const controls = animate(progress, 1, { duration: JOURNEY_DRIVE.duration, ease: 'linear', onComplete: onSettled });
+    return () => controls.stop();
+  }, [approach, reduced, progress, onSettled]);
+  return <motion.g data-vehicle={category} data-drive-state={approach ? 'driving' : 'parked'}
+    className="journey-bus" style={{ transform, transformOrigin: '0px 0px' }}
+    initial={{ opacity: reduced ? 1 : 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    transition={{ duration: reduced ? 0 : .12 }}>
+    {atlasReady && cfg.views.map(([vx, vy, vw, vh], i) => {
+      const bodyWidth = width*(category === 'cabin' ? .887 : .951);
+      const bodyHeight = bodyWidth*vh/vw;
+      return <motion.g key={i} style={{ opacity: i ? rear : front }} data-travel-view={i ? 'rear-left' : 'front-right'}>
+        <ellipse cx="0" cy="-2" rx={bodyWidth*.4} ry="7" fill="#102744" opacity=".25" />
+        <svg x={-bodyWidth/2} y={-bodyHeight} width={bodyWidth} height={bodyHeight} viewBox={`${vx} ${vy} ${vw} ${vh}`} overflow="hidden">
+          <image href={JOURNEY_TURN_ATLAS} width="1254" height="1254" />
+        </svg>
+      </motion.g>;
+    })}
+    <motion.g style={{ opacity: near }} transform={`translate(${-anchorX} ${-anchorY})`}>
+      <ellipse cx={anchorX} cy={anchorY-3} rx={width*.34} ry="9" fill="#102744" opacity=".15" />
+      {cfg.wheels.map(([px, py], i) => <ellipse key={i} cx={px*factor} cy={py*factor-2} rx={width*.033} ry="3" fill="#0d1b2a" opacity=".4" />)}
+      <image data-vehicle-photo="true" href={cfg.image} width={width} height={cfg.source[1]*factor} onLoad={onLoad} onError={onError} />
+    </motion.g>
+  </motion.g>;
+}
 
 interface VehicleMotionStageProps {
   selectedVehicle: VehicleCategory;
@@ -13,9 +61,12 @@ interface VehicleMotionStageProps {
 export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selectedVehicle, introReady = true, onVehicleError }) => {
   const reduced = useJourneyReducedMotion();
   const mobile = useJourneyMobile();
+  const reducedRef = useRef(reduced);
+  useEffect(() => { reducedRef.current = reduced; }, [reduced]);
   const [shown, setShown] = useState<VehicleCategory | null>(null);
   const [introDone, setIntroDone] = useState(reduced);
   const [broken, setBroken] = useState(false);
+  const [atlasReady, setAtlasReady] = useState(false);
   const shownRef = useRef<VehicleCategory | null>(null);
   const lastGood = useRef<VehicleCategory | null>(null);
   const requests = useRef(0);
@@ -42,13 +93,13 @@ export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selected
     const current = () => !cancelled && requests.current === request;
     const commit = (category: VehicleCategory) => {
       if (!current()) return;
-      if (shownRef.current !== null) setIntroDone(true);
+      setIntroDone(reducedRef.current);
       shownRef.current = category;
       setBroken(false);
       setShown(category);
     };
     if (introReady) {
-      void decodeJourneyImage(JOURNEY_VEHICLES[selectedVehicle].image).then(() => commit(selectedVehicle)).catch(async () => {
+      void Promise.all([decodeJourneyImage(JOURNEY_VEHICLES[selectedVehicle].image), decodeJourneyImage(JOURNEY_TURN_ATLAS).then(() => { if(current()) setAtlasReady(true); }).catch(() => {})]).then(() => commit(selectedVehicle)).catch(async () => {
         if (!current()) return;
         if (shownRef.current) {
           callback.current?.(shownRef.current, 'Chưa tải được ảnh xe. Giữ xe trước đó; bạn vẫn có thể tìm chuyến.');
@@ -68,46 +119,21 @@ export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selected
     return () => { cancelled = true; };
   }, [selectedVehicle, introReady]);
 
-  const cfg = shown ? JOURNEY_VEHICLES[shown] : null;
-  const width = cfg ? cfg.width * (mobile ? 1.3 : 1) : 0;
-  const factor = width / 1376;
-  const [x, y] = shown ? getVehicleRest(shown, mobile) : [650, 782];
-  const anchorX = cfg ? cfg.anchor[0] * factor : 0;
-  const anchorY = cfg ? cfg.anchor[1] * factor : 0;
-  const rest = `translate(${x}px, ${y}px) scale(1)`;
-  const approach = !introDone && !reduced;
-
+  const settle = useCallback(() => setIntroDone(true), []);
   return <svg className="journey-vehicle-layer" viewBox="0 0 1600 1000" preserveAspectRatio={mobile ? 'xMidYMax meet' : 'xMidYMid slice'} aria-hidden="true" data-testid="journey-vehicle-layer">
     <g id="layer-vehicle" data-testid="layer-vehicle">
       <AnimatePresence mode="wait">
-        {shown && cfg && !broken && <motion.g key={shown} data-vehicle={shown} className="journey-bus"
-          initial={reduced ? false : approach ? 'distant' : 'replace'}
-          animate={approach ? 'approach' : 'rest'} exit="leave"
-          variants={{
-            distant: { transform: `translate(${JOURNEY_DRIVE.x[0]}px, ${JOURNEY_DRIVE.y[0]}px) scale(${JOURNEY_DRIVE.scale[0]})`, opacity: 0 },
-            replace: { transform: `translate(${x + 12}px, ${y + 2}px) scale(.985)`, opacity: 0 },
-            approach: { transform: JOURNEY_DRIVE.x.map((px, i) => `translate(${i === 3 ? x : px}px, ${i === 3 ? y : JOURNEY_DRIVE.y[i]}px) scale(${JOURNEY_DRIVE.scale[i]})`), opacity: 1,
-              transition: { transform: { duration: JOURNEY_DRIVE.duration, times: JOURNEY_DRIVE.times, ease: ['linear', 'linear', 'easeOut'] }, opacity: { duration: .14 } } },
-            rest: { transform: rest, opacity: 1, transition: { duration: reduced ? 0 : .22, ease: [.22, 1, .36, 1], opacity: { duration: reduced ? 0 : .16 } } },
-            leave: { opacity: 0, transition: { duration: reduced ? 0 : .12 } },
-          }}
-          onAnimationComplete={phase => { if (phase === 'approach') setIntroDone(true); }}
-          style={{ transformOrigin: '0px 0px' }}>
-          <g transform={`translate(${-anchorX} ${-anchorY})`}>
-            <ellipse cx={anchorX + width * .04} cy={anchorY + 3} rx={width * .34} ry="11" fill="#102744" opacity=".18" />
-            {cfg.wheels.map(([px, py], i) => <ellipse key={i} cx={px * factor} cy={py * factor - 3} rx={width * .033} ry="3" fill="#0d1b2a" opacity=".4" />)}
-            <image href={cfg.image} width={width} height={width * 768 / 1376}
-              onLoad={() => { lastGood.current = shown; }}
-              onError={() => {
-                const previous = lastGood.current;
-                ++requests.current;
-                setIntroDone(true);
-                if (previous && previous !== shown) { shownRef.current = previous; setShown(previous); }
-                else setBroken(true);
-                callback.current?.(previous || shown, 'Ảnh xe gặp sự cố. Bạn vẫn có thể tìm chuyến.');
-              }} />
-          </g>
-        </motion.g>}
+        {shown && !broken && <DrivingVehicle key={shown} category={shown} mobile={mobile}
+          approach={!introDone && !reduced} reduced={reduced} atlasReady={atlasReady} onSettled={settle}
+          onLoad={() => { lastGood.current = shown; }}
+          onError={() => {
+            const previous = lastGood.current;
+            ++requests.current;
+            setIntroDone(true);
+            if (previous && previous !== shown) { shownRef.current = previous; setShown(previous); }
+            else setBroken(true);
+            callback.current?.(previous || shown, 'Ảnh xe gặp sự cố. Bạn vẫn có thể tìm chuyến.');
+          }} />}
       </AnimatePresence>
     </g>
   </svg>;
