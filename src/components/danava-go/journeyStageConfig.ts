@@ -14,27 +14,29 @@ export interface JourneyLandmark {
   image: string;
   source: [number, number];
   crop: [number, number, number, number];
-  photographic: boolean;
+  frame: { y: number; originX: number; destinationX: number };
 }
 
 const scenes = '/assets/images/scenes/';
-const atlas = `${scenes}journey_landmarks_atlas.webp`;
+const atlas = `${scenes}journey_city_banks.webp`;
+// Wide, continuous city banks rather than isolated monument islands.
+// Crop bounds follow the actual atlas rows, not assumed equal-height cells.
 const landmarks: Record<string, Omit<JourneyLandmark, 'id' | 'city'>> = {
-  'da-nang': { landmark: 'Cầu Rồng · Sông Hàn', image: atlas, source: [1536, 1024], crop: [0, 345, 552, 370], photographic: true },
-  'hoi-an': { landmark: 'Phố cổ · Sông Hoài', image: atlas, source: [1536, 1024], crop: [552, 335, 498, 400], photographic: true },
-  'hue': { landmark: 'Ngọ Môn · Hoàng thành', image: atlas, source: [1536, 1024], crop: [1050, 320, 486, 420], photographic: true },
-  'nha-trang': { landmark: 'Tháp Trầm Hương · Vịnh biển', image: `${scenes}journey_locations_atlas.webp`, source: [1983, 793], crop: [0, 300, 397, 493], photographic: true },
-  'ho-chi-minh': { landmark: 'Landmark 81 · Sông Sài Gòn', image: `${scenes}journey_locations_atlas.webp`, source: [1983, 793], crop: [397, 50, 396, 743], photographic: true },
-  'ha-noi': { landmark: 'Hồ Gươm · Tháp Rùa', image: `${scenes}journey_locations_atlas.webp`, source: [1983, 793], crop: [793, 420, 397, 373], photographic: true },
-  'quy-nhon': { landmark: 'Tháp Đôi · Biển Quy Nhơn', image: `${scenes}journey_locations_atlas.webp`, source: [1983, 793], crop: [1190, 350, 396, 443], photographic: true },
-  'da-lat': { landmark: 'Ga Đà Lạt · Thành phố ngàn hoa', image: `${scenes}journey_locations_atlas.webp`, source: [1983, 793], crop: [1586, 320, 397, 473], photographic: true },
+  'da-nang': { landmark: 'Cầu Rồng · Sông Hàn', image: atlas, source: [1774, 887], crop: [0, 0, 886, 244], frame: { y: 270, originX: -30, destinationX: 880 } },
+  'hoi-an': { landmark: 'Phố cổ · Sông Hoài', image: atlas, source: [1774, 887], crop: [890, 0, 884, 243], frame: { y: 330, originX: -330, destinationX: 440 } },
+  'hue': { landmark: 'Ngọ Môn · Hoàng thành', image: atlas, source: [1774, 887], crop: [0, 248, 884, 237], frame: { y: 310, originX: -350, destinationX: 760 } },
+  'nha-trang': { landmark: 'Tháp Trầm Hương · Vịnh biển', image: atlas, source: [1774, 887], crop: [890, 250, 884, 235], frame: { y: 320, originX: -600, destinationX: 450 } },
+  'ho-chi-minh': { landmark: 'Landmark 81 · Sông Sài Gòn', image: `${scenes}journey_hcm_bank.webp`, source: [2172, 724], crop: [0, 0, 2172, 724], frame: { y: 270, originX: -300, destinationX: 800 } },
+  'ha-noi': { landmark: 'Hồ Gươm · Tháp Rùa', image: atlas, source: [1774, 887], crop: [890, 490, 884, 215], frame: { y: 330, originX: -400, destinationX: 600 } },
+  'quy-nhon': { landmark: 'Tháp Đôi · Biển Quy Nhơn', image: atlas, source: [1774, 887], crop: [0, 714, 884, 173], frame: { y: 350, originX: -750, destinationX: 360 } },
+  'da-lat': { landmark: 'Ga Đà Lạt · Thành phố ngàn hoa', image: atlas, source: [1774, 887], crop: [890, 714, 884, 173], frame: { y: 360, originX: -320, destinationX: 760 } },
 };
 
 export function getJourneyLandmark(city: string): JourneyLandmark {
   const id = getCanonicalLocationId(city);
   const spec = landmarks[id];
   return { id, city: getLocationDisplayName(city), ...(spec || {
-    landmark: 'Miền đất mới', image: '', source: [1, 1], crop: [0, 0, 1, 1], photographic: false,
+    landmark: 'Miền đất mới', image: '', source: [1, 1], crop: [0, 0, 1, 1], frame: { y: 330, originX: 0, destinationX: 900 },
   }) };
 }
 

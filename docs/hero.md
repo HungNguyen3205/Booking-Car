@@ -10,23 +10,27 @@ All scene layers share a 1600×1000 coordinate system. The road and natural land
 
 | Selection | Landmark | Source |
 |---|---|---|
-| Đà Nẵng | Cầu Rồng | journey_landmarks_atlas.webp |
-| Hội An | Phố cổ / Sông Hoài | journey_landmarks_atlas.webp |
-| Huế | Ngọ Môn | journey_landmarks_atlas.webp |
-| Nha Trang | Tháp Trầm Hương | journey_locations_atlas.webp |
-| TP. Hồ Chí Minh | Landmark 81 | journey_locations_atlas.webp |
-| Hà Nội | Tháp Rùa | journey_locations_atlas.webp |
-| Quy Nhơn | Tháp Đôi / biển | journey_locations_atlas.webp |
-| Đà Lạt | Ga Đà Lạt | journey_locations_atlas.webp |
+| Đà Nẵng | Cầu Rồng | journey_city_banks.webp |
+| Hội An | Phố cổ / Sông Hoài | journey_city_banks.webp |
+| Huế | Ngọ Môn | journey_city_banks.webp |
+| Nha Trang | Tháp Trầm Hương | journey_city_banks.webp |
+| TP. Hồ Chí Minh | Landmark 81 | journey_hcm_bank.webp |
+| Hà Nội | Tháp Rùa | journey_city_banks.webp |
+| Quy Nhơn | Tháp Đôi / biển | journey_city_banks.webp |
+| Đà Lạt | Ga Đà Lạt | journey_city_banks.webp |
 
-Unknown city or failed image: its own name with neutral terrain, never another city's landmark. A city picture is a travel illustration, not a geographically accurate map or documentary photograph. The Quy Nhơn cluster groups separate city attractions artistically.
+Unknown city or failed image: its own name with neutral terrain, never another city's landmark. A city picture is a travel illustration, not a geographically accurate map or documentary photograph. The Quy Nhơn panorama groups separate city attractions artistically; this is not a claim about their exact geographical adjacency.
 
 ## Assets
 
-Existing right-facing alpha buses and primary landmark atlas reused. Original catalog/featured-route images retained. Two new WebP assets added using built-in image generation, then encoded to WebP without altering composition:
+Existing right-facing alpha buses, neutral landscape/road, catalog and featured-route images retained. Isolated monument/island atlases were removed. Natural waterfront panoramas now extend into side edges, with architecture embedded in full city context. The shared background is still city-neutral.
 
-- `public/assets/images/scenes/journey_landscape.webp`: approved concept used as edit target. Prompt: remove all UI/text/buttons/bus and all architecture; preserve camera, warm lighting, cream sky, mountains, natural riverbanks, curved foreground road and foliage. Complete background behind vehicle. No city, paper pedestal or ticket.
-- `public/assets/images/scenes/journey_locations_atlas.webp`: existing primary atlas is the lighting/style reference; existing city illustrations identify architecture. Prompt: five isolated true-alpha clusters, equal columns: Nha Trang lotus tower, HCM Landmark81, Hanoi TurtleTower, QuyNhon twin Cham towers/coast, DaLat station with three pointed roofs/pines. Same elevated camera and warm realistic light; no UI, text, vehicles or rectangular backgrounds.
+New production WebP assets created with built-in image generation and encoded without reshaping image content:
+
+- `public/assets/images/scenes/journey_city_banks.webp`: reference is the user-approved image 2, used as lighting/camera guide. Prompt: eight full-scale continuous panoramic city banks, 2 columns × 4 rows, true-alpha sky following rooftops/trees; warm photographic golden-hour lighting; no miniature, island bases, labels, UI, vehicles or pedestals. DaNang DragonBridge plus urban skyline, HoiAn continuous riverside houses, Hue citadel/moat, NhaTrang tower ON seaside promenade, HCM skyline, Hanoi lake, QuyNhon coastal city/towers inland, DaLat station/pine gardens. Actual output 1774×887 has unequal row bounds; explicit crops were measured instead of assuming even cells. The HCM cell is not used because its crown was clipped in the atlas.
+- `public/assets/images/scenes/journey_hcm_bank.webp`: independent panoramic HCM bank to preserve the complete Landmark81 crown/antenna. Prompt: full-scale BinhThanh city context, tower at 48% of width with full spire and transparent sky margin, warm light, broad riverside park and SaiGon river foreground; no islands, UI or vehicles.
+
+The normalized camera uses 1200-unit-wide city banks with individual left/right anchors and vertical offsets. SVG masks blend the urban horizon and water into the common scene while the actual shorelines/streets now continue beyond tile edges. This is not simply fading the old miniature icons. No architecture is mirrored and a city change does not reuse another named city's scenery. All mask/clip IDs include slot, city and fallback state.
 
 Crop coordinates and source dimensions are explicit in journeyStageConfig. No screenshot is used as production UI. HTML labels, tabs and form remain real interactive elements.
 

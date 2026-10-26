@@ -14,7 +14,7 @@ Load only skills relevant to the current task. Review the actual browser result 
 
 - `src/components/danava-go/DanavaGoHero.tsx`: only homepage hero.
 - `danava-go-hero.css`: full-screen desktop and separate mobile layout.
-- `LayeredSceneStage.tsx`: persistent landscape plus independent origin/destination cutouts.
+- `LayeredSceneStage.tsx`: persistent landscape plus independent origin/destination panoramic city banks.
 - `VehicleMotionStage.tsx`: existing alpha bus images, short approach animation and transitions.
 - `journeyStageConfig.ts`: coordinates, atlas crops, city image mappings, decode cache.
 - `src/data/sceneManifest.ts`: canonical city IDs and aliases.

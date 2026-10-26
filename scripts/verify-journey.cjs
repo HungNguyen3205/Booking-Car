@@ -60,6 +60,7 @@ async function choose(p, field, city) {
     check('Last selected vehicle wins', await vehicle(p).getAttribute('data-vehicle') === 'cabin');
     await choose(p, 'to', 'Huế'); await choose(p, 'to', 'Nha Trang'); await choose(p, 'to', 'Hội An');
     await p.waitForTimeout(2400);
+    check('Atlas clips and masks stay unique during crossfade', await p.evaluate(()=>{const ids=[...document.querySelectorAll('.journey-landmark [id]')].map(el=>el.id);return new Set(ids).size===ids.length}));
     check('Last selected destination wins', await p.locator('[data-landmark-slot=destination]').getAttribute('data-city') === 'hoi-an');
     await p.getByRole('button', { name: 'Đổi nơi đi và nơi đến', exact: true }).click();
     await p.waitForTimeout(2300);
@@ -71,6 +72,7 @@ async function choose(p, field, city) {
     await p.waitForTimeout(2300); await p.screenshot({ path: path.join(out, 'desktop-hue.png') });
     await p.setViewportSize({ width: 1280, height: 800 }); await p.waitForTimeout(200);
     check('Resize keeps the bus at rest', Math.abs((await matrix(p)).scale-1)<.001);
+    check('1280px date text is not clipped', await p.locator('[data-search-field=date] .overflow-hidden').evaluate(el=>el.scrollWidth<=el.clientWidth));
     check('1280px has no horizontal overflow', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await p.screenshot({ path: path.join(out, 'desktop-1280.png') });
     await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(200);
@@ -97,7 +99,7 @@ async function choose(p, field, city) {
     // Error paths: block a fresh image request, not an already-decoded cache hit.
     const failed = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
     failed.on('pageerror', e => errors.push(e.message));
-    await failed.route('**/journey_landmarks_atlas.webp', r => r.abort());
+    await failed.route('**/journey_city_banks.webp', r => r.abort());
     await failed.route('**/bus_limousine_right.png', r => r.abort());
     await failed.goto(`${base}/?from=Đà%20Nẵng&to=Huế`, { waitUntil: 'domcontentloaded' }); await failed.waitForTimeout(600);
     check('Failed landmark shows neutral fallback, never another city', (await failed.locator('[data-landmark-slot=destination]').innerText()).includes('Miền đất mới'));

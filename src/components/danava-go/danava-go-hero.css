@@ -4,7 +4,7 @@
 .go-journey-stage,.journey-scenery,.journey-road,.journey-vehicle-layer,.journey-route-line,.journey-landmark-plane{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .journey-atmosphere{position:absolute;inset:0;background:linear-gradient(#f7f4ec88,transparent 40%);pointer-events:none}
 .journey-road{z-index:0}.journey-landmark-plane{z-index:1}.journey-vehicle-layer{z-index:3;overflow:visible}.journey-route-line{z-index:2}
-.journey-landmark{position:absolute;inset:0;pointer-events:none}.journey-landmark-content{position:absolute;inset:0}
+.journey-landmark{position:absolute;inset:0;pointer-events:none;z-index:1}.journey-landmark-content{position:absolute;inset:0}
 .journey-landmark-label{position:absolute;top:20.5%;left:14%;transform:translateX(-50%);text-align:center;width:210px;color:#102744;text-shadow:0 1px 10px #fff9}
 .journey-landmark-destination .journey-landmark-label{left:90%;top:22%}
 .journey-landmark-label>span{display:block;font-size:10px;letter-spacing:.12em;font-weight:800;color:#0097a7;margin-bottom:5px}
@@ -14,18 +14,18 @@
 .go-ui-container{position:relative;z-index:5;width:100%;max-width:1800px;margin:auto;min-height:max(760px,100svh);padding:106px 5.5% 6.2svh;display:flex;flex-direction:column;justify-content:space-between;align-items:center;pointer-events:none}
 .go-editorial-center{width:min(850px,70%);display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:auto}
 .go-eyebrow{display:flex;gap:8px;align-items:center;color:#008c9e;letter-spacing:.14em;font-size:10px;font-weight:800;margin-bottom:13px}
-.go-title{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-size:clamp(44px,4vw,64px);font-weight:800;line-height:1.14;letter-spacing:-.045em;margin:0 0 16px;overflow-wrap:normal}
+.go-title{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-size:clamp(43px,3.7vw,60px);font-weight:800;line-height:1.14;letter-spacing:-.045em;margin:0 0 16px;overflow-wrap:normal}
 .go-title>span{display:block}.go-title-experience{color:#0097a7}
 .go-description{font-size:14px;line-height:1.6;color:#52657b;margin:0 0 22px}
 .go-search-dock{width:100%;max-width:1440px;position:relative;z-index:20;padding-top:20px;pointer-events:auto;scroll-margin-top:95px}
 .go-search-dock form{background:#fffefa;box-shadow:0 14px 42px #10274415}
 .journey-bus{transform-origin:0px 0px!important;transform-box:view-box!important}
 .go-home-header[data-scrolled=false]{background:transparent;border-color:transparent;box-shadow:none}
-.go-home-header>div:first-child{max-width:1800px;padding-left:5.5%;padding-right:5.5%}
-.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:first-child{width:46px;height:46px;border-radius:15px}
-.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:last-child>span{font-size:30px}
+.go-home-header>div:first-child{max-width:1800px;padding-left:6.4%;padding-right:6.4%}
+.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:first-child{width:50px;height:50px;border-radius:15px}
+.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:last-child>span{font-size:32px}
 .go-search-dock [data-search-field] span.truncate{font-size:clamp(13px,1.1vw,17px)}
-@media(min-width:1800px){.go-title{font-size:70px}.go-ui-container{padding-top:125px}}
+@media(min-width:1800px){.go-title{font-size:64px}.go-ui-container{padding-top:125px}}
 @media(max-width:1023px){
 .danava-go-hero{margin-top:0;min-height:auto;display:flex;flex-direction:column}
 .go-ui-container{min-height:auto;display:contents;padding:0}
@@ -54,3 +54,12 @@
 /* The dock is at the viewport bottom: menus open into the hero, above later sections. */
 .danava-go-hero{z-index:1}
 .go-search-dock [role=listbox]{top:auto;bottom:calc(100% + 8px)}
+
+/* Sky stays quiet like the approved reference; the scenery supplies the contrast. */
+.journey-sky-softener{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#f7f4ec99 0%,#f7f4ec44 24%,transparent 39%);z-index:0}
+.journey-landmark-label:before{content:'';position:absolute;left:calc(50% - 4px);bottom:-4px;width:8px;height:8px;border-radius:50%;background:#0097a7}
+@media(min-width:1024px){.go-search-dock [data-search-field]:not([data-search-field=swap]):not([data-search-field=submit])>button,.go-search-dock [data-search-field=date]>div{height:76px}.go-search-dock button[type=submit]{height:66px}}
+@media(max-width:1023px){.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:first-child{width:42px;height:42px}}
+@media(min-width:1024px){
+.go-search-dock [data-search-grid]{grid-template-columns:minmax(0,1.25fr) 44px minmax(0,1.25fr) 1px minmax(176px,1fr) 1px minmax(150px,.85fr) minmax(170px,.95fr)}
+}
