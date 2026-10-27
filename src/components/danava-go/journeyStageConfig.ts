@@ -87,13 +87,13 @@ export interface JourneyVehicle {
 }
 export const JOURNEY_TURN_ATLAS = '/assets/images/fleet-turns.webp';
 export const JOURNEY_VEHICLES: Record<VehicleCategory, JourneyVehicle> = {
-  sleeper: { image: VEHICLE_MODELS.sleeper.heroImage!, source: [1678, 937], width: 840,
+  sleeper: { image: VEHICLE_MODELS.sleeper.heroImage!, source: [1678, 937], width: 672,
     wheels: [[262, 835], [867, 890]], anchor: [858.5, 895], rest: [800, 800], mobileRest: [800, 849],
     views: [[39, 141, 580, 273], [659, 142, 563, 273]] },
-  limousine: { image: VEHICLE_MODELS.limousine.heroImage!, source: [1678, 937], width: 843.2,
+  limousine: { image: VEHICLE_MODELS.limousine.heroImage!, source: [1678, 937], width: 675,
     wheels: [[229, 794], [1005, 883]], anchor: [840.5, 889], rest: [800, 800], mobileRest: [800, 849],
     views: [[55, 519, 552, 274], [646, 516, 572, 280]] },
-  cabin: { image: VEHICLE_MODELS.cabin.heroImage!, source: [1376, 768], width: 902.1,
+  cabin: { image: VEHICLE_MODELS.cabin.heroImage!, source: [1376, 768], width: 722,
     wheels: [[240, 650], [310, 665], [720, 710]], anchor: [712.5, 709], rest: [800, 800], mobileRest: [800, 849],
     views: [[31, 877, 595, 263], [640, 872, 583, 269]] },
 };

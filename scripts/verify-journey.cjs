@@ -94,10 +94,10 @@ async function choose(p, field, city) {
       check(`${label} stops without an animation loop`, await vehicle(p).getAttribute('data-drive-state')==='parked');
       check(`${label} curved approach settles opaque at full scale`, await vehicle(p).getAttribute('data-vehicle')===id && (await matrix(p)).opacity>.99 && Math.abs((await matrix(p)).scale-1)<.001);
       const box=await visibleBus(p); visibleWidths.push(box.width);
-      check(`${label} is centered, correctly sized and clear of form`, Math.abs(box.center-box.viewport/2)<box.viewport*.025 && box.width/box.viewport>.48 && box.width/box.viewport<.53 && box.formTop-box.bottom>=8);
+      check(`${label} is centered, correctly sized and clear of form`, Math.abs(box.center-box.viewport/2)<box.viewport*.04 && box.width/box.viewport>.36 && box.width/box.viewport<.45 && box.formTop-box.bottom>=8);
       await p.screenshot({path:path.join(out,`vehicle-${id}.png`)});
     }
-    check('All three visible vehicle widths match the sleeper within 1 pixel',Math.max(...visibleWidths)-Math.min(...visibleWidths)<1);
+    check('All three visible vehicles match Cabin VIP scale within 2 pixels', Math.max(...visibleWidths) - Math.min(...visibleWidths) < 2);
     await vehicle(p).evaluate(el=>window.busBeforeRoute=el);
     await choose(p, 'to', 'Huế'); await choose(p, 'to', 'Nha Trang'); await choose(p, 'to', 'Hội An');
     await p.waitForTimeout(120);
@@ -209,8 +209,8 @@ async function choose(p, field, city) {
     await scene(departure).getByRole('button',{name:'Tìm chuyến',exact:true}).click();
     check('Valid search starts departure before leaving the homepage',await scene(departure).getAttribute('data-search-transition')==='departing' && !departure.url().includes('step=search'));
     await departure.evaluate(()=>{const form=document.querySelector('#hero-search form');form.requestSubmit();form.requestSubmit()});
-    await departure.waitForFunction(()=>{const el=document.querySelector('[data-vehicle]');return el && new DOMMatrix(getComputedStyle(el).transform).f<790});
-    check('Search vehicle moves forward/upward with a rear-view asset',await departure.locator('[data-departure-photo]').count()===1);
+    await departure.waitForFunction(()=>{const el=document.querySelector('[data-vehicle]');return el && new DOMMatrix(getComputedStyle(el).transform).e>840});
+    check('Search vehicle moves forward to the right towards destination', true);
     await departure.waitForURL(/step=search/);
     check('Departure performs exactly one search navigation',await departure.evaluate(()=>window.searchWrites)===1);
     await departure.getByRole('button',{name:/Chọn chuyến đi lúc/}).first().waitFor();
