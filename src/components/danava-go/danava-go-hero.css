@@ -18,8 +18,9 @@
 .go-title{font-family:'UTM Eremitage','Montserrat','Be Vietnam Pro',system-ui,sans-serif;font-size:clamp(43px,3.7vw,60px);font-weight:800;line-height:1.14;letter-spacing:-.045em;margin:0 0 16px;overflow-wrap:normal}
 .go-title>span{display:block}.go-title-experience{color:#ed6d24}
 .go-description{font-size:14px;line-height:1.6;color:#52657b;margin:0 0 22px}
-.go-search-dock{width:100%;max-width:1440px;position:relative;z-index:20;padding-top:8px;pointer-events:auto;scroll-margin-top:95px}
-.go-search-dock form{background:#fffefa;border-radius:24px;border:1px solid rgba(229,227,220,0.95);box-shadow:0 16px 36px -16px rgba(16,39,68,0.22),0 2px 8px rgba(16,39,68,0.04)}
+.go-search-dock{width:100%;max-width:1440px;position:relative;z-index:20;padding-top:0;pointer-events:auto;scroll-margin-top:95px;background:transparent}
+.go-search-dock form{background:rgba(255,254,250,0.86);backdrop-filter:blur(22px) saturate(185%);-webkit-backdrop-filter:blur(22px) saturate(185%);border-radius:26px;border:1.5px solid rgba(255,255,255,0.92);box-shadow:0 24px 50px -12px rgba(16,39,68,0.22),0 10px 24px -6px rgba(16,39,68,0.12),0 2px 6px 0 rgba(16,39,68,0.05),inset 0 1px 2px 0 rgba(255,255,255,0.95);transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s cubic-bezier(.16,1,.3,1),border-color .3s ease}
+.go-search-dock form:hover{border-color:rgba(255,255,255,1);box-shadow:0 30px 64px -14px rgba(16,39,68,0.28),0 16px 32px -8px rgba(16,39,68,0.15),0 2px 8px 0 rgba(16,39,68,0.08),inset 0 1px 2px 0 rgba(255,255,255,1)}
 .journey-bus{transform-origin:0px 0px!important;transform-box:view-box!important}
 .go-home-header[data-scrolled=false]{background:transparent;border-color:transparent;box-shadow:none}
 .go-home-header>div:first-child{max-width:1800px;padding-left:6.4%;padding-right:6.4%}
@@ -35,8 +36,8 @@
 .go-journey-stage{left:-40px;width:calc(100% + 80px)}
 .go-title{font-size:clamp(30px,6.5vw,48px);line-height:1.19;letter-spacing:-.04em;margin-bottom:14px}
 .go-description{max-width:330px;font-size:12px;margin-bottom:18px}.go-eyebrow{font-size:8px;letter-spacing:.1em;margin-bottom:10px}
-.journey-bottom-fade{height:45px}
-.go-search-dock{order:2;padding:0 14px 24px;margin-top:0;width:100%;z-index:10}
+.journey-bottom-fade{height:40px}
+.go-search-dock{order:2;padding:0 14px 24px;margin-top:-28px;width:100%;z-index:20}
 .journey-landmark-label{top:6%;left:24%;width:150px}.journey-landmark-destination .journey-landmark-label{top:6%;left:76%}
 .journey-landmark-label strong{font-size:17px}.journey-landmark-label small{font-size:9px}.journey-landmark-label>span{font-size:8px}.journey-landmark-label:after{height:30px;margin-top:7px}
 .go-home-header[data-scrolled=false]{background:#f7f4ec}.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:last-child>span{font-size:23px}
@@ -75,26 +76,34 @@
 }
 
 /* A quiet booking area, with scenery and DOM controls kept independent. */
-.go-search-dock{background:#f7f4ec;border-radius:28px;padding-top:0}
-.go-quick-benefits{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px 28px;list-style:none;margin:14px 0 0;padding:0;color:#52657b;font-size:12px;line-height:1.5}
-.go-quick-benefits li{display:flex;align-items:center;gap:7px}
+.go-search-dock{background:transparent;border-radius:28px;padding-top:0}
+.go-quick-benefits{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px 24px;list-style:none;margin:14px 0 0;padding:0;color:#52657b;font-size:12px;line-height:1.5}
+.go-quick-benefits li{display:flex;align-items:center;gap:7px;background:rgba(255,254,250,0.72);padding:4px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 2px 8px -2px rgba(16,39,68,0.06)}
 .go-quick-benefits svg{color:#2b4294;flex-shrink:0}
-.journey-landmark-label{background:rgba(255,254,250,.91);border:1px solid rgba(255,255,255,.95);border-radius:16px;padding:12px 14px;text-shadow:none;box-shadow:0 6px 20px -10px #10274440;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow-wrap:anywhere}
+.journey-landmark-label{background:rgba(255,254,250,.93);border:1.5px solid rgba(255,255,255,.95);border-radius:18px;padding:13px 16px;text-shadow:none;box-shadow:0 10px 28px -10px rgba(16,39,68,0.22),0 3px 8px -2px rgba(16,39,68,0.06);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);overflow-wrap:anywhere}
 .journey-landmark-label:after{position:absolute;top:100%;left:50%;margin:0;transform:translateX(-50%)}
-.journey-landmark-label:before{bottom:-52px}
+.journey-landmark-label:before{bottom:-52px;box-shadow:0 0 0 3px rgba(43,66,148,0.2)}
+.journey-landmark-label-origin{border-top:3px solid #2B4294!important}
+.journey-landmark-label-origin>span{color:#2B4294}
+.journey-landmark-label-destination{border-top:3px solid #EE3132!important}
+.journey-landmark-label-destination>span{color:#EE3132}
+.journey-landmark-destination .journey-landmark-label:after{border-left-color:rgba(238,49,50,0.5)}
+.journey-landmark-destination .journey-landmark-label:before{background:#EE3132;box-shadow:0 0 0 3px rgba(238,49,50,0.2)}
 .go-description{color:#40546b}
-.go-vehicle-option{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 22px;border:1px solid #d8d4c9;border-radius:999px;background:#fffefa;color:#102744;font-size:13px;font-weight:650;cursor:pointer;transition:color .22s,border-color .22s,box-shadow .22s}
-.go-vehicle-option[aria-pressed=true]{color:#fffefa;border-color:#d4bc83;box-shadow:0 5px 16px -7px #10274480}
-.go-vehicle-option[aria-pressed=false]:hover{border-color:#2b4294;background:#f2f4fa}
+.go-vehicle-option{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border:0;background:transparent;color:#102744;font-size:13px;font-weight:650;cursor:pointer;transition:color .22s ease,box-shadow .22s ease}
+.go-vehicle-option[aria-pressed=true]{color:#ffffff;font-weight:700}
+.go-vehicle-option[aria-pressed=true] svg{color:#F5AE1B;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.25))}
+.go-vehicle-option[aria-pressed=false]:hover{color:#2B4294;background:#10274408}
 .go-vehicle-option:focus-visible{outline:3px solid #2b4294;outline-offset:4px}
-.go-vehicle-active{position:absolute;inset:0;border-radius:inherit;background:#102744;z-index:-1;pointer-events:none}
+.go-vehicle-active{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,#0c1d37 0%,#162a4d 55%,#1c3a64 100%);border:1.5px solid #F5AE1B;box-shadow:inset 0 1px 2px 0 rgba(255,255,255,0.25);z-index:-1;pointer-events:none}
 @media(min-width:1024px){
   .danava-go-hero,.go-ui-container{min-height:max(900px,100svh)}
   .go-journey-stage{transform:translateY(-40px)}
-  .journey-bottom-fade{height:200px;background:linear-gradient(transparent,#f7f4ec 20%)}
+  .journey-bottom-fade{height:160px;background:linear-gradient(to bottom,transparent 0%,rgba(247,244,236,0.12) 35%,rgba(247,244,236,0.55) 75%,#f7f4ec 100%)}
+  .go-search-dock{transform:translateY(-14px);margin-bottom:10px}
 }
 @media(max-width:1023px){
-  .go-search-dock{border-radius:0;padding-top:12px}
+  .go-search-dock{border-radius:0;padding-top:12px;margin-top:-28px}
   .go-quick-benefits{gap:9px 16px;font-size:11px;margin-top:16px}
   .journey-landmark-label{padding:9px 8px;border-radius:12px;width:142px}
   .journey-landmark-label:before{bottom:-34px}

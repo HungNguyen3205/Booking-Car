@@ -91,7 +91,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
         // Brief positive visual feedback before transition
         feedbackTimer.current = setTimeout(() => {
           if (alive.current) onPaymentSuccess(method);
-        }, 500);
+        }, 800);
       } else if (result.state === 'cancelled') {
         inFlight.current = false;
         setPaymentState('cancelled');

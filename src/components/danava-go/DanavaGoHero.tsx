@@ -89,9 +89,9 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
           transition={{ duration: reduced ? 0 : 0.4 }}
         >
           <div className="go-eyebrow" aria-label={`Hành trình từ ${preview.from} đến ${preview.to}`}>
-            <span>{preview.from || 'Điểm đi'}</span>
-            <span className="go-route-arrow" aria-hidden="true">→</span>
-            <span>{preview.to || 'Điểm đến'}</span>
+            <span className="text-[#2B4294] font-bold">{preview.from || 'Điểm đi'}</span>
+            <span className="go-route-arrow font-bold" aria-hidden="true">→</span>
+            <span className="text-[#EE3132] font-bold">{preview.to || 'Điểm đến'}</span>
           </div>
           <h1 className="go-title">
             <span>Đi một chuyến.</span>

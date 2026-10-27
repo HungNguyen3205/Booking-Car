@@ -52,11 +52,17 @@ export const HeroVehicleSelector: React.FC<HeroVehicleSelectorProps> = ({
                 <motion.span
                   className="go-vehicle-active"
                   layoutId="hero-vehicle-active"
-                  transition={{ duration: reduced ? 0 : 0.22, ease: 'easeOut' }}
+                  transition={
+                    reduced
+                      ? { duration: 0 }
+                      : { type: 'spring', stiffness: 420, damping: 30 }
+                  }
                   aria-hidden="true"
                 />
               )}
-              {v.icon}
+              <span className={`inline-flex items-center shrink-0 transition-colors duration-200 ${isActive ? 'text-[#F5AE1B]' : 'text-[#52657b]'}`}>
+                {v.icon}
+              </span>
               <span>{v.label}</span>
             </button>
           );

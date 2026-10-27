@@ -139,7 +139,7 @@ const Landmark = memo(function Landmark({ city, role, introReady }: { city: stri
               />
             )}
           </svg>
-          <div className="journey-landmark-label">
+          <div className={`journey-landmark-label journey-landmark-label-${role}`}>
             <span>{role === 'origin' ? 'ĐIỂM ĐI' : 'ĐIỂM ĐẾN'}</span>
             <strong>{scene.city}</strong>
             <small>{scene.landmark}</small>

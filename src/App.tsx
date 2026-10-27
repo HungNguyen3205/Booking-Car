@@ -286,8 +286,10 @@ export const App: React.FC = () => {
           currentTab={currentStep}
           variant={currentStep === 'home' ? 'default' : 'compact'}
           onNavigate={(tab) => {
-            if (tab === 'home') setCurrentStep('home');
-            else if (tab === 'search') handleSearch(searchParams);
+            if (tab === 'home') {
+              paymentCommitted.current = true;
+              setCurrentStep('home');
+            } else if (tab === 'search') handleSearch(searchParams);
             else if (tab === 'routes') {
               setCurrentStep('home');
               setTimeout(() => {
