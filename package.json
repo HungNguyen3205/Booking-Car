@@ -9,7 +9,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test:journey": "node scripts/verify-journey.cjs",
-    "test:hero": "node scripts/verify-journey.cjs --hero-only"
+    "test:hero": "node scripts/verify-journey.cjs --hero-only",
+    "test:logic": "node scripts/verify-logic.cjs",
+    "test:audit": "node scripts/verify-audit.cjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

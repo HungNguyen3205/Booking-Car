@@ -111,7 +111,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-serif font-bold text-base sm:text-lg text-[#102744] flex items-center gap-1.5 leading-tight">
+                <h1 className="font-sans font-bold text-base sm:text-lg text-[#102744] flex items-center gap-1.5 leading-tight">
                   <span>{trip.from}</span>
                   <span className="text-[#0097A7]">→</span>
                   <span>{trip.to}</span>
@@ -181,7 +181,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#102744] text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs max-w-md border border-cyan-400/40"
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#102744] text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs w-[calc(100vw-32px)] max-w-md border border-cyan-400/40"
           >
             <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="flex-1 font-medium">{limitNotice}</span>
@@ -262,7 +262,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#647084] block">
                 DANAVA PASS
               </span>
-              <span className="font-serif font-bold text-sm text-[#102744] block mt-0.5">
+              <span className="font-sans font-bold text-sm text-[#102744] block mt-0.5">
                 Cuống vé chọn chỗ
               </span>
             </div>
@@ -332,7 +332,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="sm:hidden border-b border-[#E5E3DC] px-4 py-3 bg-[#FAF8F5] overflow-hidden"
+              className="sm:hidden border-b border-[#E5E3DC] px-4 py-3 bg-[#FAF8F5] max-h-[45svh] overflow-y-auto"
             >
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between text-[#647084]">
@@ -454,7 +454,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                 <span className="text-[10px] uppercase font-bold text-[#647084] block">
                   Tổng tạm tính
                 </span>
-                <span className="font-serif font-bold text-xl sm:text-2xl text-[#0097A7] leading-tight block">
+                <span className="font-sans font-bold text-xl sm:text-2xl text-[#0097A7] leading-tight block">
                   {bookingService.formatCurrency(totalPrice)}
                 </span>
               </div>

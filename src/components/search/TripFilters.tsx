@@ -87,6 +87,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
         {openTime && (
           <div className="space-y-1.5 mt-2.5">
             {[
+              { id: 'night', label: 'Rạng sáng (00:00 - 06:00)' },
               { id: 'morning', label: 'Sáng (06:00 - 12:00)' },
               { id: 'afternoon', label: 'Chiều (12:00 - 18:00)' },
               { id: 'evening', label: 'Tối (18:00 - 24:00)' },

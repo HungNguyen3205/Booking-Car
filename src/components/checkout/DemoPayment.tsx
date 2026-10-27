@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import { useIsPresent } from 'framer-motion';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { Trip, PassengerInfo } from '../../types';
 import { bookingService } from '../../services/bookingService';
 import {
@@ -52,10 +53,20 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
     }, 0);
   }, [selectedSeats, trip]);
 
-  const isProcessing = paymentState === 'processing';
+  const isPresent = useIsPresent();
+  const alive = useRef(true);
+  const inFlight = useRef(false);
+  const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    alive.current = isPresent;
+    if (!isPresent && feedbackTimer.current) clearTimeout(feedbackTimer.current);
+    return () => { alive.current = false; if (feedbackTimer.current) clearTimeout(feedbackTimer.current); };
+  }, [isPresent]);
+  const isProcessing = paymentState === 'processing' || paymentState === 'success';
 
   const handlePay = async () => {
-    if (isProcessing) return;
+    if (inFlight.current || isProcessing) return;
+    inFlight.current = true;
 
     setPaymentState('processing');
     setErrorMessage(null);
@@ -74,20 +85,25 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
         simulateOutcome
       );
 
+      if (!alive.current) return;
       if (result.state === 'success') {
         setPaymentState('success');
         // Brief positive visual feedback before transition
-        setTimeout(() => {
-          onPaymentSuccess(method);
+        feedbackTimer.current = setTimeout(() => {
+          if (alive.current) onPaymentSuccess(method);
         }, 500);
       } else if (result.state === 'cancelled') {
+        inFlight.current = false;
         setPaymentState('cancelled');
         setErrorMessage(result.message);
       } else {
+        inFlight.current = false;
         setPaymentState('failed');
         setErrorMessage(result.message || 'Giao dịch thanh toán không thành công.');
       }
     } catch {
+      if (!alive.current) return;
+      inFlight.current = false;
       setPaymentState('failed');
       setErrorMessage('Đã xảy ra lỗi kết nối mạng tới cổng thanh toán. Vui lòng thử lại.');
     }
@@ -105,7 +121,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F4EC] pb-24 sm:pb-28 text-[#102744]">
+    <div data-payment-state={paymentState} className="min-h-screen bg-[#F7F4EC] pb-24 sm:pb-28 text-[#102744]">
       {/* ============================================================
           1. STEPPER & BACK NAVIGATION
           ============================================================ */}
@@ -125,7 +141,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-serif font-bold text-base sm:text-lg text-[#102744] leading-tight">
+                <h1 className="font-sans font-bold text-base sm:text-lg text-[#102744] leading-tight">
                   Thanh toán mô phỏng (Demo Sandbox)
                 </h1>
                 <span className="text-[11px] font-bold text-amber-800 uppercase bg-amber-100 px-2 py-0.5 rounded-md hidden sm:inline">
@@ -247,7 +263,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
             {/* Payment Methods */}
             <div className="bg-[#FFFEFA] rounded-3xl p-5 sm:p-7 border border-[#E5E3DC] shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-[#E5E3DC]">
-                <h2 className="font-serif font-bold text-base sm:text-lg text-[#102744]">
+                <h2 className="font-sans font-bold text-base sm:text-lg text-[#102744]">
                   Phương thức thanh toán mô phỏng
                 </h2>
                 <span className="text-[11px] text-[#647084]">
@@ -490,7 +506,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
           {/* Right Column: Order Confirmation & Action (~35% / 5 cols) */}
           <div className="lg:col-span-5 lg:sticky lg:top-24">
             <div className="bg-[#FFFEFA] rounded-3xl p-6 border border-[#E5E3DC] shadow-sm space-y-6">
-              <h3 className="font-serif font-bold text-base sm:text-lg text-[#102744] pb-3 border-b border-[#E5E3DC] flex items-center justify-between">
+              <h3 className="font-sans font-bold text-base sm:text-lg text-[#102744] pb-3 border-b border-[#E5E3DC] flex items-center justify-between">
                 <span>Chi tiết thanh toán</span>
                 <span className="text-xs font-semibold text-[#0097A7] bg-[#E0F7FA] px-2 py-0.5 rounded-full">
                   #{trip.code}
@@ -539,7 +555,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
 
                 <div className="flex justify-between items-baseline pt-3 border-t border-dashed border-[#CBD5E1]">
                   <span className="font-bold text-sm text-[#102744]">Số tiền cần thanh toán:</span>
-                  <span className="font-serif font-bold text-2xl text-[#0097A7]">
+                  <span className="font-sans font-bold text-2xl text-[#0097A7]">
                     {bookingService.formatCurrency(totalPrice)}
                   </span>
                 </div>

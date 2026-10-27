@@ -57,7 +57,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                     {trip.operator}
                   </span>
                 </div>
-                <h4 className="font-serif font-bold text-sm text-[#102744] leading-tight truncate" title={trip.vehicle.name}>
+                <h4 className="font-sans font-bold text-sm text-[#102744] leading-tight truncate" title={trip.vehicle.name}>
                   {trip.vehicle.name}
                 </h4>
                 <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-[#647084]">
@@ -72,7 +72,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
             <div className="flex-1 flex items-center justify-between pl-1 lg:pl-3">
               {/* Departure */}
               <div className="shrink-0 min-w-[85px]">
-                <span className="font-serif text-2xl font-bold text-[#102744] tracking-tight">
+                <span className="font-sans text-2xl font-bold text-[#102744] tracking-tight">
                   {trip.departureTime}
                 </span>
                 <p className="text-xs font-semibold text-[#102744] mt-0.5 truncate max-w-[120px]">
@@ -102,7 +102,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
               {/* Arrival */}
               <div className="shrink-0 min-w-[85px] text-right">
                 <div className="flex items-baseline justify-end gap-1">
-                  <span className="font-serif text-2xl font-bold text-[#102744] tracking-tight">
+                  <span className="font-sans text-2xl font-bold text-[#102744] tracking-tight">
                     {trip.arrivalTime}
                   </span>
                   {isOvernight && (
@@ -155,7 +155,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
           {/* Price & Seats remaining */}
           <div className="w-full">
             <span className="text-[11px] text-[#647084] block font-medium">Giá vé 1 khách</span>
-            <div className="font-serif text-2xl font-bold text-[#0097A7] leading-tight mt-0.5">
+            <div className="font-sans text-2xl font-bold text-[#0097A7] leading-tight mt-0.5">
               {trip.price === 0 ? (
                 <span className="text-emerald-600 inline-flex items-center gap-1">
                   0 ₫ <span className="text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">TEST</span>
@@ -222,7 +222,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                 </span>
                 <span className="text-[10px] text-[#647084]">#{trip.code}</span>
               </div>
-              <h4 className="font-serif font-bold text-sm text-[#102744] truncate">
+              <h4 className="font-sans font-bold text-sm text-[#102744] truncate">
                 {trip.vehicle.name}
               </h4>
             </div>
@@ -247,7 +247,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
         <div className="bg-[#FAF8F2] rounded-xl p-3 border border-[#E5E3DC]/60 flex items-center justify-between">
           {/* Departure */}
           <div>
-            <span className="font-serif text-xl font-bold text-[#102744]">
+            <span className="font-sans text-xl font-bold text-[#102744]">
               {trip.departureTime}
             </span>
             <p className="text-xs font-semibold text-[#102744] mt-0.5">{trip.from}</p>
@@ -273,7 +273,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
           {/* Arrival */}
           <div className="text-right">
             <div className="flex items-baseline justify-end gap-1">
-              <span className="font-serif text-xl font-bold text-[#102744]">
+              <span className="font-sans text-xl font-bold text-[#102744]">
                 {trip.arrivalTime}
               </span>
               {isOvernight && (
@@ -293,7 +293,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
         <div className="flex items-center justify-between gap-3 pt-1">
           <div>
             <span className="text-[10px] text-[#647084] block font-medium">Giá vé 1 khách</span>
-            <span className="font-serif text-xl font-bold text-[#0097A7]">
+            <span className="font-sans text-xl font-bold text-[#0097A7]">
               {trip.price === 0 ? (
                 <span className="text-emerald-600">0 ₫ (Miễn phí test)</span>
               ) : (

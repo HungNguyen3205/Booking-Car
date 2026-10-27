@@ -1,3 +1,4 @@
+import { normalizeVietnamPhone } from '../../utils/phoneUtils';
 import React, { useState } from 'react';
 import { bookingService } from '../../services/bookingService';
 import type { Booking } from '../../types';
@@ -30,7 +31,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
   // Requirement 5: Do NOT prefill fake seeds into inputs by default unless navigated with an actual initial booking code
   const [bookingCode, setBookingCode] = useState(initialBookingCode || '');
   const [phone, setPhone] = useState(initialPhone || '');
-  const [isSearching, setIsSearching] = useState(false);
+  const isSearching = false;
   const [foundBooking, setFoundBooking] = useState<Booking | null>(() => {
     if (initialBookingCode) {
       return bookingService.findBooking(initialBookingCode);
@@ -44,7 +45,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
   const validate = (): boolean => {
     const errors: { code?: string; phone?: string } = {};
     const cleanCode = bookingCode.trim();
-    const cleanPhone = phone.trim().replace(/\s+/g, '');
+    const cleanPhone = normalizeVietnamPhone(phone);
 
     if (!cleanCode) {
       errors.code = 'Vui lòng nhập mã đặt vé (ví dụ: DG2610258123 hoặc HT250426001).';
@@ -64,25 +65,16 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
     e.preventDefault();
     if (!validate()) return;
 
-    setIsSearching(true);
     setNotFoundQuery(null);
     setFoundBooking(null);
 
-    // Simulate realistic asynchronous database query latency
-    setTimeout(() => {
-      setIsSearching(false);
-      const res = bookingService.findBooking(bookingCode, phone);
-
-      if (res) {
-        setFoundBooking(res);
-      } else {
-        // Requirement 5: Strictly never return seed or fake booking when not found!
-        setNotFoundQuery({
-          code: bookingCode.trim().toUpperCase(),
-          phone: phone.trim() || undefined,
-        });
-      }
-    }, 450);
+    // The local demo store is synchronous; never queue an obsolete lookup.
+    const result = bookingService.findBooking(bookingCode, phone);
+    if (result) {
+      setFoundBooking(result);
+    } else {
+      setNotFoundQuery({code:bookingCode.trim().toUpperCase(),phone:phone.trim() || undefined});
+    }
   };
 
   const handleFillDemoTicket = (demoCode: string, demoPhone?: string) => {
@@ -143,7 +135,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
               <Ticket className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#102744]">
+              <h1 className="font-sans text-2xl sm:text-3xl font-bold text-[#102744]">
                 Tra cứu vé điện tử
               </h1>
               <p className="text-xs sm:text-sm text-[#647084] mt-0.5">

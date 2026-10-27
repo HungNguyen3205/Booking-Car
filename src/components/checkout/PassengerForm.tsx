@@ -1,3 +1,4 @@
+import { normalizeVietnamPhone } from '../../utils/phoneUtils';
 import React, { useState, useMemo } from 'react';
 import type { Trip, PassengerInfo } from '../../types';
 import { bookingService } from '../../services/bookingService';
@@ -40,7 +41,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
     initialPassenger?.dropoffStopId || trip.dropoffStops[0]?.id || ''
   );
   const [note, setNote] = useState(initialPassenger?.note || '');
-  const [agreedTerms, setAgreedTerms] = useState(initialPassenger?.agreedTerms ?? true);
+  const [agreedTerms, setAgreedTerms] = useState(initialPassenger?.agreedTerms ?? false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,7 +82,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
         return '';
       }
       case 'phone': {
-        const clean = val.trim().replace(/[\s.-]/g, '');
+        const clean = normalizeVietnamPhone(val);
         if (!clean) {
           return 'Vui lòng nhập số điện thoại liên hệ.';
         }
@@ -107,9 +108,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
 
   const handleBlur = (fieldName: string, value: string) => {
     const error = validateField(fieldName, value);
-    if (error) {
-      setErrors((prev) => ({ ...prev, [fieldName]: error }));
-    }
+    setErrors(prev=>({...prev,[fieldName]:error}));
   };
 
   const validateAll = () => {
@@ -144,7 +143,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
     // Preserve all filled draft information when navigating back
     onBack({
       fullName: fullName.trim(),
-      phone: phone.trim(),
+      phone: normalizeVietnamPhone(phone),
       email: email.trim(),
       pickupStopId,
       dropoffStopId,
@@ -168,18 +167,15 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
 
     // Double submit prevention: disable button and trigger submission
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onSubmit({
+    onSubmit({
         fullName: fullName.trim(),
-        phone: phone.trim(),
+        phone: normalizeVietnamPhone(phone),
         email: email.trim(),
         pickupStopId,
         dropoffStopId,
         note: note.trim(),
         agreedTerms,
-      });
-    }, 200);
+    });
   };
 
   return (
@@ -203,7 +199,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-serif font-bold text-base sm:text-lg text-[#102744] leading-tight">
+                <h1 className="font-sans font-bold text-base sm:text-lg text-[#102744] leading-tight">
                   Thông tin hành khách & Điểm đón
                 </h1>
                 <span className="text-[11px] font-bold text-[#0097A7] uppercase bg-[#E0F7FA] px-2 py-0.5 rounded-md hidden sm:inline">
@@ -247,7 +243,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
               {/* Contact Information Card */}
               <div className="bg-[#FFFEFA] rounded-3xl p-5 sm:p-7 border border-[#E5E3DC] shadow-sm space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-[#E5E3DC]">
-                  <h2 className="font-serif font-bold text-base sm:text-lg text-[#102744] flex items-center gap-2">
+                  <h2 className="font-sans font-bold text-base sm:text-lg text-[#102744] flex items-center gap-2">
                     <User className="w-5 h-5 text-[#0097A7]" />
                     <span>Người đại diện đặt vé</span>
                   </h2>
@@ -379,7 +375,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
 
               {/* Pickup & Dropoff Stops Selection */}
               <div className="bg-[#FFFEFA] rounded-3xl p-5 sm:p-7 border border-[#E5E3DC] shadow-sm space-y-5">
-                <h2 className="font-serif font-bold text-base sm:text-lg text-[#102744] flex items-center gap-2 pb-3 border-b border-[#E5E3DC]">
+                <h2 className="font-sans font-bold text-base sm:text-lg text-[#102744] flex items-center gap-2 pb-3 border-b border-[#E5E3DC]">
                   <MapPin className="w-5 h-5 text-[#0097A7]" />
                   <span>Điểm đón và trả khách chính xác</span>
                 </h2>
@@ -524,7 +520,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
             {/* Right Column: Transparent Pricing Breakdown & Sticky Action (~35% / 5 cols) */}
             <div className="lg:col-span-5 lg:sticky lg:top-24">
               <div className="bg-[#FFFEFA] rounded-3xl p-6 border border-[#E5E3DC] shadow-sm space-y-6">
-                <h3 className="font-serif font-bold text-base sm:text-lg text-[#102744] pb-3 border-b border-[#E5E3DC] flex items-center justify-between">
+                <h3 className="font-sans font-bold text-base sm:text-lg text-[#102744] pb-3 border-b border-[#E5E3DC] flex items-center justify-between">
                   <span>Tóm tắt đơn đặt vé</span>
                   <span className="text-xs font-semibold text-[#0097A7] bg-[#E0F7FA] px-2 py-0.5 rounded-full">
                     #{trip.code}
@@ -592,7 +588,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                       <span className="font-bold text-sm text-[#102744] block">Tổng thanh toán:</span>
                       <span className="text-[10px] text-[#647084]">Giá trọn gói, không phụ phí</span>
                     </div>
-                    <span className="font-serif font-bold text-2xl text-[#0097A7]">
+                    <span className="font-sans font-bold text-2xl text-[#0097A7]">
                       {bookingService.formatCurrency(totalPrice)}
                     </span>
                   </div>

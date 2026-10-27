@@ -65,3 +65,9 @@
 }
 
 .journey-foreground{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+
+/* Keep the chosen composition, improve small-screen readability and touch targets. */
+@media(max-width:1023px){
+.go-editorial-center [role=group]>button{min-height:44px;font-size:11px}
+.journey-landmark-label small{font-size:10px}
+}

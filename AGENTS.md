@@ -48,3 +48,10 @@ Respect live reduced motion and image failure paths.
 Do not repeat full booking QA after every CSS/coordinate adjustment; inspect a fixed-viewport capture first.
 Optional `PLAYWRIGHT_CHROMIUM_EXECUTABLE` and `JOURNEY_QA_DIR` configure local QA.
 Review 1440×900, 1280×800, 390px screenshots. Do not commit test output or duplicate assets.
+
+## Review regressions
+
+`npm run test:logic` covers exact routes, real calendar dates, dated local inventory,
+phone normalization and storage/payment edge cases. `npm run test:audit` runs the
+new browser regression paths after build. See `docs/review-2026-10-27.md` for the
+review score, confirmed fixes and remaining demo/backend boundaries.

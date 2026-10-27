@@ -28,9 +28,15 @@ export const getVietnamTodayDateStr = (): string => {
 /**
  * Validates whether a date string is in YYYY-MM-DD format and is not in the past (Vietnam time)
  */
+export const isCalendarDate = (value?: string | null): value is string => {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+};
+
 export const isValidBookingDate = (dateStr?: string | null): boolean => {
   if (!dateStr || typeof dateStr !== 'string') return false;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+  if (!isCalendarDate(dateStr)) return false;
 
   const todayStr = getVietnamTodayDateStr();
   return dateStr >= todayStr;
@@ -40,7 +46,7 @@ export const isValidBookingDate = (dateStr?: string | null): boolean => {
  * Formats YYYY-MM-DD to DD/MM/YYYY for user-friendly display in Vietnam
  */
 export const formatVietnamDate = (isoStr?: string | null): string => {
-  if (!isoStr) return '';
+  if (!isCalendarDate(isoStr)) return '';
   const parts = isoStr.split('-');
   if (parts.length === 3) {
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -66,12 +72,12 @@ export const parseDurationMinutes = (durationStr?: string | null): number => {
  */
 export const addDaysToDateStr = (dateStr: string, days: number): string => {
   try {
-    const [y, m, d] = dateStr.split('-').map(Number);
-    const date = new Date(y, m - 1, d);
-    date.setDate(date.getDate() + days);
-    const ny = date.getFullYear();
-    const nm = String(date.getMonth() + 1).padStart(2, '0');
-    const nd = String(date.getDate()).padStart(2, '0');
+    if (!isCalendarDate(dateStr) || !Number.isInteger(days)) return dateStr;
+    const date = new Date(`${dateStr}T00:00:00.000Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    const ny = date.getUTCFullYear();
+    const nm = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const nd = String(date.getUTCDate()).padStart(2, '0');
     return `${ny}-${nm}-${nd}`;
   } catch {
     return dateStr;

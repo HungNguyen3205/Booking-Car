@@ -50,7 +50,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
   const [sortBy, setSortBy] = useState<'early' | 'late' | 'price-asc' | 'price-desc' | 'duration'>('early');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [isEditingSearch, setIsEditingSearch] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const isLoading = false;
   const [simulatedError, setSimulatedError] = useState<string | null>(null);
 
   // Advanced filters state with 600,000 VND default ceiling to support all trip prices
@@ -87,7 +87,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
       .filter((trip) => {
         // Calculate departure time slot
         const hour = parseInt(trip.departureTime.split(':')[0], 10);
-        let tripSlot = 'evening';
+        let tripSlot = hour >= 18 ? 'evening' : 'night';
         if (hour >= 6 && hour < 12) tripSlot = 'morning';
         else if (hour >= 12 && hour < 18) tripSlot = 'afternoon';
 
@@ -137,24 +137,14 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
   };
 
   const handleNewSearchParams = (newParams: SearchParams) => {
-    setIsLoading(true);
     setSimulatedError(null);
     setIsEditingSearch(false);
-
-    // Fast, realistic response transition
-    setTimeout(() => {
-      onUpdateSearch?.(newParams);
-      setIsLoading(false);
-    }, shouldReduceMotion ? 0 : 220);
+    onUpdateSearch?.(newParams);
   };
 
   const handleRetry = () => {
-    setIsLoading(true);
     setSimulatedError(null);
-    setTimeout(() => {
-      onUpdateSearch?.(searchParams);
-      setIsLoading(false);
-    }, 250);
+    onUpdateSearch?.(searchParams);
   };
 
   // Count active filters for badge
@@ -328,7 +318,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
             <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-200">
               <AlertCircle className="w-7 h-7" />
             </div>
-            <h2 className="font-serif font-bold text-xl text-[#102744]">
+            <h2 className="font-sans font-bold text-xl text-[#102744]">
               Không thể tải danh sách chuyến xe
             </h2>
             <p className="text-xs text-[#647084] max-w-sm mx-auto leading-relaxed mt-2 mb-5">
@@ -379,7 +369,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
               <AlertCircle className="w-7 h-7" />
             </div>
 
-            <h2 className="font-serif font-bold text-xl text-[#102744]">
+            <h2 className="font-sans font-bold text-xl text-[#102744]">
               Chưa có chuyến xe cho tuyến đường này
             </h2>
 
@@ -433,7 +423,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-[#E5E3DC]">
                 {/* Title and trip count */}
                 <div className="flex items-baseline gap-2">
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-[#102744]">
+                  <h2 className="font-sans text-lg sm:text-xl font-bold text-[#102744]">
                     Chọn chuyến phù hợp
                   </h2>
                   <span className="text-xs text-[#647084] font-medium">
@@ -447,6 +437,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                   <div className="hidden sm:flex items-center gap-1 bg-[#FFFEFA] p-0.5 rounded-xl border border-[#E5E3DC]">
                     {[
                       { id: 'all', label: 'Tất cả' },
+                      { id: 'night', label: 'Rạng sáng' },
                       { id: 'morning', label: 'Sáng' },
                       { id: 'afternoon', label: 'Chiều' },
                       { id: 'evening', label: 'Tối' },
@@ -509,7 +500,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                   <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-3">
                     <AlertCircle className="w-6 h-6" />
                   </div>
-                  <h3 className="font-serif font-bold text-base text-[#102744]">
+                  <h3 className="font-sans font-bold text-base text-[#102744]">
                     Không có chuyến nào khớp bộ lọc
                   </h3>
                   <p className="text-xs text-[#647084] mt-1.5 mb-5">
@@ -552,7 +543,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
           <div className="w-full max-w-sm bg-[#FFFEFA] h-full overflow-y-auto p-5 shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#E5E3DC]">
-                <h3 className="font-serif font-bold text-base text-[#102744]">Bộ lọc chuyến xe</h3>
+                <h3 className="font-sans font-bold text-base text-[#102744]">Bộ lọc chuyến xe</h3>
                 <button
                   type="button"
                   onClick={() => setMobileFilterOpen(false)}

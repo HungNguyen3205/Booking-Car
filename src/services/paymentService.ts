@@ -77,7 +77,7 @@ class SandboxPaymentAdapter implements IPaymentGateway {
     // Giả lập độ trễ mạng thực tế từ 1.0s - 1.5s
     await new Promise((resolve) => setTimeout(resolve, 1200));
 
-    if (forceOutcome === 'user_cancel') {
+    if (this.activeTransactions.get(transactionId) === 'cancelled' || forceOutcome === 'user_cancel') {
       this.activeTransactions.set(transactionId, 'cancelled');
       return {
         transactionId,
@@ -136,6 +136,11 @@ class SandboxPaymentAdapter implements IPaymentGateway {
   }
 
   async cancelTransaction(transactionId: string): Promise<PaymentIntentResult> {
+    const current = this.activeTransactions.get(transactionId);
+    if (current !== 'processing') {
+      return {transactionId,state:current ?? 'failed',isDemoSandbox:true,
+        message:current ? 'Giao dịch đã kết thúc, không thể hủy lại.' : 'Không tìm thấy giao dịch.',timestamp:new Date().toISOString()};
+    }
     this.activeTransactions.set(transactionId, 'cancelled');
     return {
       transactionId,

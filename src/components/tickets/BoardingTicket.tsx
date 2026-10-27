@@ -71,7 +71,7 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
       <div className="min-h-screen bg-[#F7F4EC] flex items-center justify-center p-6 text-center">
         <div className="bg-[#FFFEFA] p-8 rounded-3xl border border-[#E5E3DC] shadow-sm max-w-md w-full">
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-          <h2 className="font-serif text-2xl font-bold text-[#102744]">
+          <h2 className="font-sans text-2xl font-bold text-[#102744]">
             Chưa có thông tin vé
           </h2>
           <p className="text-xs sm:text-sm text-[#647084] mt-2 mb-6 leading-relaxed">
@@ -162,7 +162,7 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
 
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#102744] tracking-tight">
+                      <h1 className="font-sans text-2xl sm:text-3xl font-bold text-[#102744] tracking-tight">
                         Vé điện tử
                       </h1>
                       <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">
@@ -191,11 +191,11 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
               {/* Journey Route Highlight */}
               <div className="bg-[#FAF8F5] p-4 rounded-2xl border border-[#E5E3DC] mb-6 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <span className="font-serif font-bold text-lg sm:text-2xl text-[#102744]">
+                  <span className="font-sans font-bold text-lg sm:text-2xl text-[#102744]">
                     {booking.trip.from}
                   </span>
                   <span className="text-[#0097A7] font-bold text-lg sm:text-xl">→</span>
-                  <span className="font-serif font-bold text-lg sm:text-2xl text-[#102744]">
+                  <span className="font-sans font-bold text-lg sm:text-2xl text-[#102744]">
                     {booking.trip.to}
                   </span>
                 </div>
@@ -321,7 +321,7 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                       <span className="text-[10.5px] uppercase font-bold text-[#647084] block tracking-wider">
                         Tổng thanh toán
                       </span>
-                      <span className="font-serif font-bold text-base sm:text-lg text-[#0097A7]">
+                      <span className="font-sans font-bold text-base sm:text-lg text-[#0097A7]">
                         {bookingService.formatCurrency(booking.totalAmount)}
                       </span>
                     </div>
@@ -395,7 +395,7 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
               <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#647084] block">
                 DANAVA GO
               </span>
-              <span className="font-serif font-bold text-sm text-[#102744] block mt-0.5">
+              <span className="font-sans font-bold text-sm text-[#102744] block mt-0.5">
                 Cuống vé điện tử
               </span>
             </div>

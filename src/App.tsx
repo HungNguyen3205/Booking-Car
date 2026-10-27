@@ -14,6 +14,7 @@ import { TripResultsView } from './components/search/TripResultsView';
 import type { Booking, BookingStep, PassengerInfo, SearchParams, Seat, Trip } from './types';
 import { bookingService } from './services/bookingService';
 import { preloadJourney } from './components/danava-go/journeyStageConfig';
+import { getLocationDisplayName } from './data/sceneManifest';
 import { getVietnamTodayDateStr, isValidBookingDate } from './utils/dateUtils';
 
 // Code-split dynamic booking steps and ticket lookup to optimize initial bundle
@@ -32,6 +33,24 @@ const BoardingTicket = React.lazy(() =>
 const TicketLookupView = React.lazy(() =>
   import('./components/tickets/TicketLookupView').then((m) => ({ default: m.TicketLookupView }))
 );
+
+// Sync search params to URL query string without reloading
+const updateUrlParams = (params: SearchParams, step?: BookingStep) => {
+  if (typeof window !== 'undefined') {
+    const url = new URL(window.location.href);
+    url.searchParams.set('from', params.from);
+    url.searchParams.set('to', params.to);
+    url.searchParams.set('date', params.date);
+    url.searchParams.set('passengers', params.passengers.toString());
+    if (step && step !== 'home') {
+      url.searchParams.set('step', step);
+    } else if (step === 'home') {
+      url.searchParams.delete('step');
+    }
+    if (url.toString() !== window.location.href) window.history.replaceState({}, '', url.toString());
+  }
+};
+
 
 export const App: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
@@ -68,15 +87,15 @@ export const App: React.FC = () => {
       const validDate = isValidBookingDate(rawDate) ? (rawDate as string) : today;
       let validPassengers = 1;
       if (rawPassengers) {
-        const parsed = parseInt(rawPassengers, 10);
-        if (!isNaN(parsed)) {
+        const parsed = Number(rawPassengers);
+        if (Number.isInteger(parsed)) {
           validPassengers = Math.min(5, Math.max(1, parsed));
         }
       }
 
-      if (rawFrom || rawTo) {
-        const from = rawFrom || 'Đà Nẵng';
-        const to = rawTo || (from === 'Hội An' ? 'Đà Nẵng' : 'Hội An');
+      {
+        const from = getLocationDisplayName(rawFrom || 'Đà Nẵng');
+        const to = getLocationDisplayName(rawTo || (from === 'Hội An' ? 'Đà Nẵng' : 'Hội An'));
         return {
           from,
           to,
@@ -96,6 +115,8 @@ export const App: React.FC = () => {
   const [availableTrips, setAvailableTrips] = useState<Trip[]>(() => {
     return bookingService.searchTrips(searchParams);
   });
+  const paymentCommitted = useRef(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [passengerInfo, setPassengerInfo] = useState<PassengerInfo | null>(null);
@@ -143,32 +164,26 @@ export const App: React.FC = () => {
     setHeroIntroReady(true);
   };
 
-  // Sync search params to URL query string without reloading
-  const updateUrlParams = (params: SearchParams, step?: BookingStep) => {
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.searchParams.set('from', params.from);
-      url.searchParams.set('to', params.to);
-      url.searchParams.set('date', params.date);
-      url.searchParams.set('passengers', params.passengers.toString());
-      if (step && step !== 'home') {
-        url.searchParams.set('step', step);
-      } else if (step === 'home') {
-        url.searchParams.delete('step');
-      }
-      window.history.replaceState({}, '', url.toString());
-    }
-  };
-
   // Scroll to top on step change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: shouldReduceMotion ? 'auto' : 'smooth' });
   }, [currentStep, shouldReduceMotion]);
 
+  useEffect(() => {
+    // Later steps require in-memory selection. A reload safely returns to results.
+    const routeStep = currentStep === 'home' || currentStep === 'lookup' ? currentStep : 'search';
+    updateUrlParams(searchParams, routeStep);
+  }, [currentStep, searchParams]);
+
   // Handle Search Submission
   const handleSearch = (params: SearchParams) => {
+    setBookingError(null);
+    paymentCommitted.current = false;
+    setSelectedTrip(null);
+    setSelectedSeats([]);
+    setPassengerInfo(null);
+    setCompletedBooking(null);
     setSearchParams(params);
-    updateUrlParams(params, 'search');
     const results = bookingService.searchTrips(params);
     setAvailableTrips(results);
     setCurrentStep('search');
@@ -178,6 +193,7 @@ export const App: React.FC = () => {
   const handleSelectTrip = (trip: Trip) => {
     // If switching to a different trip, strictly reset seat selection to prevent carrying over old seats
     if (selectedTrip?.id !== trip.id) {
+      setPassengerInfo(null);
       setSelectedSeats([]);
     } else {
       // If re-entering the same trip, preserve only seats that are still valid and available
@@ -193,14 +209,9 @@ export const App: React.FC = () => {
   const handleToggleSeat = (seat: Seat) => {
     if (seat.status === 'booked' || seat.status === 'disabled') return;
 
-    if (selectedSeats.includes(seat.code)) {
-      setSelectedSeats(selectedSeats.filter((c) => c !== seat.code));
-    } else {
-      // Do NOT replace the last seat if limit is reached - preserve user selection
-      if (selectedSeats.length < searchParams.passengers) {
-        setSelectedSeats([...selectedSeats, seat.code]);
-      }
-    }
+    if (!selectedTrip?.seats.some(s=>s.code===seat.code && s.status==='available')) return;
+    setSelectedSeats(prev=>prev.includes(seat.code) ? prev.filter(code=>code!==seat.code)
+      : prev.length < searchParams.passengers ? [...prev,seat.code] : prev);
   };
 
   const handleRemoveSeat = (code: string) => {
@@ -209,13 +220,16 @@ export const App: React.FC = () => {
 
   // Handle Passenger Form Submission
   const handlePassengerSubmit = (info: PassengerInfo) => {
+    if (!selectedTrip || selectedSeats.length !== searchParams.passengers || !info.agreedTerms) return;
+    paymentCommitted.current = false;
     setPassengerInfo(info);
     setCurrentStep('payment');
   };
 
   // Handle Payment Simulation
   const handlePaymentSuccess = (paymentMethod: 'vietqr' | 'momo' | 'vnpay' | 'credit_card') => {
-    if (!selectedTrip || !passengerInfo) return;
+    if (!selectedTrip || !passengerInfo || paymentCommitted.current || selectedSeats.length !== searchParams.passengers) return;
+    paymentCommitted.current = true;
 
     const totalAmount = selectedSeats.reduce((sum, code) => {
       const s = selectedTrip.seats.find((item) => item.code === code);
@@ -235,9 +249,18 @@ export const App: React.FC = () => {
       createdAt: new Date().toISOString(),
     };
 
-    bookingService.saveBooking(newBooking);
-    setCompletedBooking(newBooking);
-    setCurrentStep('success');
+    try {
+      bookingService.saveBooking(newBooking);
+      setCompletedBooking(newBooking);
+      setCurrentStep('success');
+    } catch (error) {
+      paymentCommitted.current = false;
+      setBookingError(error instanceof Error ? error.message : 'Không thể xác nhận vé. Vui lòng chọn lại chỗ.');
+      const refreshed = bookingService.searchTrips(searchParams).find(trip=>trip.id===selectedTrip.id);
+      if (refreshed) setSelectedTrip(refreshed);
+      setSelectedSeats([]);
+      setCurrentStep('seat-select');
+    }
   };
 
   return (
@@ -264,7 +287,7 @@ export const App: React.FC = () => {
           variant={currentStep === 'home' ? 'default' : 'compact'}
           onNavigate={(tab) => {
             if (tab === 'home') setCurrentStep('home');
-            else if (tab === 'search') setCurrentStep('search');
+            else if (tab === 'search') handleSearch(searchParams);
             else if (tab === 'routes') {
               setCurrentStep('home');
               setTimeout(() => {
@@ -287,6 +310,9 @@ export const App: React.FC = () => {
           }}
         />
 
+        {bookingError && <div role="alert" className="mx-auto my-3 flex max-w-xl items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <span>{bookingError}</span><button type="button" className="min-h-11 shrink-0 font-bold" onClick={()=>setBookingError(null)}>Đóng</button>
+        </div>}
         {/* View Router Switcher */}
         <main className="flex-1">
           <Suspense fallback={<div className="min-h-screen bg-[#F7F4EC]" />}>
@@ -345,7 +371,6 @@ export const App: React.FC = () => {
                   onSelectTrip={handleSelectTrip}
                   onModifySearch={() => {
                     setCurrentStep('home');
-                    updateUrlParams(searchParams, 'home');
                   }}
                   onUpdateSearch={handleSearch}
                 />
