@@ -36,10 +36,11 @@ const Landmark = memo(function Landmark({ city, role, introReady }: { city: stri
           initial={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : 10 }}
           animate={{ opacity: introReady ? 1 : 0, y: introReady || reduced ? 0 : 10 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: reduced ? 0 : .45, ease: [.22, 1, .36, 1] }}
+          transition={{ duration: reduced ? 0 : .55, ease: [.22, 1, .36, 1] }}
         >
           <svg
             className="journey-landmark-plane"
+            style={{ filter: scene.tone }}
             viewBox="0 0 1600 1000"
             preserveAspectRatio={mobile ? 'xMidYMax meet' : 'xMidYMid slice'}
             aria-hidden="true"
@@ -139,11 +140,15 @@ const Landmark = memo(function Landmark({ city, role, introReady }: { city: stri
               />
             )}
           </svg>
-          <div className={`journey-landmark-label journey-landmark-label-${role}`}>
+          <motion.div className={`journey-landmark-label journey-landmark-label-${role}`}
+            initial={reduced ? false : { opacity: 0 }}
+            animate={{ opacity: introReady ? 1 : 0 }}
+            transition={{ duration: reduced ? 0 : .25, delay: reduced ? 0 : .1 }}
+          >
             <span>{role === 'origin' ? 'ĐIỂM ĐI' : 'ĐIỂM ĐẾN'}</span>
             <strong>{scene.city}</strong>
             <small>{scene.landmark}</small>
-          </div>
+          </motion.div>
         </motion.div>
       </AnimatePresence>
     </div>

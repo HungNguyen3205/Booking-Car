@@ -15,7 +15,7 @@ Load only skills relevant to the current task. Review the actual browser result 
 - `src/components/danava-go/DanavaGoHero.tsx`: only homepage hero.
 - `danava-go-hero.css`: full-screen desktop and separate mobile layout.
 - `LayeredSceneStage.tsx`: persistent landscape plus independent origin/destination panoramic city banks.
-- `VehicleMotionStage.tsx`: alpha bus photographs, shared multi-angle turn atlas and 2.8s curved approach and800ms guarded search departure.
+- `VehicleMotionStage.tsx`: alpha bus photographs, shared multi-angle turn atlas and 2.1s intro,1.22s near-lane vehicle switch and850ms guarded search departure.
 - `journeyStageConfig.ts`: coordinates, cubic drive path, vehicle/city atlas crops and decode cache.
 - `src/data/sceneManifest.ts`: canonical city IDs and aliases for13 destinations.
 - `src/data/landmarkBanks.json`:26 complete left/right scenery crops across5 atlases.

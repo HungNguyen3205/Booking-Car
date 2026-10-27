@@ -84,13 +84,13 @@ async function choose(p, field, city) {
             const m=new DOMMatrix(getComputedStyle(el).transform);
             samples.push({x:m.e,y:m.f,scale:m.a,rear:Number(getComputedStyle(el.querySelector('[data-travel-view="rear-left"]')).opacity)});last=now;
           }
-          if(now-started<3000) requestAnimationFrame(frame); else resolve(samples);
+          if(now-started<1500) requestAnimationFrame(frame); else resolve(samples);
         };
         requestAnimationFrame(frame);
       }));
       const steps=drive.slice(1).map((pose,i)=>pose.x-drive[i].x);
-      check(`${label} follows the S bend in both horizontal directions`, steps.some(dx=>dx < -1) && steps.some(dx=>dx > 1));
-      check(`${label} uses a rear view at the bend and grows toward the camera`, drive.some(pose=>pose.rear>.8) && drive[0].scale<.5 && drive.at(-1).scale>.999);
+      check(`${label} switch uses a forward near-road entry without replaying the distant bend`, steps.some(dx=>dx > 1) && !steps.some(dx=>dx < -1));
+      check(`${label} switch stays large, uses the compatible near view and settles within 1.5s`, drive[0].scale>.7 && drive[0].scale<1 && drive.every(pose=>pose.rear<.01) && drive.at(-1).scale>.999);
       check(`${label} stops without an animation loop`, await vehicle(p).getAttribute('data-drive-state')==='parked');
       check(`${label} curved approach settles opaque at full scale`, await vehicle(p).getAttribute('data-vehicle')===id && (await matrix(p)).opacity>.99 && Math.abs((await matrix(p)).scale-1)<.001);
       const box=await visibleBus(p); visibleWidths.push(box.width);

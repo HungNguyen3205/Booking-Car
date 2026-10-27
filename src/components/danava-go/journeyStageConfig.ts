@@ -48,6 +48,7 @@ export interface JourneyLandmark {
     height: number;
   };
   blend?: LandmarkBlendConfig;
+  tone: string;
 }
 
 const bankLabels: Record<string, string> = {
@@ -67,6 +68,7 @@ export function getJourneyLandmark(city: string, role: 'origin' | 'destination' 
   const banks = bankData as unknown as Record<string, {image:string; source:[number,number]; crops:[number,number,number,number][]}>;
   const bank = banks[id];
   return { id, city:getLocationDisplayName(city), landmark:bankLabels[id] || 'Miền đất mới',
+    tone: id === 'dong-nai' ? 'saturate(.90) sepia(.06) brightness(1.04)' : id === 'hue' ? 'saturate(.95) brightness(1.03)' : 'saturate(.96) sepia(.025)',
     image: bank?.image || '', source:bank?.source || [1,1],
     crop:bank?.crops[role === 'origin' ? 0 : 1] || [0,0,1,1],
     frame:{y:310,originX:-90,destinationX:790,mobileOriginX:160,mobileDestinationX:640,mobileWidth:756,width:900,height:400},
@@ -103,7 +105,7 @@ export function getVehicleRest(category: VehicleCategory, mobile: boolean = fals
   return mobile ? cfg.mobileRest : cfg.rest;
 }
 
-export const JOURNEY_DRIVE = { duration: 2.8 };
+export const JOURNEY_DRIVE = { duration: 2.1 };
 const bezier = (a: number, b: number, c: number, d: number, t: number) =>
   (1-t)**3*a + 3*(1-t)**2*t*b + 3*(1-t)*t*t*c + t**3*d;
 

@@ -7,7 +7,7 @@
 .journey-road{z-index:0}.journey-landmark-plane{z-index:1}.journey-route-line{z-index:2}.journey-foreground{z-index:2}.journey-vehicle-layer{z-index:3;overflow:visible}
 .journey-scenery{filter:saturate(.94)}
 .journey-sky-softener{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#f7f4ecb0, #f7f4ec44 27%,transparent 43%);z-index:0}
-.journey-bottom-fade{position:absolute;bottom:0;left:0;right:0;height:180px;background:linear-gradient(transparent,#f7f4ec 45%);pointer-events:none;z-index:4}
+.journey-bottom-fade{position:absolute;bottom:0;left:0;right:0;height:180px;background:linear-gradient(transparent,#f7f4ec 45%);box-shadow:0 1px 0 #f7f4ec;pointer-events:none;z-index:4}
 .journey-landmark,.journey-landmark-content{position:absolute;inset:0;pointer-events:none}
 .journey-landmark-label{position:absolute;top:21%;left:14%;transform:translateX(-50%);text-align:center;width:174px;padding:10px 12px;color:#102744;z-index:10;pointer-events:none;background:rgba(255,254,250,.88);border:1px solid #ffffffb0;border-radius:14px;box-shadow:0 5px 18px -12px #10274440;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow-wrap:anywhere}
 .journey-landmark-destination .journey-landmark-label{left:87%;top:21%}

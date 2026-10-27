@@ -247,3 +247,7 @@
   }
 }
 
+
+/* The document and following sections share the hero footer color. */
+html,body,#root{min-height:100%;background-color:#f7f4ec}
+body{margin:0}

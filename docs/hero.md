@@ -200,3 +200,35 @@ verifying rounded button/indicator, no decorative border and no horizontal page
 overflow. Inspected desktop and mobile output, including Cabin VIP. No new assets
 or dependencies. These changes improve the visual hierarchy; customer retention
 has not been measured. Existing main-chunk size advisory remains (~505kB).
+
+## Motion finishing pass — 2026-10-27
+
+Separate the first 2.1s scenic approach from vehicle changes: decoded replacements
+use the near lane (progress .70–1) for960ms after a260ms forward exit. A single
+vehicle remains mounted at a time. The current vehicle stays while replacement
+assets decode; failures retain it. Rapid changes keep latest-selection guards;
+exit starts at the current pose rather than teleporting to the parked position.
+A repeated commit of the same category no longer restarts its entry. Departure
+callbacks from exiting vehicles are ignored. Reduced motion and resize settle
+without waiting for disabled animation.
+
+Keep compatible front-facing photography on the near approach instead of cycling
+through the distant turn atlas on every switch. Existing per-wheel contact and
+underbody shadows share the vehicle transform. The tires are baked into the
+photographs: independent physical wheel rotation is not implemented or claimed.
+
+Landmarks crossfade/translate10px over550ms; labels fade after100ms. Apply a mild
+shared photographic grade and conservative Dong Nai/Hue adjustments directly to
+landmark imagery, without tinting labels or changing architecture. Existing left
+and right banks remain independent; no generated replacement assets are needed.
+Ensure html/body/root use the cream background and seal the hero footer seam.
+The decorative route-line idea was not added: this pass covers the five approved
+priorities and preserves a quiet resting scene.
+
+Validation: build/lint and96/96 browser integration assertions passed on the final
+build. Updated switch regressions require compatible near entry, no distant bend
+replay, scale>.7 and settling within1.5s for all three categories. A separate
+requestAnimationFrame probe measured33ms with no vehicle above10% opacity during
+a switch; screenshots reviewed exit/entry/rest, Dong Nai, reverse and mobile.
+Document/body/root background measured rgb(247,244,236), with no mobile horizontal
+overflow. Existing main-chunk advisory remains (~505kB). No backend changes.

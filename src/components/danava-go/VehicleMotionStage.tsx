@@ -1,11 +1,11 @@
 import { useJourneyReducedMotion, useJourneyMobile } from './useJourneyReducedMotion';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AnimatePresence, animate, motion, useMotionValue, useTransform } from 'framer-motion';
+import { AnimatePresence, animate, motion, useMotionValue, useTransform, useIsPresent } from 'framer-motion';
 import type { VehicleCategory } from '../../types';
 import { decodeJourneyImage, JOURNEY_VEHICLES, JOURNEY_DRIVE, JOURNEY_TURN_ATLAS, getJourneyDrivePose, getVehicleRest } from './journeyStageConfig';
 
-function DrivingVehicle({ category, mobile, approach, reduced, atlasReady, departing, onDepartureComplete, onSettled, onLoad, onError }: {
-  category: VehicleCategory; mobile: boolean; approach: boolean; reduced: boolean; atlasReady: boolean;
+function DrivingVehicle({ category, mobile, approach, switching, reduced, atlasReady, departing, onDepartureComplete, onSettled, onLoad, onError }: {
+  category: VehicleCategory; mobile: boolean; approach: boolean; switching: boolean; reduced: boolean; atlasReady: boolean;
   departing: boolean; onDepartureComplete?: () => void;
   onSettled: () => void; onLoad: () => void; onError: () => void;
 }) {
@@ -14,23 +14,30 @@ function DrivingVehicle({ category, mobile, approach, reduced, atlasReady, depar
   const factor = width/cfg.source[0];
   const anchorX = cfg.anchor[0]*factor, anchorY = cfg.anchor[1]*factor;
   const [restX, restY] = getVehicleRest(category, mobile);
-  const progress = useMotionValue(approach ? 0 : 1);
+  const present = useIsPresent();
+  const exitDrive = useMotionValue(0);
+  const progress = useMotionValue(approach ? (switching ? .70 : 0) : 1);
   const departure = useMotionValue(0);
   const transform = useTransform(() => {
-    const p = progress.get(), d = departure.get();
+    const p = progress.get(), d = departure.get(), leaving = exitDrive.get();
     if (d > 0) return `translate(${restX + 1300*d}px, ${restY}px) scale(1)`;
     // Without the atlas, restrict entry to the compatible near camera angle.
     const pose = getJourneyDrivePose(atlasReady ? p : .72 + p*.28, [restX, restY]);
-    return `translate(${pose.x}px, ${pose.y}px) scale(${pose.scale})`;
+    return `translate(${pose.x + 1100*leaving}px, ${pose.y}px) scale(${pose.scale})`;
   });
+  useEffect(() => {
+    if (present || reduced) return;
+    const controls = animate(exitDrive, 1, { duration: .26, ease: [.4, 0, .8, 1] });
+    return () => controls.stop();
+  }, [present, reduced, exitDrive, progress]);
   const departOpacity = useTransform(departure, [0, .85, 1], [1, 1, 0]);
   useEffect(() => {
-    if (!departing) return;
+    if (!departing || !present) return;
     progress.set(1);
     if (reduced) { onDepartureComplete?.(); return; }
     const controls = animate(departure, 1, { duration: .85, ease: [.35, 0, .7, 1], onComplete: onDepartureComplete });
     return () => controls.stop();
-  }, [departing, reduced, departure, progress, onDepartureComplete]);
+  }, [departing, present, reduced, departure, progress, onDepartureComplete]);
   const near = useTransform(progress, [.46, .54], atlasReady ? [0, 1] : [1, 1]);
   const front = useTransform(progress, p => {
     const rear = Math.min(1, Math.max(0, (p-.22)/.05)) * (1-Math.min(1, Math.max(0, (p-.36)/.08)));
@@ -38,14 +45,15 @@ function DrivingVehicle({ category, mobile, approach, reduced, atlasReady, depar
   });
   const rear = useTransform(() => 1-near.get()-front.get());
   useEffect(() => {
+    if (!present) return;
     if (!approach || reduced || departing) { progress.set(1); return; }
-    const controls = animate(progress, 1, { duration: JOURNEY_DRIVE.duration, ease: 'linear', onComplete: onSettled });
+    const controls = animate(progress, 1, { duration: switching ? .96 : JOURNEY_DRIVE.duration, ease: 'linear', onComplete: onSettled });
     return () => controls.stop();
-  }, [approach, reduced, departing, progress, onSettled]);
-  return <motion.g data-vehicle={category} data-drive-state={departing ? 'departing' : approach ? 'driving' : 'parked'}
+  }, [approach, switching, present, reduced, departing, progress, onSettled]);
+  return <motion.g data-vehicle={category} data-entry-mode={switching ? 'switch' : 'intro'} data-drive-state={!present ? 'exiting' : departing ? 'departing' : approach ? 'driving' : 'parked'}
     className="journey-bus" style={{ transform, transformOrigin: '0px 0px' }}
-    initial={{ opacity: reduced ? 1 : 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-    transition={{ duration: reduced ? 0 : .12 }}>
+    initial={{ opacity: reduced ? 1 : 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: reduced ? 0 : .26, ease: 'easeIn' } }}
+    transition={{ duration: reduced ? 0 : .06 }}>
     <motion.g style={{ opacity: departOpacity }}>
     {atlasReady && cfg.views.map(([vx, vy, vw, vh], i) => {
       const bodyWidth = width*(category === 'cabin' ? .887 : .951);
@@ -79,6 +87,7 @@ export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selected
   const mobile = useJourneyMobile();
   const reducedRef = useRef(reduced);
   useEffect(() => { reducedRef.current = reduced; }, [reduced]);
+  const [switching, setSwitching] = useState(false);
   const [shown, setShown] = useState<VehicleCategory | null>(null);
   const [introDone, setIntroDone] = useState(reduced);
   const [broken, setBroken] = useState(false);
@@ -109,6 +118,8 @@ export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selected
     const current = () => !cancelled && requests.current === request;
     const commit = (category: VehicleCategory) => {
       if (!current()) return;
+      if (shownRef.current === category) return;
+      setSwitching(shownRef.current !== null);
       setIntroDone(reducedRef.current);
       shownRef.current = category;
       setBroken(false);
@@ -140,7 +151,7 @@ export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selected
     <g id="layer-vehicle" data-testid="layer-vehicle">
       <AnimatePresence mode="wait">
         {shown && !broken && <DrivingVehicle key={shown} category={shown} mobile={mobile}
-          approach={!introDone && !reduced} reduced={reduced} atlasReady={atlasReady} departing={departing} onDepartureComplete={onDepartureComplete} onSettled={settle}
+          approach={!introDone && !reduced} switching={switching} reduced={reduced} atlasReady={atlasReady} departing={departing} onDepartureComplete={onDepartureComplete} onSettled={settle}
           onLoad={() => { lastGood.current = shown; }}
           onError={() => {
             const previous = lastGood.current;
