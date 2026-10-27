@@ -182,3 +182,21 @@ and expect its actual Limousine fallback, rather than assuming Cabin is default.
 Validation for this revision: build/lint passed; 96/96 browser integration checks
 passed on the final build. Inspected 1440×900, 1280×800 and 390px renders, including
 settled responsive layout. Existing main-chunk size advisory remains (~504kB).
+
+## Scene-first layout repair — 2026-10-27
+
+Reviewed current main 870e868 against the supplied screenshot. The selector's
+active span inherited its radius from a button with no radius, producing a square
+navy/gold block. Both now have an explicit pill radius; the decorative gold border
+is removed. Consolidated the hero stylesheet instead of adding another override
+layer: smaller editorial typography and selector, symmetric city label heights,
+quieter connector lines, no colored label top borders, a more opaque readable
+search form, and plain capability text. Preserve the latest route synchronization,
+vehicle animations, landscape assets, sizing and booking logic.
+
+Build/lint passed. Existing browser journey suite passed 96/96 assertions. An
+additional live browser check switched all three tabs at 1440,1280,390 and360px,
+verifying rounded button/indicator, no decorative border and no horizontal page
+overflow. Inspected desktop and mobile output, including Cabin VIP. No new assets
+or dependencies. These changes improve the visual hierarchy; customer retention
+has not been measured. Existing main-chunk size advisory remains (~505kB).
