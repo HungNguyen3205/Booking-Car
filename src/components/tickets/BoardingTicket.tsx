@@ -121,7 +121,7 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
   const isPaymentCompleted = booking.paymentStatus === 'completed';
 
   return (
-    <div className="min-h-screen bg-[#F7F4EC] py-8 sm:py-12 px-4 sm:px-6 flex flex-col items-center justify-center">
+    <div className="min-h-[calc(100svh-72px)] bg-[#F7F4EC] py-6 sm:py-8 px-4 sm:px-6 flex flex-col items-center justify-start">
       <div className="w-full max-w-[1020px]">
         {/* ============================================================
             MAIN MASTER BOARDING PASS TICKET CARD
@@ -183,7 +183,7 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                     {booking.id}
                   </span>
                   <span className="text-[10px] text-[#647084] block">
-                    {new Date(booking.createdAt).toLocaleDateString('vi-VN')}
+                    Ngày đặt: {new Date(booking.createdAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                   </span>
                 </div>
               </div>
@@ -220,7 +220,7 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                   <Clock className="w-4 h-4 text-[#0097A7] shrink-0 mt-0.5" />
                   <div>
                     <span className="text-[10.5px] uppercase font-bold text-[#647084] block tracking-wider">
-                      Thời gian khởi hành
+                      Ngày đi · Giờ khởi hành
                     </span>
                     <span className="text-sm font-bold text-[#102744] block mt-0.5">
                       {booking.trip.departureTime} • {bookingService.formatDisplayDate(booking.date)}

@@ -25,33 +25,6 @@ interface SeatSelectionModalProps {
   onProceedToPassenger: () => void;
 }
 
-// Clean SVG Barcode Component for demo ticket stub
-const SvgTicketBarcode: React.FC<{ code: string }> = ({ code }) => {
-  const bars = [
-    { w: 2, s: 1 }, { w: 1, s: 2 }, { w: 3, s: 1 }, { w: 1, s: 1 },
-    { w: 2, s: 2 }, { w: 3.5, s: 1 }, { w: 1, s: 2 }, { w: 2, s: 1 },
-    { w: 2.5, s: 2 }, { w: 1, s: 1 }, { w: 2, s: 2 }, { w: 1, s: 2.5 },
-    { w: 3, s: 1 }, { w: 2, s: 1 }, { w: 3.5, s: 2 }, { w: 1, s: 1 },
-    { w: 2, s: 2 }, { w: 2.5, s: 1 }, { w: 1, s: 2 }, { w: 2, s: 1 },
-  ];
-  let currentX = 6;
-
-  return (
-    <div className="flex flex-col items-center">
-      <svg width="130" height="42" viewBox="0 0 130 42" className="overflow-visible">
-        {bars.map((bar, idx) => {
-          const x = currentX;
-          currentX += bar.w + bar.s * 1.8;
-          return <rect key={idx} x={x} y="2" width={bar.w} height="38" fill="#102744" rx="0.5" />;
-        })}
-      </svg>
-      <span className="font-mono text-[9px] tracking-[0.25em] font-bold text-[#647084] mt-1">
-        *{code}*
-      </span>
-    </div>
-  );
-};
-
 export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
   trip,
   dateStr,
@@ -283,7 +256,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
               </div>
               <div className="flex justify-between items-center text-[11px]">
                 <span className="text-[#647084]">Dòng xe:</span>
-                <span className="font-semibold text-[#102744] truncate max-w-[130px]">{trip.vehicle.name}</span>
+                <span className="font-semibold text-[#102744] line-clamp-2 max-w-[150px]">{trip.vehicle.name}</span>
               </div>
               <div className="flex justify-between items-center text-[11px]">
                 <span className="text-[#647084]">Số khách:</span>
@@ -303,18 +276,13 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
               )}
             </div>
 
-            {/* SVG Barcode Graphic */}
-            <div className="w-full flex flex-col items-center">
-              <SvgTicketBarcode code={`${trip.code}-${dateStr.replace(/-/g, '')}`} />
-            </div>
-
             {/* Honest FE reservation disclaimer */}
             <div className="mt-4 p-2.5 bg-blue-50 rounded-xl border border-blue-200/80 w-full text-center">
               <span className="text-[9.5px] font-bold text-[#0284C7] block uppercase tracking-wider">
-                Lựa chọn trên FE
+                Chỗ đang chọn
               </span>
               <span className="text-[8.5px] text-[#0369A1] block leading-tight mt-0.5">
-                Chưa khóa chỗ trên hệ thống backend
+                Chưa xác nhận đặt vé
               </span>
             </div>
           </div>

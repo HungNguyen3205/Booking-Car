@@ -51,13 +51,13 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                   loading="lazy"
                 />
               </div>
-              <div className="w-[115px] lg:w-[130px]">
+              <div className="w-[135px] lg:w-[150px]">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="text-[10px] font-bold text-[#2B4294] uppercase tracking-wider">
                     {trip.operator}
                   </span>
                 </div>
-                <h4 className="font-sans font-bold text-sm text-[#102744] leading-tight truncate" title={trip.vehicle.name}>
+                <h4 className="font-sans font-bold text-sm text-[#102744] leading-tight line-clamp-2" title={trip.vehicle.name}>
                   {trip.vehicle.name}
                 </h4>
                 <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-[#647084]">
@@ -75,10 +75,10 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                 <span className="font-sans text-2xl font-bold text-[#102744] tracking-tight">
                   {trip.departureTime}
                 </span>
-                <p className="text-xs font-semibold text-[#102744] mt-0.5 truncate max-w-[120px]">
+                <p className="text-xs font-semibold text-[#102744] mt-0.5 line-clamp-2 max-w-[150px]">
                   {trip.from}
                 </p>
-                <p className="text-[11px] text-[#647084] truncate max-w-[120px]" title={trip.departureLocation.name}>
+                <p className="text-[11px] text-[#647084] line-clamp-2 max-w-[150px]" title={trip.departureLocation.name}>
                   {trip.departureLocation.name}
                 </p>
               </div>
@@ -111,10 +111,10 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                     </span>
                   )}
                 </div>
-                <p className="text-xs font-semibold text-[#102744] mt-0.5 truncate max-w-[120px] ml-auto">
+                <p className="text-xs font-semibold text-[#102744] mt-0.5 line-clamp-2 max-w-[150px] ml-auto">
                   {trip.to}
                 </p>
-                <p className="text-[11px] text-[#647084] truncate max-w-[120px] ml-auto" title={trip.arrivalLocation.name}>
+                <p className="text-[11px] text-[#647084] line-clamp-2 max-w-[150px] ml-auto" title={trip.arrivalLocation.name}>
                   {trip.arrivalLocation.name}
                 </p>
               </div>
@@ -222,7 +222,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                 </span>
                 <span className="text-[10px] text-[#647084]">#{trip.code}</span>
               </div>
-              <h4 className="font-sans font-bold text-sm text-[#102744] truncate">
+              <h4 className="font-sans font-bold text-sm text-[#102744] line-clamp-2">
                 {trip.vehicle.name}
               </h4>
             </div>
@@ -251,7 +251,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
               {trip.departureTime}
             </span>
             <p className="text-xs font-semibold text-[#102744] mt-0.5">{trip.from}</p>
-            <p className="text-[10px] text-[#647084] max-w-[100px] truncate" title={trip.departureLocation.name}>
+            <p className="text-[10px] text-[#647084] max-w-[130px] line-clamp-2" title={trip.departureLocation.name}>
               {trip.departureLocation.name}
             </p>
           </div>
@@ -283,7 +283,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
               )}
             </div>
             <p className="text-xs font-semibold text-[#102744] mt-0.5">{trip.to}</p>
-            <p className="text-[10px] text-[#647084] max-w-[100px] truncate ml-auto" title={trip.arrivalLocation.name}>
+            <p className="text-[10px] text-[#647084] max-w-[130px] line-clamp-2 ml-auto" title={trip.arrivalLocation.name}>
               {trip.arrivalLocation.name}
             </p>
           </div>

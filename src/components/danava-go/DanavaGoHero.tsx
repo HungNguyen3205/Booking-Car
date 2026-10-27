@@ -8,6 +8,7 @@ import { LayeredSceneStage } from './LayeredSceneStage';
 import { VehicleMotionStage } from './VehicleMotionStage';
 import { HeroVehicleSelector } from './HeroVehicleSelector';
 import './danava-go-hero.css';
+import { startSearchTransition } from './searchTransition';
 
 interface DanavaGoHeroProps {
   initialParams: SearchParams;
@@ -27,14 +28,11 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
     setPendingSearch(null);
     onSearch(params);
   }, [onSearch]);
+  const heroRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!pendingSearch) return;
-    // Asset/animation failure must never trap navigation. The normal path is
-    // the animation completion callback; this is only a bounded fallback.
-    if (reduced) { completeSearch(); return; }
-    const timeout = window.setTimeout(completeSearch, 1100);
-    return () => window.clearTimeout(timeout);
-  }, [pendingSearch, reduced, completeSearch]);
+    return startSearchTransition(heroRef.current?.querySelector<SVGSVGElement>('.journey-vehicle-layer') || null, completeSearch);
+  }, [pendingSearch, completeSearch]);
   const startSearch = (params: SearchParams) => {
     if (pendingRef.current) return;
     if (reduced) { onSearch(params); return; }
@@ -53,7 +51,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
   }
 
   return (
-    <section data-search-transition={pendingSearch ? 'departing' : 'idle'} className="danava-go-hero" aria-label="DANAVA GO — Hành trình khám phá Việt Nam">
+    <section ref={heroRef} data-search-transition={pendingSearch ? 'departing' : 'idle'} className="danava-go-hero" aria-label="DANAVA GO — Hành trình khám phá Việt Nam">
       {/* 1. SCENERY BACKDROP: Full-width edge-to-edge, unconstrained by UI max-width */}
       <div className="go-scenery-backdrop" aria-hidden="true">
         <div className="journey-atmosphere" />
@@ -67,8 +65,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
           <VehicleMotionStage
             selectedVehicle={selectedVehicle}
             introReady={introReady}
-            departing={pendingSearch !== null}
-            onDepartureComplete={completeSearch}
+            departing={false}
             onVehicleError={(fallback, message) => {
               setSelectedVehicle(fallback);
               setToast({ text: message, id: Date.now() });

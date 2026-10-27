@@ -209,10 +209,12 @@ async function choose(p, field, city) {
     await scene(departure).getByRole('button',{name:'Tìm chuyến',exact:true}).click();
     check('Valid search starts departure before leaving the homepage',await scene(departure).getAttribute('data-search-transition')==='departing' && !departure.url().includes('step=search'));
     await departure.evaluate(()=>{const form=document.querySelector('#hero-search form');form.requestSubmit();form.requestSubmit()});
-    await departure.waitForFunction(()=>{const el=document.querySelector('[data-vehicle]');return el && new DOMMatrix(getComputedStyle(el).transform).e>840});
-    check('Search vehicle moves forward to the right towards destination', true);
+    await departure.waitForFunction(()=>{const el=document.querySelector('[data-search-curtain]');return el && el.dataset.searchCurtain==='approaching' && new DOMMatrix(getComputedStyle(el.firstElementChild).transform).a>1.3});
+    check('Search vehicle grows in a viewport overlay before navigation', true);
     await departure.waitForURL(/step=search/);
     check('Departure performs exactly one search navigation',await departure.evaluate(()=>window.searchWrites)===1);
+    await departure.waitForFunction(()=>!document.querySelector('[data-search-curtain]'));
+    check('Search curtain clears after revealing results',true);
     await departure.getByRole('button',{name:/Chọn chuyến đi lúc/}).first().waitFor();
     await departure.close();
     // Booking smoke checks use the existing flow and do not change its code.

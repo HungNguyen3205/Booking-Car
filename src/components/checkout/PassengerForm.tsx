@@ -94,7 +94,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
       case 'email': {
         const trimmed = val.trim();
         if (!trimmed) {
-          return 'Vui lòng nhập email nhận vé điện tử.';
+          return ''; // Optional in the current local-ticket flow.
         }
         if (!emailRegex.test(trimmed)) {
           return 'Địa chỉ email không đúng định dạng (ví dụ: tenban@gmail.com).';
@@ -338,7 +338,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                       htmlFor="passenger-email"
                       className="block text-xs font-bold text-[#102744] uppercase tracking-wider mb-1.5"
                     >
-                      Email nhận vé điện tử <span className="text-red-500">*</span>
+                      Email liên hệ <span className="text-[#647084] normal-case font-normal">(không bắt buộc)</span>
                     </label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-[#647084] absolute left-3.5 top-3" />

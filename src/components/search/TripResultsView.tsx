@@ -108,6 +108,8 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
         return true;
       })
       .sort((a, b) => {
+        const availability = Number(a.availableSeatsCount === 0) - Number(b.availableSeatsCount === 0);
+        if (availability) return availability;
         if (sortBy === 'price-asc') return a.price - b.price;
         if (sortBy === 'price-desc') return b.price - a.price;
         if (sortBy === 'duration') {
@@ -302,7 +304,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E0F2F1]/80 text-[#004D40] border border-[#80CBC4]/60 text-[11px] font-medium">
           <Info className="w-3.5 h-3.5 text-[#00897B] shrink-0" />
           <span>
-            <strong>DANAVA GO Demo:</strong> Dữ liệu lịch trình và giá vé mô phỏng (Mock Data) • Sẵn sàng kết nối REST/GraphQL API khi triển khai backend.
+            <strong>Bản trải nghiệm:</strong> Lịch trình và thanh toán mô phỏng.
           </span>
         </div>
       </div>
@@ -427,7 +429,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                     Chọn chuyến phù hợp
                   </h2>
                   <span className="text-xs text-[#647084] font-medium">
-                    ({filteredTrips.length} chuyến khả dụng)
+                    ({filteredTrips.length} chuyến tìm thấy)
                   </span>
                 </div>
 
