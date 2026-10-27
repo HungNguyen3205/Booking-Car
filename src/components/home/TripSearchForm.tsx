@@ -199,9 +199,9 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
     <form
       id="search-form-section"
       onSubmit={handleSubmit}
-      className={`bg-[#FFFEFA] border border-[#E5E3DC]/90 shadow-[0_12px_36px_-6px_rgba(16,39,68,0.09),0_4px_12px_-2px_rgba(16,39,68,0.03)] transition-all relative z-30 ${
+      className={`bg-[#FFFEFA] border border-[#E5E3DC]/90 shadow-[0_22px_50px_-10px_rgba(16,39,68,0.18),0_10px_24px_-6px_rgba(43,66,148,0.1)] transition-all relative z-30 ${
         isHorizontalBar
-          ? 'w-full max-w-full rounded-[20px] p-2 sm:p-2.5 lg:p-3'
+          ? 'w-full max-w-full rounded-[24px] p-2 sm:p-2.5 lg:p-3'
           : compact
           ? 'max-w-4xl mx-auto rounded-2xl p-5 sm:p-6'
           : 'w-full max-w-[620px] rounded-2xl p-5 sm:p-6'
@@ -501,7 +501,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-[54px] sm:h-[58px] px-7 sm:px-8 bg-[#2B4294] hover:bg-[#1E2F6B] active:bg-[#14204A] active:scale-[0.98] text-[#FFFEFA] font-bold text-[15px] rounded-xl shadow-md shadow-[#2B4294]/30 flex items-center justify-center gap-2.5 transition-all cursor-pointer whitespace-nowrap disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B4294] focus-visible:ring-offset-2"
+            className="w-full h-[54px] sm:h-[58px] px-7 sm:px-8 bg-gradient-to-r from-[#F5AE1B] via-[#F58220] to-[#EE3132] hover:brightness-105 active:scale-[0.98] text-white font-extrabold text-[15px] sm:text-[16px] rounded-xl shadow-lg shadow-[#F58220]/35 hover:shadow-xl hover:shadow-[#EE3132]/30 flex items-center justify-center gap-2.5 transition-all cursor-pointer whitespace-nowrap disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F58220] focus-visible:ring-offset-2"
           >
             {isLoading ? (
               <>

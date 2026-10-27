@@ -75,6 +75,8 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
             }}
           />
         </div>
+        {/* Soft bottom edge gradient blend with page background */}
+        <div className="journey-bottom-fade" aria-hidden="true" />
       </div>
 
       {/* 2. UI CONTAINER: Centered with max-width, safe padding, overflow visible */}
@@ -86,6 +88,15 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduced ? 0 : 0.4 }}
         >
+          {/* Glassmorphism Social Proof Badge */}
+          <div className="go-social-badge" role="status" aria-label="Đánh giá 4.9 trên 5 từ khách hàng">
+            <span className="text-amber-500 text-xs sm:text-sm leading-none" aria-hidden="true">⭐</span>
+            <span className="font-bold text-[#102744]">4.9/5</span>
+            <span className="text-[#52657B]">từ khách hàng</span>
+            <span className="w-1 h-1 rounded-full bg-[#2B4294]/30 mx-0.5" aria-hidden="true" />
+            <span className="text-[#2B4294] font-bold text-[10px] tracking-wider uppercase">Tin chọn</span>
+          </div>
+
           <div className="go-eyebrow">
             <Sparkles size={14} className="text-[#2B4294]" />
             <span>HÀNH TRÌNH / KHÁM PHÁ VIỆT NAM</span>

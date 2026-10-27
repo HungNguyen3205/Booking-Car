@@ -77,12 +77,12 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             : 'h-[64px] sm:h-[70px] lg:h-[72px] bg-[#F7F4EC] border-[#E5E3DC]/60'
         }`}
       >
-        <div className="max-w-[1380px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="max-w-[1380px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between relative">
           {/* Logo Brand */}
           <button
             type="button"
             onClick={() => onNavigate('home')}
-            className="flex items-center gap-2.5 sm:gap-3 text-left group focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-xl p-1 -ml-1 transition-transform active:scale-98 cursor-pointer"
+            className="flex items-center gap-2.5 sm:gap-3 text-left group focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-xl p-1 -ml-1 transition-transform active:scale-98 cursor-pointer z-10 shrink-0"
             aria-label="Trang chủ DANAVA GO"
           >
             {/* Brand Logo Icon */}
@@ -108,26 +108,37 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             </div>
           </button>
 
-          {/* Desktop Nav Items (Centered aligned) */}
-          <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={item.action}
-                className={`px-4 py-2 rounded-full text-sm font-sans font-medium transition-all cursor-pointer ${
-                  currentTab === item.id
-                    ? 'text-[#2B4294] bg-[#EBF4FC] font-semibold shadow-2xs'
-                    : 'text-[#2B4294] hover:text-[#53A5DB] hover:bg-black/5'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+          {/* Desktop Nav Items (Absolutely Centered between Left and Right) */}
+          <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2 absolute left-1/2 -translate-x-1/2 pointer-events-auto">
+            {navItems.map((item) => {
+              const isActive = currentTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={item.action}
+                  className={`relative px-4 py-2 rounded-full text-[14.5px] font-sans font-medium transition-all duration-200 cursor-pointer group ${
+                    isActive
+                      ? 'text-[#2B4294] font-bold bg-[#2B4294]/8 shadow-2xs'
+                      : 'text-[#102744] hover:text-[#2B4294] hover:bg-[#2B4294]/5'
+                  }`}
+                >
+                  <span className="relative z-10">{item.label}</span>
+                  {/* Refined gradient accent underline on hover and active */}
+                  <span
+                    className={`absolute bottom-1 left-3.5 right-3.5 h-[2px] rounded-full bg-gradient-to-r from-[#F5AE1B] via-[#F58220] to-[#EE3132] transition-all duration-300 pointer-events-none ${
+                      isActive
+                        ? 'opacity-100 scale-x-100'
+                        : 'opacity-0 scale-x-0 group-hover:opacity-100 group-hover:scale-x-100'
+                    }`}
+                  />
+                </button>
+              );
+            })}
           </nav>
 
           {/* Desktop Right Action: User Chip or Đăng nhập button */}
-          <div className="hidden lg:flex items-center">
+          <div className="hidden lg:flex items-center z-10 shrink-0 ml-auto">
             {currentUser ? (
               <button
                 type="button"
