@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Armchair, BedDouble, Crown, AlertCircle } from 'lucide-react';
+import { useJourneyReducedMotion } from './useJourneyReducedMotion';
 import type { VehicleCategory } from '../../types';
 
 interface HeroVehicleSelectorProps {
@@ -16,6 +17,7 @@ export const HeroVehicleSelector: React.FC<HeroVehicleSelectorProps> = ({
   toast,
   onCloseToast,
 }) => {
+  const reduced = useJourneyReducedMotion();
   const vehicleOptions: { id: VehicleCategory; label: string; icon: React.ReactNode }[] = [
     { id: 'sleeper', label: 'Giường nằm', icon: <BedDouble size={16} /> },
     { id: 'limousine', label: 'Limousine', icon: <Armchair size={16} /> },
@@ -44,12 +46,16 @@ export const HeroVehicleSelector: React.FC<HeroVehicleSelectorProps> = ({
               type="button"
               aria-pressed={isActive}
               onClick={() => handleSelect(v.id)}
-              className={`inline-flex items-center gap-2 h-10 sm:h-11 px-4.5 sm:px-5.5 rounded-full text-xs sm:text-[13px] font-sans font-semibold transition-all duration-200 cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-[#2B4294] focus-visible:ring-offset-2 ${
-                isActive
-                  ? 'bg-[#2B4294] text-[#FFFEFA] shadow-[0_4px_14px_rgba(43,66,148,0.28)] scale-[1.02]'
-                  : 'bg-[#FFF9ED] hover:bg-[#FFFEFA] text-[#2B4294] border border-[#D8D4C9] hover:border-[#2B4294]/70 hover:shadow-[0_2px_8px_rgba(43,66,148,0.12)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]'
-              }`}
+              className="go-vehicle-option"
             >
+              {isActive && (
+                <motion.span
+                  className="go-vehicle-active"
+                  layoutId="hero-vehicle-active"
+                  transition={{ duration: reduced ? 0 : 0.22, ease: 'easeOut' }}
+                  aria-hidden="true"
+                />
+              )}
               {v.icon}
               <span>{v.label}</span>
             </button>

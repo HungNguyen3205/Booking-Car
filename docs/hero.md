@@ -135,3 +135,26 @@ last mobile-only bank framing adjustment,40 focused hero checks passed and all13
 mobile city canvases were checked in both roles. Separate runtime recording
 verified rear departures for all3 categories (about0.9s each), invalid-date
 rejection, missing-departure-image navigation and immediate reduced-motion search.
+
+## Hero polish — 2026-10-27
+
+Retain the latest DANAVA logo/brand refresh and existing vehicle/landmark assets.
+The search form sits completely on the cream footer of the hero; its shadow is
+lighter, with three factual capability labels below it (seat selection, ticket
+lookup, vehicle choices). On mobile it follows the scene without negative overlap.
+Desktop has a minimum 900px composition height: at 1280×800 the page scrolls to
+show the whole form rather than clipping it or covering the wheels.
+
+City labels have translucent light backgrounds and external connector stems;
+long names can wrap. The description has a light contrast surface. Vehicle
+selection uses a navy moving indicator, a subtle champagne border, aria-pressed,
+visible keyboard focus, 44px targets and reduced-motion-aware transitions.
+Replace the unsupported hardcoded 4.9/5 rating with a travel brand message.
+No new dependencies, raster assets, booking logic or payment policies.
+
+Validation: production build and lint passed. Existing browser integration suite:
+96/96 assertions passed, including all 13 cities in both directions, three vehicle
+animations/sizing, mobile menus, reduced motion, seat selection and demo ticket
+issuance. Inspected 1440×900, 1280×800 and 390px screenshots; final contrast/fade
+adjustment checked again on a fresh desktop/mobile browser capture. The existing
+~505kB main-chunk build advisory remains.

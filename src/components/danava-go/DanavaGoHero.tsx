@@ -1,7 +1,7 @@
 import { useJourneyReducedMotion } from './useJourneyReducedMotion';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Armchair, Ticket, BusFront } from 'lucide-react';
 import { TripSearchForm } from '../home/TripSearchForm';
 import type { SearchParams, VehicleCategory } from '../../types';
 import { LayeredSceneStage } from './LayeredSceneStage';
@@ -88,13 +88,9 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduced ? 0 : 0.4 }}
         >
-          {/* Glassmorphism Social Proof Badge */}
-          <div className="go-social-badge" role="status" aria-label="Đánh giá 4.9 trên 5 từ khách hàng">
-            <span className="text-amber-500 text-xs sm:text-sm leading-none" aria-hidden="true">⭐</span>
-            <span className="font-bold text-[#102744]">4.9/5</span>
-            <span className="text-[#52657B]">từ khách hàng</span>
-            <span className="w-1 h-1 rounded-full bg-[#2B4294]/30 mx-0.5" aria-hidden="true" />
-            <span className="text-[#2B4294] font-bold text-[10px] tracking-wider uppercase">Tin chọn</span>
+          <div className="go-social-badge">
+            <Sparkles size={14} aria-hidden="true" />
+            <span>Mỗi hành trình, một trải nghiệm mới</span>
           </div>
 
           <div className="go-eyebrow">
@@ -129,6 +125,11 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
             onSearch={startSearch}
             isLoading={isSearching || pendingSearch !== null}
           />
+          <ul className="go-quick-benefits" aria-label="Tiện ích đặt vé">
+            <li><Armchair size={16} aria-hidden="true" /><span>Chọn ghế trực quan</span></li>
+            <li><Ticket size={16} aria-hidden="true" /><span>Tra cứu vé dễ dàng</span></li>
+            <li><BusFront size={16} aria-hidden="true" /><span>Nhiều dòng xe</span></li>
+          </ul>
         </div>
       </div>
     </section>
