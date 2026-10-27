@@ -57,7 +57,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
       label: 'Tìm chuyến',
       action: () => {
         if (currentTab === 'home') {
-          document.getElementById('search-form-section')?.scrollIntoView({ behavior: 'smooth' });
+          document.getElementById('hero-search')?.scrollIntoView({ behavior: 'smooth' });
         } else {
           onNavigate('search');
         }
@@ -102,9 +102,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                   GO
                 </span>
               </div>
-              <span className="text-[9px] font-bold tracking-[0.24em] text-[#2B4294]/85 uppercase mt-1 leading-none font-sans">
-                SOLUTIONS
-              </span>
+
             </div>
           </button>
 

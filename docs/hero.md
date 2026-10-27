@@ -158,3 +158,27 @@ animations/sizing, mobile menus, reduced motion, seat selection and demo ticket
 issuance. Inspected 1440×900, 1280×800 and 390px screenshots; final contrast/fade
 adjustment checked again on a fresh desktop/mobile browser capture. The existing
 ~505kB main-chunk build advisory remains.
+
+## Approved minimal mockup implementation — 2026-10-27
+
+Implemented the selected visual direction in the existing hero: compact DANAVA GO
+header without the SOLUTIONS subline; a single live route eyebrow instead of the
+promotional badge; navy headline with solid orange emphasis; plain description;
+one shared segmented vehicle selector; smaller quiet city labels; restrained
+scenery saturation and a lighter sky behind copy. The default preview is Sleeper,
+matching the selected mockup. Reinforced existing per-wheel and underbody contact
+shadows without changing vehicle coordinates, size or approach/departure paths.
+The header search link now targets the actual hero-search element.
+
+Keep all production city/vehicle layers and their independent transitions. The
+AI-generated concept is a direction reference, not a production background or a
+pixel-identical replacement: the existing landscapes and vehicles remain intact.
+No new dependencies or image assets. The unchanged horizontal form and capability
+row remain on the cream footer; narrow/short screens scroll normally.
+
+Adjusted the existing image-error tests to block the new default Sleeper asset
+and expect its actual Limousine fallback, rather than assuming Cabin is default.
+
+Validation for this revision: build/lint passed; 96/96 browser integration checks
+passed on the final build. Inspected 1440×900, 1280×800 and 390px renders, including
+settled responsive layout. Existing main-chunk size advisory remains (~504kB).

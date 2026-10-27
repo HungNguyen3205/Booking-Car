@@ -34,7 +34,7 @@ export const HeroVehicleSelector: React.FC<HeroVehicleSelectorProps> = ({
     <div className="flex flex-col items-center gap-2.5 w-full">
       {/* Nút chọn loại xe */}
       <div
-        className="flex flex-wrap items-center justify-center gap-2.5"
+        className="go-vehicle-segments"
         role="group"
         aria-label="Chọn dòng xe trải nghiệm"
       >

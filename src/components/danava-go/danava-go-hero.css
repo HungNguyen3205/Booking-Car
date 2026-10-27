@@ -14,11 +14,9 @@
 .journey-landmark-label:after{content:'';display:block;margin:12px auto 0;height:48px;width:1px;border-left:2px dashed #2B429480}
 .go-ui-container{position:relative;z-index:5;width:100%;max-width:1800px;margin:auto;height:100%;min-height:max(810px,100svh);padding:88px 5.5% 24px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;pointer-events:none;box-sizing:border-box}
 .go-editorial-center{width:min(850px,70%);display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:auto}
-.go-social-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:rgba(255,255,255,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.92);border-radius:9999px;box-shadow:0 4px 16px -2px rgba(43,66,148,0.12),0 1px 3px rgba(0,0,0,0.04);font-size:12px;font-weight:600;color:#102744;margin-bottom:10px;user-select:none;transition:transform .2s ease,box-shadow .2s ease}
-.go-social-badge:hover{transform:translateY(-1px);box-shadow:0 6px 20px -2px rgba(43,66,148,0.18)}
 .go-eyebrow{display:flex;gap:8px;align-items:center;color:#2B4294;letter-spacing:.14em;font-size:10px;font-weight:800;margin-bottom:13px}
 .go-title{font-family:'UTM Eremitage','Montserrat','Be Vietnam Pro',system-ui,sans-serif;font-size:clamp(43px,3.7vw,60px);font-weight:800;line-height:1.14;letter-spacing:-.045em;margin:0 0 16px;overflow-wrap:normal}
-.go-title>span{display:block}.go-title-experience{background:linear-gradient(135deg,#F5AE1B 0%,#EE3132 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;color:#EE3132}
+.go-title>span{display:block}.go-title-experience{color:#ed6d24}
 .go-description{font-size:14px;line-height:1.6;color:#52657b;margin:0 0 22px}
 .go-search-dock{width:100%;max-width:1440px;position:relative;z-index:20;padding-top:8px;pointer-events:auto;scroll-margin-top:95px}
 .go-search-dock form{background:#fffefa;border-radius:24px;border:1px solid rgba(229,227,220,0.95);box-shadow:0 16px 36px -16px rgba(16,39,68,0.22),0 2px 8px rgba(16,39,68,0.04)}
@@ -37,7 +35,6 @@
 .go-journey-stage{left:-40px;width:calc(100% + 80px)}
 .go-title{font-size:clamp(30px,6.5vw,48px);line-height:1.19;letter-spacing:-.04em;margin-bottom:14px}
 .go-description{max-width:330px;font-size:12px;margin-bottom:18px}.go-eyebrow{font-size:8px;letter-spacing:.1em;margin-bottom:10px}
-.go-social-badge{font-size:11px;padding:3.5px 11px;gap:5px;margin-bottom:6px}
 .journey-bottom-fade{height:45px}
 .go-search-dock{order:2;padding:0 14px 24px;margin-top:0;width:100%;z-index:10}
 .journey-landmark-label{top:6%;left:24%;width:150px}.journey-landmark-destination .journey-landmark-label{top:6%;left:76%}
@@ -85,7 +82,7 @@
 .journey-landmark-label{background:rgba(255,254,250,.91);border:1px solid rgba(255,255,255,.95);border-radius:16px;padding:12px 14px;text-shadow:none;box-shadow:0 6px 20px -10px #10274440;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow-wrap:anywhere}
 .journey-landmark-label:after{position:absolute;top:100%;left:50%;margin:0;transform:translateX(-50%)}
 .journey-landmark-label:before{bottom:-52px}
-.go-description{color:#40546b;background:rgba(247,244,236,.86);padding:5px 12px;border-radius:10px}
+.go-description{color:#40546b}
 .go-vehicle-option{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 22px;border:1px solid #d8d4c9;border-radius:999px;background:#fffefa;color:#102744;font-size:13px;font-weight:650;cursor:pointer;transition:color .22s,border-color .22s,box-shadow .22s}
 .go-vehicle-option[aria-pressed=true]{color:#fffefa;border-color:#d4bc83;box-shadow:0 5px 16px -7px #10274480}
 .go-vehicle-option[aria-pressed=false]:hover{border-color:#2b4294;background:#f2f4fa}
@@ -103,3 +100,33 @@
   .journey-landmark-label:before{bottom:-34px}
 }
 @media(prefers-reduced-motion:reduce){.go-vehicle-option{transition:none}}
+
+/* Approved minimal travel composition: quieter chrome, scene and coach lead. */
+.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:first-child{width:40px;height:40px;background:transparent;border:0;box-shadow:none;padding:0}
+.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:last-child>div>span{font-size:24px}
+.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:last-child>div>span:first-child{background:none;color:#102744;-webkit-text-fill-color:#102744}
+.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:last-child>div>span:last-child{color:#ed6d24}
+.go-editorial-center{padding-top:18px}
+.go-eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;gap:10px;margin-bottom:18px;color:#102744;flex-wrap:wrap;justify-content:center;max-width:100%}
+.go-route-arrow{color:#ed6d24}
+.go-title{line-height:1.15}
+.go-description{margin-bottom:20px}
+.journey-scenery{filter:saturate(.87)}
+.journey-sky-softener{background:linear-gradient(180deg,#f7f4ecbb 0%,#f7f4ec77 28%,transparent 48%)}
+.journey-landmark-label{width:174px;padding:10px 12px;border:0;border-radius:14px;background:rgba(255,254,250,.87);box-shadow:0 5px 18px -12px #10274440}
+.journey-landmark-label strong{font-size:clamp(18px,1.5vw,23px)}
+.go-vehicle-segments{display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:4px;border:1px solid #ffffffa0;border-radius:999px;background:rgba(255,254,250,.92);max-width:100%}
+.go-vehicle-option{border:0;background:transparent;min-height:44px;padding:0 20px;font-size:13px}
+.go-vehicle-option[aria-pressed=true]{border:0;box-shadow:0 3px 9px -5px #10274460}
+.go-vehicle-option[aria-pressed=false]:hover{background:#10274408}
+.go-quick-benefits li{background:none;border:0;box-shadow:none}
+@media(max-width:1023px){
+.go-editorial-center{padding-top:26px}
+.go-eyebrow{font-size:10px;margin-bottom:16px}
+.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:last-child>div>span{font-size:21px}
+.go-editorial-center .go-vehicle-segments{gap:2px}
+.go-editorial-center .go-vehicle-option{padding:0 10px;font-size:11px;gap:5px}
+.journey-landmark-label{width:128px;padding:9px 8px;border-radius:12px}
+.journey-landmark-label strong{font-size:16px}
+.go-description{background:none}
+}

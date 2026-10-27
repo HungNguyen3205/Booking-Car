@@ -1,7 +1,7 @@
 import { useJourneyReducedMotion } from './useJourneyReducedMotion';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Armchair, Ticket, BusFront } from 'lucide-react';
+import { Armchair, Ticket, BusFront } from 'lucide-react';
 import { TripSearchForm } from '../home/TripSearchForm';
 import type { SearchParams, VehicleCategory } from '../../types';
 import { LayeredSceneStage } from './LayeredSceneStage';
@@ -41,7 +41,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
     pendingRef.current = params;
     setPendingSearch(params);
   };
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleCategory>('cabin');
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleCategory>('sleeper');
   const [toast, setToast] = useState<{ text: string; id: number } | null>(null);
   const [preview, setPreview] = useState({ from: initialParams.from, to: initialParams.to });
   const [previous, setPrevious] = useState(initialParams);
@@ -88,14 +88,10 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduced ? 0 : 0.4 }}
         >
-          <div className="go-social-badge">
-            <Sparkles size={14} aria-hidden="true" />
-            <span>Mỗi hành trình, một trải nghiệm mới</span>
-          </div>
-
-          <div className="go-eyebrow">
-            <Sparkles size={14} className="text-[#2B4294]" />
-            <span>HÀNH TRÌNH / KHÁM PHÁ VIỆT NAM</span>
+          <div className="go-eyebrow" aria-label={`Hành trình từ ${preview.from} đến ${preview.to}`}>
+            <span>{preview.from || 'Điểm đi'}</span>
+            <span className="go-route-arrow" aria-hidden="true">→</span>
+            <span>{preview.to || 'Điểm đến'}</span>
           </div>
           <h1 className="go-title">
             <span>Đi một chuyến.</span>

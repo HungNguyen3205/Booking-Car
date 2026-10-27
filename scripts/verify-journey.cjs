@@ -161,12 +161,12 @@ async function choose(p, field, city) {
     await failed.goto(`${base}/?from=Đà%20Nẵng&to=Huế`, { waitUntil: 'domcontentloaded' }); await failed.waitForTimeout(600);
     check('Failed landmark shows neutral fallback, never another city', (await failed.locator('[data-landmark-slot=destination]').innerText()).includes('Miền đất mới'));
     await scene(failed).getByRole('button', { name: 'Limousine', exact: true }).click(); await failed.waitForTimeout(300);
-    check('Failed vehicle retains previous vehicle and reports error', await vehicle(failed).getAttribute('data-vehicle') === 'cabin' && await scene(failed).getByRole('status').count() === 1);
+    check('Failed vehicle retains previous vehicle and reports error', await vehicle(failed).getAttribute('data-vehicle') === 'sleeper' && await scene(failed).getByRole('status').count() === 1);
     await failed.close();
     const initialFailure = await browser.newPage({reducedMotion:'reduce'});
-    await initialFailure.route('**/bus_cabin_right.png',r=>r.abort());
+    await initialFailure.route('**/sleeper-premium.webp',r=>r.abort());
     await initialFailure.goto(base); await initialFailure.waitForTimeout(600);
-    check('Failed initial vehicle loads an available fallback without blocking form', await vehicle(initialFailure).getAttribute('data-vehicle') === 'sleeper' && await initialFailure.locator('#search-from').isEnabled());
+    check('Failed initial vehicle loads an available fallback without blocking form', await vehicle(initialFailure).getAttribute('data-vehicle') === 'limousine' && await initialFailure.locator('#search-from').isEnabled());
     await initialFailure.close();
     const atlasFailure = await browser.newPage({ reducedMotion: 'reduce' });
     await atlasFailure.route('**/fleet-turns.webp',r=>r.abort());

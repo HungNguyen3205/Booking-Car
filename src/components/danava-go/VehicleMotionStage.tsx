@@ -58,8 +58,8 @@ function DrivingVehicle({ category, mobile, approach, reduced, atlasReady, depar
       </motion.g>;
     })}
     <motion.g style={{ opacity: near }} transform={`translate(${-anchorX} ${-anchorY})`}>
-      <ellipse cx={anchorX} cy={anchorY-3} rx={width*.34} ry="9" fill="#102744" opacity=".15" />
-      {cfg.wheels.map(([px, py], i) => <ellipse key={i} cx={px*factor} cy={py*factor-2} rx={width*.033} ry="3" fill="#0d1b2a" opacity=".4" />)}
+      <ellipse cx={anchorX} cy={anchorY-3} rx={width*.34} ry="11" fill="#102744" opacity=".23" />
+      {cfg.wheels.map(([px, py], i) => <ellipse key={i} cx={px*factor} cy={py*factor-2} rx={width*.033} ry="3.5" fill="#0d1b2a" opacity=".55" />)}
       <image data-vehicle-photo="true" href={cfg.image} width={width} height={cfg.source[1]*factor} onLoad={onLoad} onError={onError} />
     </motion.g>
     </motion.g>
