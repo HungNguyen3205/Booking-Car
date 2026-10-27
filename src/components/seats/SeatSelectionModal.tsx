@@ -102,10 +102,10 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
             <button
               type="button"
               onClick={onBack}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F7F4EC] hover:bg-[#E5E3DC] text-xs font-bold text-[#102744] rounded-xl border border-[#CBD5E1] transition-all cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F7F4EC] hover:bg-[#E5E3DC] text-xs font-bold text-[#102744] rounded-xl border border-[#CBD5E1] transition-all cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-[#2B4294]"
               title="Quay lại danh sách chuyến"
             >
-              <ArrowLeft className="w-4 h-4 text-[#0097A7]" />
+              <ArrowLeft className="w-4 h-4 text-[#2B4294]" />
               <span className="hidden xs:inline">Quay lại</span>
             </button>
 
@@ -113,10 +113,10 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
               <div className="flex items-center gap-2">
                 <h1 className="font-sans font-bold text-base sm:text-lg text-[#102744] flex items-center gap-1.5 leading-tight">
                   <span>{trip.from}</span>
-                  <span className="text-[#0097A7]">→</span>
+                  <span className="text-[#2B4294]">→</span>
                   <span>{trip.to}</span>
                 </h1>
-                <span className="text-[11px] font-bold text-[#0097A7] uppercase bg-[#E0F7FA] px-2 py-0.5 rounded-md hidden sm:inline">
+                <span className="text-[11px] font-bold text-[#2B4294] uppercase bg-[#EBF4FC] px-2 py-0.5 rounded-md hidden sm:inline">
                   {trip.vehicle.name}
                 </span>
               </div>
@@ -133,8 +133,8 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
               <span className="hidden sm:inline">1. Chọn chuyến</span>
             </div>
             <span className="text-[#CBD5E1]">→</span>
-            <div className="flex items-center gap-1.5 text-white bg-[#0097A7] px-3 py-1 rounded-full shadow-xs">
-              <span className="w-3.5 h-3.5 rounded-full bg-white text-[#0097A7] flex items-center justify-center text-[9px] font-bold">2</span>
+            <div className="flex items-center gap-1.5 text-white bg-[#2B4294] px-3 py-1 rounded-full shadow-xs">
+              <span className="w-3.5 h-3.5 rounded-full bg-white text-[#2B4294] flex items-center justify-center text-[9px] font-bold">2</span>
               <span>2. Chọn chỗ</span>
             </div>
             <span className="text-[#CBD5E1]">→</span>
@@ -213,12 +213,12 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
             {/* Ticket Header Label */}
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#E5E3DC]">
               <div className="flex items-center gap-2">
-                <TicketIcon className="w-4 h-4 text-[#0097A7]" />
+                <TicketIcon className="w-4 h-4 text-[#2B4294]" />
                 <span className="text-xs font-bold uppercase tracking-wider text-[#102744]">
                   Sơ đồ vị trí chỗ ngồi • {trip.operator}
                 </span>
               </div>
-              <span className="text-[11px] font-semibold text-[#0097A7] bg-[#E0F7FA] px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-semibold text-[#2B4294] bg-[#EBF4FC] px-2.5 py-0.5 rounded-full">
                 Mã: {trip.code}
               </span>
             </div>
@@ -279,7 +279,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
               </div>
               <div className="flex justify-between items-center text-[11px]">
                 <span className="text-[#647084]">Giờ chạy:</span>
-                <span className="font-bold text-[#0097A7]">{trip.departureTime}</span>
+                <span className="font-bold text-[#2B4294]">{trip.departureTime}</span>
               </div>
               <div className="flex justify-between items-center text-[11px]">
                 <span className="text-[#647084]">Dòng xe:</span>
@@ -291,14 +291,14 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
               </div>
               <div className="flex justify-between items-center text-[11px] pt-1 border-t border-[#E5E3DC]">
                 <span className="text-[#647084]">Đã chọn:</span>
-                <span className={`font-bold ${isEnoughSeats ? 'text-emerald-600' : 'text-[#0097A7]'}`}>
+                <span className={`font-bold ${isEnoughSeats ? 'text-emerald-600' : 'text-[#2B4294]'}`}>
                   {selectedSeats.length} / {passengersCount}
                 </span>
               </div>
               {selectedSeats.length > 0 && (
                 <div className="flex justify-between items-center text-[11px]">
                   <span className="text-[#647084]">Mã ghế:</span>
-                  <span className="font-bold text-[#0097A7]">{selectedSeats.join(', ')}</span>
+                  <span className="font-bold text-[#2B4294]">{selectedSeats.join(', ')}</span>
                 </div>
               )}
             </div>
@@ -345,7 +345,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                 </div>
                 <div className="flex justify-between text-[#647084]">
                   <span>Phương tiện:</span>
-                  <span className="font-semibold text-[#0097A7]">{trip.vehicle.name}</span>
+                  <span className="font-semibold text-[#2B4294]">{trip.vehicle.name}</span>
                 </div>
                 <div className="flex justify-between text-[#647084] pt-1 border-t border-[#E5E3DC]">
                   <span>Ghế đang chọn:</span>
@@ -391,7 +391,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                       Đủ số lượng ✓
                     </span>
                   ) : (
-                    <span className="text-[10px] font-semibold text-[#0097A7] bg-[#E0F7FA] px-2 py-0.5 rounded-full shrink-0">
+                    <span className="text-[10px] font-semibold text-[#2B4294] bg-[#EBF4FC] px-2 py-0.5 rounded-full shrink-0">
                       Thiếu {passengersCount - selectedSeats.length} ghế
                     </span>
                   )}
@@ -424,16 +424,16 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.7 }}
                             transition={{ duration: 0.16 }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#E0F7FA] text-[#007887] border border-[#0097A7]/40 rounded-lg font-bold text-xs shadow-2xs"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EBF4FC] text-[#1E2F6B] border border-[#2B4294]/40 rounded-lg font-bold text-xs shadow-2xs"
                           >
                             <span>{code}</span>
-                            <span className="text-[10px] font-normal text-[#0097A7]">
+                            <span className="text-[10px] font-normal text-[#2B4294]">
                               ({bookingService.formatCurrency(seatPrice)})
                             </span>
                             <button
                               type="button"
                               onClick={() => onRemoveSeatCode(code)}
-                              className="hover:bg-[#0097A7] hover:text-white rounded-full p-0.5 transition-colors cursor-pointer ml-0.5"
+                              className="hover:bg-[#2B4294] hover:text-white rounded-full p-0.5 transition-colors cursor-pointer ml-0.5"
                               aria-label={`Bỏ chọn ghế ${code}`}
                             >
                               <X className="w-3 h-3" />
@@ -454,7 +454,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                 <span className="text-[10px] uppercase font-bold text-[#647084] block">
                   Tổng tạm tính
                 </span>
-                <span className="font-sans font-bold text-xl sm:text-2xl text-[#0097A7] leading-tight block">
+                <span className="font-sans font-bold text-xl sm:text-2xl text-[#2B4294] leading-tight block">
                   {bookingService.formatCurrency(totalPrice)}
                 </span>
               </div>
@@ -470,7 +470,7 @@ export const SeatSelectionModal: React.FC<SeatSelectionModalProps> = ({
                       ? 'Tiếp tục điền thông tin hành khách'
                       : `Vui lòng chọn đủ ${passengersCount} ghế để tiếp tục`
                   }
-                  className="py-3 px-5 sm:px-6 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                  className="py-3 px-5 sm:px-6 bg-[#2B4294] hover:bg-[#1E2F6B] active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-[#2B4294]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-[#2B4294]"
                 >
                   <span>Tiếp tục điền thông tin</span>
                   <ArrowRight className="w-4 h-4" />

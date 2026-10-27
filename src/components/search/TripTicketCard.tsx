@@ -53,7 +53,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
               </div>
               <div className="w-[115px] lg:w-[130px]">
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="text-[10px] font-bold text-[#0097A7] uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-[#2B4294] uppercase tracking-wider">
                     {trip.operator}
                   </span>
                 </div>
@@ -86,15 +86,15 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
               {/* Duration connector */}
               <div className="flex-1 mx-2.5 lg:mx-4 flex flex-col items-center max-w-[140px]">
                 <span className="text-[11px] font-medium text-[#647084] mb-1 flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-[#0097A7]" />
+                  <Clock className="w-3 h-3 text-[#2B4294]" />
                   {trip.duration}
                 </span>
                 <div className="w-full relative flex items-center">
                   <div className="w-full h-0.5 bg-[#CBD5E1]" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#0097A7] ring-2 ring-white absolute left-0" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#F3B54A] ring-2 ring-white absolute right-0" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#2B4294] ring-2 ring-white absolute left-0" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#F5AE1B] ring-2 ring-white absolute right-0" />
                 </div>
-                <span className="text-[10px] text-[#0097A7] font-semibold mt-0.5">
+                <span className="text-[10px] text-[#2B4294] font-semibold mt-0.5">
                   Đi thẳng
                 </span>
               </div>
@@ -128,7 +128,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
               onClick={() => setIsExpanded(!isExpanded)}
               aria-expanded={isExpanded}
               aria-controls={`trip-details-${trip.id}`}
-              className="text-xs text-[#0097A7] hover:text-[#007887] font-medium flex items-center gap-1 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] rounded-md px-1 py-0.5"
+              className="text-xs text-[#2B4294] hover:text-[#1E2F6B] font-medium flex items-center gap-1 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B4294] rounded-md px-1 py-0.5"
             >
               <span>Chi tiết chuyến</span>
               {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -155,7 +155,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
           {/* Price & Seats remaining */}
           <div className="w-full">
             <span className="text-[11px] text-[#647084] block font-medium">Giá vé 1 khách</span>
-            <div className="font-sans text-2xl font-bold text-[#0097A7] leading-tight mt-0.5">
+            <div className="font-sans text-2xl font-bold text-[#2B4294] leading-tight mt-0.5">
               {trip.price === 0 ? (
                 <span className="text-emerald-600 inline-flex items-center gap-1">
                   0 ₫ <span className="text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">TEST</span>
@@ -185,7 +185,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
               className={`w-full py-2 px-3 text-white font-semibold text-xs lg:text-sm rounded-xl shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                 availableSeats === 0
                   ? 'bg-[#475569] hover:bg-[#334155] focus-visible:ring-slate-500'
-                  : 'bg-[#0097A7] hover:bg-[#007887] active:scale-97 shadow-[#0097A7]/25 focus-visible:ring-[#0097A7]'
+                  : 'bg-[#2B4294] hover:bg-[#1E2F6B] active:scale-97 shadow-[#2B4294]/25 focus-visible:ring-[#2B4294]'
               }`}
               aria-label={
                 availableSeats === 0
@@ -217,7 +217,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-bold text-[#0097A7] uppercase">
+                <span className="text-[10px] font-bold text-[#2B4294] uppercase">
                   {trip.operator}
                 </span>
                 <span className="text-[10px] text-[#647084]">#{trip.code}</span>
@@ -259,15 +259,15 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
           {/* Duration */}
           <div className="flex-1 mx-2 flex flex-col items-center">
             <span className="text-[10px] font-medium text-[#647084] mb-0.5 flex items-center gap-1">
-              <Clock className="w-2.5 h-2.5 text-[#0097A7]" />
+              <Clock className="w-2.5 h-2.5 text-[#2B4294]" />
               {trip.duration}
             </span>
             <div className="w-full relative flex items-center">
               <div className="w-full h-0.5 bg-[#CBD5E1]" />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#0097A7] absolute left-0" />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#F3B54A] absolute right-0" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#2B4294] absolute left-0" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#F5AE1B] absolute right-0" />
             </div>
-            <span className="text-[9px] text-[#0097A7] font-semibold mt-0.5">Đi thẳng</span>
+            <span className="text-[9px] text-[#2B4294] font-semibold mt-0.5">Đi thẳng</span>
           </div>
 
           {/* Arrival */}
@@ -293,7 +293,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
         <div className="flex items-center justify-between gap-3 pt-1">
           <div>
             <span className="text-[10px] text-[#647084] block font-medium">Giá vé 1 khách</span>
-            <span className="font-sans text-xl font-bold text-[#0097A7]">
+            <span className="font-sans text-xl font-bold text-[#2B4294]">
               {trip.price === 0 ? (
                 <span className="text-emerald-600">0 ₫ (Miễn phí test)</span>
               ) : (
@@ -308,7 +308,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
             className={`min-h-[44px] px-4 text-white font-semibold text-sm rounded-xl shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
               availableSeats === 0
                 ? 'bg-[#475569] hover:bg-[#334155] focus-visible:ring-slate-500'
-                : 'bg-[#0097A7] hover:bg-[#007887] active:scale-97 shadow-[#0097A7]/25 focus-visible:ring-[#0097A7]'
+                : 'bg-[#2B4294] hover:bg-[#1E2F6B] active:scale-97 shadow-[#2B4294]/25 focus-visible:ring-[#2B4294]'
             }`}
             aria-label={
               availableSeats === 0
@@ -328,7 +328,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
             onClick={() => setIsExpanded(!isExpanded)}
             aria-expanded={isExpanded}
             aria-controls={`trip-details-${trip.id}`}
-            className="w-full py-1 text-xs text-[#0097A7] font-medium flex items-center justify-center gap-1 border-t border-[#F0ECE1] pt-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] rounded-md"
+            className="w-full py-1 text-xs text-[#2B4294] font-medium flex items-center justify-center gap-1 border-t border-[#F0ECE1] pt-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B4294] rounded-md"
           >
             <span>Chi tiết chuyến</span>
             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -363,7 +363,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                       key={idx}
                       className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-lg border border-[#E5E3DC] text-[11px]"
                     >
-                      <Check className="w-3 h-3 text-[#0097A7]" />
+                      <Check className="w-3 h-3 text-[#2B4294]" />
                       <span>{item}</span>
                     </span>
                   ))}
@@ -375,7 +375,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                 {/* Pickup stops */}
                 <div className="bg-white rounded-xl p-3 border border-[#E5E3DC]">
                   <span className="text-xs font-bold text-[#102744] flex items-center gap-1.5 mb-2">
-                    <MapPin className="w-3.5 h-3.5 text-[#0097A7]" />
+                    <MapPin className="w-3.5 h-3.5 text-[#2B4294]" />
                     <span>Điểm đón ({trip.from}) — {trip.departureStops.length} điểm</span>
                   </span>
                   <ul className="space-y-1.5 text-xs text-[#647084]">
@@ -385,7 +385,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                           <span className="font-semibold text-[#102744] block">{s.name}</span>
                           <span className="text-[10.5px] text-[#94A3B8]">{s.address}</span>
                         </div>
-                        <span className="text-[11px] font-semibold text-[#0097A7] shrink-0">{s.time}</span>
+                        <span className="text-[11px] font-semibold text-[#2B4294] shrink-0">{s.time}</span>
                       </li>
                     ))}
                   </ul>
@@ -394,7 +394,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                 {/* Dropoff stops */}
                 <div className="bg-white rounded-xl p-3 border border-[#E5E3DC]">
                   <span className="text-xs font-bold text-[#102744] flex items-center gap-1.5 mb-2">
-                    <MapPin className="w-3.5 h-3.5 text-[#F3B54A]" />
+                    <MapPin className="w-3.5 h-3.5 text-[#F5AE1B]" />
                     <span>Điểm trả ({trip.to}) — {trip.dropoffStops.length} điểm</span>
                   </span>
                   <ul className="space-y-1.5 text-xs text-[#647084]">
@@ -404,7 +404,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                           <span className="font-semibold text-[#102744] block">{s.name}</span>
                           <span className="text-[10.5px] text-[#94A3B8]">{s.address}</span>
                         </div>
-                        <span className="text-[11px] font-semibold text-[#F3B54A] shrink-0">{s.time}</span>
+                        <span className="text-[11px] font-semibold text-[#F5AE1B] shrink-0">{s.time}</span>
                       </li>
                     ))}
                   </ul>
@@ -418,7 +418,7 @@ export const TripTicketCard: React.FC<TripTicketCardProps> = ({
                   <span>Bảo hiểm hành khách đầy đủ</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <ArrowRightLeft className="w-3.5 h-3.5 text-[#0097A7]" />
+                  <ArrowRightLeft className="w-3.5 h-3.5 text-[#2B4294]" />
                   <span>Hỗ trợ đổi/hủy chuyến trước giờ khởi hành 24h</span>
                 </div>
               </div>

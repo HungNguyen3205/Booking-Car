@@ -175,7 +175,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
               <button
                 type="button"
                 onClick={onModifySearch}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[#647084] hover:text-[#0097A7] transition-colors p-1 -ml-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-md"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#647084] hover:text-[#2B4294] transition-colors p-1 -ml-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-md"
                 title="Quay lại trang chủ"
                 aria-label="Quay lại trang chủ"
               >
@@ -187,9 +187,9 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
 
               {/* Origin -> Destination Pill */}
               <div className="flex items-center gap-1.5 font-bold text-sm sm:text-base text-[#102744]">
-                <MapPin className="w-4 h-4 text-[#0097A7] shrink-0" />
+                <MapPin className="w-4 h-4 text-[#2B4294] shrink-0" />
                 <span>{searchParams.from}</span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
                 <span>{searchParams.to}</span>
               </div>
 
@@ -197,7 +197,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
 
               {/* Travel Date */}
               <div className="flex items-center gap-1.5 text-[#475569] font-medium text-xs sm:text-sm">
-                <Calendar className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
+                <Calendar className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
                 <span>{formatVietnamDate(searchParams.date)}</span>
               </div>
 
@@ -205,7 +205,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
 
               {/* Passengers Count */}
               <div className="flex items-center gap-1.5 text-[#475569] font-medium text-xs sm:text-sm">
-                <Users className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
+                <Users className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
                 <span>{searchParams.passengers} hành khách</span>
               </div>
             </div>
@@ -218,7 +218,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                   type="button"
                   onClick={handlePrevDay}
                   disabled={!canGoPrevDay || isLoading}
-                  className="px-2 py-1 text-xs font-medium text-[#102744] hover:text-[#0097A7] disabled:opacity-35 disabled:hover:text-[#102744] transition-colors flex items-center gap-0.5 cursor-pointer disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-lg"
+                  className="px-2 py-1 text-xs font-medium text-[#102744] hover:text-[#2B4294] disabled:opacity-35 disabled:hover:text-[#102744] transition-colors flex items-center gap-0.5 cursor-pointer disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-lg"
                   title="Xem ngày hôm trước"
                   aria-label="Xem ngày hôm trước"
                 >
@@ -230,7 +230,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                   type="button"
                   onClick={handleNextDay}
                   disabled={isLoading}
-                  className="px-2 py-1 text-xs font-medium text-[#102744] hover:text-[#0097A7] disabled:opacity-35 transition-colors flex items-center gap-0.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-lg"
+                  className="px-2 py-1 text-xs font-medium text-[#102744] hover:text-[#2B4294] disabled:opacity-35 transition-colors flex items-center gap-0.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-lg"
                   title="Xem ngày hôm sau"
                   aria-label="Xem ngày hôm sau"
                 >
@@ -243,10 +243,10 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEditingSearch(!isEditingSearch)}
-                className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] ${
+                className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] ${
                   isEditingSearch
                     ? 'bg-[#102744] text-white border-[#102744]'
-                    : 'text-[#0097A7] hover:text-[#007887] hover:bg-[#E0F7FA] border-[#0097A7]/40 bg-[#FFFEFA]'
+                    : 'text-[#2B4294] hover:text-[#1E2F6B] hover:bg-[#EBF4FC] border-[#2B4294]/40 bg-[#FFFEFA]'
                 }`}
                 aria-expanded={isEditingSearch}
                 aria-controls="inline-search-editor"
@@ -327,7 +327,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
             <button
               type="button"
               onClick={handleRetry}
-              className="px-5 py-2.5 bg-[#0097A7] text-white text-xs font-semibold rounded-xl hover:bg-[#007887] transition-all shadow-xs flex items-center justify-center gap-2 mx-auto cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+              className="px-5 py-2.5 bg-[#2B4294] text-white text-xs font-semibold rounded-xl hover:bg-[#1E2F6B] transition-all shadow-xs flex items-center justify-center gap-2 mx-auto cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294]"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Thử lại</span>
@@ -391,7 +391,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
               <button
                 type="button"
                 onClick={handleNextDay}
-                className="px-4 py-2 bg-[#0097A7] text-white text-xs font-semibold rounded-xl hover:bg-[#007887] transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                className="px-4 py-2 bg-[#2B4294] text-white text-xs font-semibold rounded-xl hover:bg-[#1E2F6B] transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294]"
               >
                 <span>Xem ngày hôm sau</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -446,7 +446,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => setQuickTimeTab(tab.id)}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] ${
                           quickTimeTab === tab.id
                             ? 'bg-[#102744] text-white shadow-2xs'
                             : 'text-[#647084] hover:text-[#102744] hover:bg-[#F7F4EC]'
@@ -459,7 +459,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
 
                   {/* Sắp xếp dropdown */}
                   <div className="flex items-center gap-1.5 bg-[#FFFEFA] px-3 py-1.5 rounded-xl border border-[#E5E3DC] text-xs shadow-2xs">
-                    <ArrowUpDown className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
+                    <ArrowUpDown className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
                     <span className="text-[#647084] hidden md:inline">Sắp xếp:</span>
                     <select
                       value={sortBy}
@@ -479,13 +479,13 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setMobileFilterOpen(true)}
-                    className="lg:hidden inline-flex items-center gap-1.5 bg-[#FFFEFA] hover:bg-[#E0F7FA] px-3 py-1.5 rounded-xl border border-[#E5E3DC] text-xs font-semibold text-[#102744] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                    className="lg:hidden inline-flex items-center gap-1.5 bg-[#FFFEFA] hover:bg-[#EBF4FC] px-3 py-1.5 rounded-xl border border-[#E5E3DC] text-xs font-semibold text-[#102744] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294]"
                     aria-label="Mở bộ lọc chuyến xe"
                   >
-                    <SlidersHorizontal className="w-3.5 h-3.5 text-[#0097A7]" />
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-[#2B4294]" />
                     <span>Bộ lọc</span>
                     {activeFiltersCount > 0 && (
-                      <span className="w-4 h-4 rounded-full bg-[#0097A7] text-white text-[10px] flex items-center justify-center font-bold">
+                      <span className="w-4 h-4 rounded-full bg-[#2B4294] text-white text-[10px] flex items-center justify-center font-bold">
                         {activeFiltersCount}
                       </span>
                     )}
@@ -509,7 +509,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="px-4 py-2 bg-[#0097A7] text-white text-xs font-semibold rounded-xl hover:bg-[#007887] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                    className="px-4 py-2 bg-[#2B4294] text-white text-xs font-semibold rounded-xl hover:bg-[#1E2F6B] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294]"
                   >
                     Xóa toàn bộ bộ lọc
                   </button>
@@ -547,7 +547,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setMobileFilterOpen(false)}
-                  className="text-xs font-bold text-[#647084] hover:text-[#102744] p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-md"
+                  className="text-xs font-bold text-[#647084] hover:text-[#102744] p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-md"
                   aria-label="Đóng bảng lọc"
                 >
                   ✕ Đóng
@@ -564,7 +564,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setMobileFilterOpen(false)}
-                className="w-full py-2.5 bg-[#0097A7] text-white font-semibold text-xs rounded-xl shadow-xs cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                className="w-full py-2.5 bg-[#2B4294] text-white font-semibold text-xs rounded-xl shadow-xs cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294]"
               >
                 Xem kết quả ({filteredTrips.length} chuyến)
               </button>

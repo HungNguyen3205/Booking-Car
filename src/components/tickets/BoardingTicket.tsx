@@ -143,13 +143,13 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
             <div>
               <div className="flex items-start justify-between gap-3 mb-5">
                 <div className="flex items-center gap-3.5">
-                  {/* Teal Animated Checkmark Icon */}
-                  <div className="w-12 h-12 rounded-full bg-[#E0F7FA] border border-[#0097A7]/30 flex items-center justify-center shrink-0 shadow-2xs">
+                  {/* Brand Blue Animated Checkmark Icon */}
+                  <div className="w-12 h-12 rounded-full bg-[#EBF4FC] border border-[#2B4294]/30 flex items-center justify-center shrink-0 shadow-2xs">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
                       <motion.path
                         d="M5 13l4 4L19 7"
                         fill="transparent"
-                        stroke="#0097A7"
+                        stroke="#2B4294"
                         strokeWidth="2.8"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -162,7 +162,7 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
 
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h1 className="font-sans text-2xl sm:text-3xl font-bold text-[#102744] tracking-tight">
+                      <h1 className="font-sans text-2xl sm:text-3xl font-bold text-[#2B4294] tracking-tight">
                         Vé điện tử
                       </h1>
                       <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">
@@ -392,10 +392,13 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
           <div className="lg:w-[280px] shrink-0 bg-[#FAF5EA] p-6 sm:p-7 flex flex-col justify-between items-center text-center rounded-b-3xl lg:rounded-b-none lg:rounded-r-3xl">
             {/* Stub Header */}
             <div>
-              <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#647084] block">
-                DANAVA GO
-              </span>
-              <span className="font-sans font-bold text-sm text-[#102744] block mt-0.5">
+              <div className="flex items-center justify-center gap-1.5 mb-0.5">
+                <img src="/assets/danava-icon.png" alt="DANAVA" className="w-5 h-5 object-contain" />
+                <span className="font-sans font-extrabold text-sm tracking-tight bg-gradient-to-r from-[#F5AE1B] via-[#F58220] to-[#EE3132] bg-clip-text text-transparent">
+                  DANAVA <span className="text-[#2B4294]">GO</span>
+                </span>
+              </div>
+              <span className="font-sans font-bold text-xs text-[#2B4294] block">
                 Cuống vé điện tử
               </span>
             </div>

@@ -132,10 +132,10 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
               type="button"
               onClick={onBack}
               disabled={isProcessing}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F7F4EC] hover:bg-[#E5E3DC] text-xs font-bold text-[#102744] rounded-xl border border-[#CBD5E1] transition-all cursor-pointer shrink-0 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F7F4EC] hover:bg-[#E5E3DC] text-xs font-bold text-[#102744] rounded-xl border border-[#CBD5E1] transition-all cursor-pointer shrink-0 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-[#2B4294]"
               title="Quay lại chỉnh sửa thông tin hành khách"
             >
-              <ArrowLeft className="w-4 h-4 text-[#0097A7]" />
+              <ArrowLeft className="w-4 h-4 text-[#2B4294]" />
               <span className="hidden xs:inline">Thông tin hành khách</span>
             </button>
 
@@ -166,8 +166,8 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
               <span className="hidden sm:inline">2. Ghế</span>
             </div>
             <span className="text-[#CBD5E1]">→</span>
-            <div className="flex items-center gap-1.5 text-white bg-[#0097A7] px-3 py-1 rounded-full shadow-xs">
-              <span className="w-3.5 h-3.5 rounded-full bg-white text-[#0097A7] flex items-center justify-center text-[9px] font-bold">3</span>
+            <div className="flex items-center gap-1.5 text-white bg-[#2B4294] px-3 py-1 rounded-full shadow-xs">
+              <span className="w-3.5 h-3.5 rounded-full bg-white text-[#2B4294] flex items-center justify-center text-[9px] font-bold">3</span>
               <span>3. Thanh toán</span>
             </div>
           </div>
@@ -196,7 +196,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
         {/* Processing State Banner */}
         {paymentState === 'processing' && (
           <div className="bg-teal-50 border border-teal-300 rounded-2xl p-4 flex items-center gap-3 text-xs text-teal-900 shadow-xs">
-            <RefreshCw className="w-5 h-5 text-[#0097A7] animate-spin shrink-0" />
+            <RefreshCw className="w-5 h-5 text-[#2B4294] animate-spin shrink-0" />
             <div>
               <span className="font-bold block text-sm">Đang kết nối cổng thanh toán mô phỏng…</span>
               <span className="text-teal-700">Vui lòng không tải lại trang hoặc bấm quay lại khi giao dịch đang được xử lý.</span>
@@ -247,7 +247,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
             <button
               type="button"
               onClick={handleResetSession}
-              className="px-4 py-1.5 bg-[#0097A7] text-white font-bold text-xs rounded-xl hover:bg-[#007887] cursor-pointer shrink-0 self-end sm:self-auto shadow-xs"
+              className="px-4 py-1.5 bg-[#2B4294] text-white font-bold text-xs rounded-xl hover:bg-[#1E2F6B] cursor-pointer shrink-0 self-end sm:self-auto shadow-xs"
             >
               Tiếp tục thanh toán
             </button>
@@ -278,8 +278,8 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                     isProcessing ? 'opacity-60 cursor-not-allowed' : ''
                   } ${
                     method === 'vietqr'
-                      ? 'bg-[#E0F7FA]/60 border-[#0097A7] ring-1 ring-[#0097A7]'
-                      : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#0097A7]'
+                      ? 'bg-[#EBF4FC]/60 border-[#2B4294] ring-1 ring-[#2B4294]'
+                      : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#2B4294]'
                   }`}
                 >
                   <input
@@ -292,9 +292,9 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                       setMethod('vietqr');
                       handleResetSession();
                     }}
-                    className="text-[#0097A7] focus:ring-[#0097A7]"
+                    className="text-[#2B4294] focus:ring-[#2B4294]"
                   />
-                  <div className="w-10 h-10 rounded-xl bg-teal-100 text-[#0097A7] flex items-center justify-center shrink-0 shadow-2xs">
+                  <div className="w-10 h-10 rounded-xl bg-teal-100 text-[#2B4294] flex items-center justify-center shrink-0 shadow-2xs">
                     <QrCode className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
@@ -316,8 +316,8 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                     isProcessing ? 'opacity-60 cursor-not-allowed' : ''
                   } ${
                     method === 'momo'
-                      ? 'bg-[#E0F7FA]/60 border-[#0097A7] ring-1 ring-[#0097A7]'
-                      : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#0097A7]'
+                      ? 'bg-[#EBF4FC]/60 border-[#2B4294] ring-1 ring-[#2B4294]'
+                      : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#2B4294]'
                   }`}
                 >
                   <input
@@ -330,7 +330,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                       setMethod('momo');
                       handleResetSession();
                     }}
-                    className="text-[#0097A7] focus:ring-[#0097A7]"
+                    className="text-[#2B4294] focus:ring-[#2B4294]"
                   />
                   <div className="w-10 h-10 rounded-xl bg-pink-100 text-pink-700 flex items-center justify-center shrink-0 shadow-2xs">
                     <Wallet className="w-5 h-5" />
@@ -349,8 +349,8 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                     isProcessing ? 'opacity-60 cursor-not-allowed' : ''
                   } ${
                     method === 'vnpay'
-                      ? 'bg-[#E0F7FA]/60 border-[#0097A7] ring-1 ring-[#0097A7]'
-                      : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#0097A7]'
+                      ? 'bg-[#EBF4FC]/60 border-[#2B4294] ring-1 ring-[#2B4294]'
+                      : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#2B4294]'
                   }`}
                 >
                   <input
@@ -363,7 +363,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                       setMethod('vnpay');
                       handleResetSession();
                     }}
-                    className="text-[#0097A7] focus:ring-[#0097A7]"
+                    className="text-[#2B4294] focus:ring-[#2B4294]"
                   />
                   <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 shadow-2xs">
                     <CreditCard className="w-5 h-5" />
@@ -382,8 +382,8 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                     isProcessing ? 'opacity-60 cursor-not-allowed' : ''
                   } ${
                     method === 'credit_card'
-                      ? 'bg-[#E0F7FA]/60 border-[#0097A7] ring-1 ring-[#0097A7]'
-                      : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#0097A7]'
+                      ? 'bg-[#EBF4FC]/60 border-[#2B4294] ring-1 ring-[#2B4294]'
+                      : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#2B4294]'
                   }`}
                 >
                   <input
@@ -396,7 +396,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                       setMethod('credit_card');
                       handleResetSession();
                     }}
-                    className="text-[#0097A7] focus:ring-[#0097A7]"
+                    className="text-[#2B4294] focus:ring-[#2B4294]"
                   />
                   <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 shadow-2xs">
                     <CreditCard className="w-5 h-5" />
@@ -423,7 +423,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                 <h3 className="font-bold text-xs text-[#102744] uppercase tracking-wider">
                   Kịch bản kiểm thử mô phỏng (Tester Sandbox Panel)
                 </h3>
-                <span className="text-[10px] text-[#0097A7] font-semibold bg-[#E0F7FA] px-2 py-0.5 rounded-md">
+                <span className="text-[10px] text-[#2B4294] font-semibold bg-[#EBF4FC] px-2 py-0.5 rounded-md">
                   FE Mock Controller
                 </span>
               </div>
@@ -508,7 +508,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
             <div className="bg-[#FFFEFA] rounded-3xl p-6 border border-[#E5E3DC] shadow-sm space-y-6">
               <h3 className="font-sans font-bold text-base sm:text-lg text-[#102744] pb-3 border-b border-[#E5E3DC] flex items-center justify-between">
                 <span>Chi tiết thanh toán</span>
-                <span className="text-xs font-semibold text-[#0097A7] bg-[#E0F7FA] px-2 py-0.5 rounded-full">
+                <span className="text-xs font-semibold text-[#2B4294] bg-[#EBF4FC] px-2 py-0.5 rounded-full">
                   #{trip.code}
                 </span>
               </h3>
@@ -529,11 +529,11 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#647084]">Thời gian xuất bến:</span>
-                  <strong className="text-[#0097A7]">{trip.departureTime}, {bookingService.formatDisplayDate(dateStr)}</strong>
+                  <strong className="text-[#2B4294]">{trip.departureTime}, {bookingService.formatDisplayDate(dateStr)}</strong>
                 </div>
                 <div className="flex justify-between items-center pt-1 border-t border-[#E5E3DC]">
                   <span className="text-[#647084]">Ghế đã chọn ({selectedSeats.length}):</span>
-                  <span className="font-bold text-[#0097A7]">{selectedSeats.join(', ')}</span>
+                  <span className="font-bold text-[#2B4294]">{selectedSeats.join(', ')}</span>
                 </div>
               </div>
 
@@ -555,7 +555,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
 
                 <div className="flex justify-between items-baseline pt-3 border-t border-dashed border-[#CBD5E1]">
                   <span className="font-bold text-sm text-[#102744]">Số tiền cần thanh toán:</span>
-                  <span className="font-sans font-bold text-2xl text-[#0097A7]">
+                  <span className="font-sans font-bold text-2xl text-[#2B4294]">
                     {bookingService.formatCurrency(totalPrice)}
                   </span>
                 </div>
@@ -567,7 +567,7 @@ export const DemoPayment: React.FC<DemoPaymentProps> = ({
                   type="button"
                   disabled={isProcessing}
                   onClick={handlePay}
-                  className="w-full py-4 px-4 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-bold text-sm rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                  className="w-full py-4 px-4 bg-[#2B4294] hover:bg-[#1E2F6B] active:scale-98 text-white font-bold text-sm rounded-xl shadow-md shadow-[#2B4294]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294]"
                 >
                   {isProcessing ? (
                     <>

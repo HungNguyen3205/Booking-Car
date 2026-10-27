@@ -190,10 +190,10 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
               type="button"
               onClick={handleBackWithDraft}
               disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F7F4EC] hover:bg-[#E5E3DC] text-xs font-bold text-[#102744] rounded-xl border border-[#CBD5E1] transition-all cursor-pointer shrink-0 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F7F4EC] hover:bg-[#E5E3DC] text-xs font-bold text-[#102744] rounded-xl border border-[#CBD5E1] transition-all cursor-pointer shrink-0 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-[#2B4294]"
               title="Quay lại sơ đồ chọn ghế (Giữ nguyên thông tin đã điền)"
             >
-              <ArrowLeft className="w-4 h-4 text-[#0097A7]" />
+              <ArrowLeft className="w-4 h-4 text-[#2B4294]" />
               <span className="hidden xs:inline">Quay lại chọn ghế</span>
             </button>
 
@@ -202,7 +202,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                 <h1 className="font-sans font-bold text-base sm:text-lg text-[#102744] leading-tight">
                   Thông tin hành khách & Điểm đón
                 </h1>
-                <span className="text-[11px] font-bold text-[#0097A7] uppercase bg-[#E0F7FA] px-2 py-0.5 rounded-md hidden sm:inline">
+                <span className="text-[11px] font-bold text-[#2B4294] uppercase bg-[#EBF4FC] px-2 py-0.5 rounded-md hidden sm:inline">
                   {trip.vehicle.name}
                 </span>
               </div>
@@ -224,8 +224,8 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
               <span className="hidden sm:inline">2. Ghế: {selectedSeats.join(', ')}</span>
             </div>
             <span className="text-[#CBD5E1]">→</span>
-            <div className="flex items-center gap-1.5 text-white bg-[#0097A7] px-3 py-1 rounded-full shadow-xs">
-              <span className="w-3.5 h-3.5 rounded-full bg-white text-[#0097A7] flex items-center justify-center text-[9px] font-bold">3</span>
+            <div className="flex items-center gap-1.5 text-white bg-[#2B4294] px-3 py-1 rounded-full shadow-xs">
+              <span className="w-3.5 h-3.5 rounded-full bg-white text-[#2B4294] flex items-center justify-center text-[9px] font-bold">3</span>
               <span>3. Thông tin</span>
             </div>
           </div>
@@ -244,11 +244,11 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
               <div className="bg-[#FFFEFA] rounded-3xl p-5 sm:p-7 border border-[#E5E3DC] shadow-sm space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-[#E5E3DC]">
                   <h2 className="font-sans font-bold text-base sm:text-lg text-[#102744] flex items-center gap-2">
-                    <User className="w-5 h-5 text-[#0097A7]" />
+                    <User className="w-5 h-5 text-[#2B4294]" />
                     <span>Người đại diện đặt vé</span>
                   </h2>
                   <span className="text-[11px] text-[#647084]">
-                    Ghế đã chọn: <strong className="text-[#0097A7]">{selectedSeats.join(', ')}</strong> ({selectedSeats.length} chỗ)
+                    Ghế đã chọn: <strong className="text-[#2B4294]">{selectedSeats.join(', ')}</strong> ({selectedSeats.length} chỗ)
                   </span>
                 </div>
 
@@ -276,7 +276,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                       aria-invalid={!!errors.fullName}
                       aria-describedby={errors.fullName ? 'err-name' : undefined}
                       placeholder="Ví dụ: Nguyễn Văn Hùng"
-                      className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden transition-all disabled:opacity-50 ${
+                      className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#2B4294] focus:outline-hidden transition-all disabled:opacity-50 ${
                         errors.fullName
                           ? 'border-red-400 bg-red-50/50 focus:ring-red-400'
                           : 'border-[#E5E3DC]'
@@ -317,7 +317,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                         aria-invalid={!!errors.phone}
                         aria-describedby={errors.phone ? 'err-phone' : undefined}
                         placeholder="0905123456"
-                        className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden transition-all disabled:opacity-50 ${
+                        className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#2B4294] focus:outline-hidden transition-all disabled:opacity-50 ${
                           errors.phone
                             ? 'border-red-400 bg-red-50/50 focus:ring-red-400'
                             : 'border-[#E5E3DC]'
@@ -356,7 +356,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                         aria-invalid={!!errors.email}
                         aria-describedby={errors.email ? 'err-email' : undefined}
                         placeholder="tenban@gmail.com"
-                        className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden transition-all disabled:opacity-50 ${
+                        className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border text-sm font-medium text-[#102744] focus:ring-2 focus:ring-[#2B4294] focus:outline-hidden transition-all disabled:opacity-50 ${
                           errors.email
                             ? 'border-red-400 bg-red-50/50 focus:ring-red-400'
                             : 'border-[#E5E3DC]'
@@ -376,7 +376,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
               {/* Pickup & Dropoff Stops Selection */}
               <div className="bg-[#FFFEFA] rounded-3xl p-5 sm:p-7 border border-[#E5E3DC] shadow-sm space-y-5">
                 <h2 className="font-sans font-bold text-base sm:text-lg text-[#102744] flex items-center gap-2 pb-3 border-b border-[#E5E3DC]">
-                  <MapPin className="w-5 h-5 text-[#0097A7]" />
+                  <MapPin className="w-5 h-5 text-[#2B4294]" />
                   <span>Điểm đón và trả khách chính xác</span>
                 </h2>
 
@@ -394,8 +394,8 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                         key={stop.id}
                         className={`flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition-all ${
                           pickupStopId === stop.id
-                            ? 'bg-[#E0F7FA]/60 border-[#0097A7] ring-1 ring-[#0097A7]'
-                            : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#0097A7]'
+                            ? 'bg-[#EBF4FC]/60 border-[#2B4294] ring-1 ring-[#2B4294]'
+                            : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#2B4294]'
                         }`}
                       >
                         <input
@@ -407,12 +407,12 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                             setPickupStopId(stop.id);
                             if (errors.pickupStopId) setErrors((prev) => ({ ...prev, pickupStopId: '' }));
                           }}
-                          className="mt-1 text-[#0097A7] focus:ring-[#0097A7]"
+                          className="mt-1 text-[#2B4294] focus:ring-[#2B4294]"
                         />
                         <div className="flex-1 text-xs">
                           <div className="flex justify-between items-center">
                             <span className="font-bold text-[#102744]">{stop.name}</span>
-                            <span className="text-[#0097A7] font-semibold">{stop.time}</span>
+                            <span className="text-[#2B4294] font-semibold">{stop.time}</span>
                           </div>
                           <p className="text-[#647084] mt-0.5">{stop.address}</p>
                         </div>
@@ -441,8 +441,8 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                         key={stop.id}
                         className={`flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition-all ${
                           dropoffStopId === stop.id
-                            ? 'bg-[#E0F7FA]/60 border-[#0097A7] ring-1 ring-[#0097A7]'
-                            : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#0097A7]'
+                            ? 'bg-[#EBF4FC]/60 border-[#2B4294] ring-1 ring-[#2B4294]'
+                            : 'bg-[#F7F4EC]/60 border-[#E5E3DC] hover:border-[#2B4294]'
                         }`}
                       >
                         <input
@@ -454,12 +454,12 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                             setDropoffStopId(stop.id);
                             if (errors.dropoffStopId) setErrors((prev) => ({ ...prev, dropoffStopId: '' }));
                           }}
-                          className="mt-1 text-[#0097A7] focus:ring-[#0097A7]"
+                          className="mt-1 text-[#2B4294] focus:ring-[#2B4294]"
                         />
                         <div className="flex-1 text-xs">
                           <div className="flex justify-between items-center">
                             <span className="font-bold text-[#102744]">{stop.name}</span>
-                            <span className="text-[#0097A7] font-semibold">{stop.time}</span>
+                            <span className="text-[#2B4294] font-semibold">{stop.time}</span>
                           </div>
                           <p className="text-[#647084] mt-0.5">{stop.address}</p>
                         </div>
@@ -486,7 +486,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Ví dụ: Có hành lý ký gửi vali lớn, đi cùng trẻ nhỏ, hoặc cần hỗ trợ đón người cao tuổi..."
-                    className="w-full px-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border border-[#E5E3DC] text-xs font-medium text-[#102744] focus:ring-2 focus:ring-[#0097A7] focus:outline-hidden disabled:opacity-50"
+                    className="w-full px-4 py-2.5 bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] rounded-xl border border-[#E5E3DC] text-xs font-medium text-[#102744] focus:ring-2 focus:ring-[#2B4294] focus:outline-hidden disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -502,7 +502,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                       setAgreedTerms(e.target.checked);
                       if (errors.agreedTerms) setErrors((prev) => ({ ...prev, agreedTerms: '' }));
                     }}
-                    className="mt-0.5 rounded border-[#CBD5E1] text-[#0097A7] focus:ring-[#0097A7] w-4 h-4 cursor-pointer"
+                    className="mt-0.5 rounded border-[#CBD5E1] text-[#2B4294] focus:ring-[#2B4294] w-4 h-4 cursor-pointer"
                   />
                   <span className="text-xs text-[#647084] leading-relaxed">
                     Tôi xác nhận thông tin trên là chính xác và đồng ý với <strong>Chính sách hủy đổi vé</strong> của DANAVA GO. Thông tin thẻ/tài khoản thanh toán sẽ không bị lưu giữ trên hệ thống.
@@ -522,7 +522,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
               <div className="bg-[#FFFEFA] rounded-3xl p-6 border border-[#E5E3DC] shadow-sm space-y-6">
                 <h3 className="font-sans font-bold text-base sm:text-lg text-[#102744] pb-3 border-b border-[#E5E3DC] flex items-center justify-between">
                   <span>Tóm tắt đơn đặt vé</span>
-                  <span className="text-xs font-semibold text-[#0097A7] bg-[#E0F7FA] px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-semibold text-[#2B4294] bg-[#EBF4FC] px-2 py-0.5 rounded-full">
                     #{trip.code}
                   </span>
                 </h3>
@@ -539,7 +539,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#647084]">Giờ xuất bến:</span>
-                    <strong className="text-[#0097A7]">{trip.departureTime} ({trip.duration})</strong>
+                    <strong className="text-[#2B4294]">{trip.departureTime} ({trip.duration})</strong>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#647084]">Dòng xe:</span>
@@ -549,7 +549,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                     <span className="text-[#647084]">Ghế đã chọn ({selectedSeats.length}):</span>
                     <div className="flex gap-1 flex-wrap justify-end">
                       {selectedSeats.map((s) => (
-                        <span key={s} className="px-2 py-0.5 bg-[#E0F7FA] text-[#007887] font-bold rounded-md">
+                        <span key={s} className="px-2 py-0.5 bg-[#EBF4FC] text-[#1E2F6B] font-bold rounded-md">
                           {s}
                         </span>
                       ))}
@@ -588,7 +588,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                       <span className="font-bold text-sm text-[#102744] block">Tổng thanh toán:</span>
                       <span className="text-[10px] text-[#647084]">Giá trọn gói, không phụ phí</span>
                     </div>
-                    <span className="font-sans font-bold text-2xl text-[#0097A7]">
+                    <span className="font-sans font-bold text-2xl text-[#2B4294]">
                       {bookingService.formatCurrency(totalPrice)}
                     </span>
                   </div>
@@ -599,7 +599,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3.5 px-4 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-bold text-sm rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-[#0097A7]"
+                    className="w-full py-3.5 px-4 bg-[#2B4294] hover:bg-[#1E2F6B] active:scale-98 text-white font-bold text-sm rounded-xl shadow-md shadow-[#2B4294]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294]"
                   >
                     {isSubmitting ? (
                       <>

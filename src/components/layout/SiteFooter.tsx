@@ -11,33 +11,38 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
   onOpenLookup,
 }) => {
   return (
-    <footer className="bg-[#102744] text-[#E2E8F0] pt-14 pb-8 border-t border-[#1E293B]">
+    <footer className="bg-[#14204A] text-[#E2E8F0] pt-14 pb-8 border-t border-[#1E2F6B]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 mb-12">
           {/* Brand Col */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#0097A7] flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M4 12C4 8 8 6 12 12C16 18 20 16 20 12"
-                    stroke="#FFFEFA"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="5" cy="12" r="2" fill="#F3B54A" />
-                  <circle cx="19" cy="12" r="2" fill="#FFFFFF" />
-                </svg>
+              <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-xs border border-white/20 p-1 flex items-center justify-center">
+                <img
+                  src="/assets/danava-icon.png"
+                  alt="DANAVA"
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <span className="font-serif font-bold text-2xl tracking-wider text-white">
-                DANAVA <span className="text-[#00E5FF]">GO</span>
-              </span>
+              <div className="flex flex-col justify-center">
+                <div className="flex items-baseline gap-1.5 leading-none">
+                  <span className="font-sans font-black text-2xl tracking-tight bg-gradient-to-r from-[#F5AE1B] via-[#F58220] to-[#EE3132] bg-clip-text text-transparent">
+                    DANAVA
+                  </span>
+                  <span className="font-sans font-black text-xl tracking-tight text-white">
+                    GO
+                  </span>
+                </div>
+                <span className="text-[9.5px] font-bold tracking-[0.24em] text-[#53A5DB] uppercase mt-1 leading-none font-sans">
+                  SOLUTIONS
+                </span>
+              </div>
             </div>
             <p className="text-sm text-slate-300 leading-relaxed max-w-sm">
               Nền tảng đặt vé xe khách trực tuyến cao cấp. Mang đến trải nghiệm di chuyển êm ái, an toàn và văn minh trên mọi nẻo đường Việt Nam.
             </p>
-            <div className="text-xs text-slate-400 bg-white/5 p-3 rounded-xl border border-white/10">
-              <span className="text-[#F3B54A] font-semibold">Bản demo tương tác:</span> Mọi thông tin chuyến, giá vé và sơ đồ ghế phục vụ mục đích trình diễn giao diện và công nghệ.
+            <div className="text-xs text-slate-300 bg-white/5 p-3 rounded-xl border border-white/10">
+              <span className="text-[#F5AE1B] font-semibold">Bản demo tương tác:</span> Mọi thông tin chuyến, giá vé và sơ đồ ghế phục vụ mục đích trình diễn giao diện và công nghệ.
             </div>
           </div>
 
@@ -51,7 +56,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
                 <button
                   type="button"
                   onClick={() => onSelectRoute?.('Đà Nẵng', 'Huế')}
-                  className="hover:text-[#0097A7] transition-colors flex items-center gap-1.5"
+                  className="hover:text-[#53A5DB] transition-colors flex items-center gap-1.5"
                 >
                   <span>Đà Nẵng</span> → <span>Huế (Di sản)</span>
                 </button>
@@ -60,7 +65,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
                 <button
                   type="button"
                   onClick={() => onSelectRoute?.('Đà Nẵng', 'Hội An')}
-                  className="hover:text-[#0097A7] transition-colors flex items-center gap-1.5"
+                  className="hover:text-[#53A5DB] transition-colors flex items-center gap-1.5"
                 >
                   <span>Đà Nẵng</span> → <span>Hội An (Phố Cổ)</span>
                 </button>
@@ -69,7 +74,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
                 <button
                   type="button"
                   onClick={() => onSelectRoute?.('Đà Nẵng', 'Quy Nhơn')}
-                  className="hover:text-[#0097A7] transition-colors flex items-center gap-1.5"
+                  className="hover:text-[#53A5DB] transition-colors flex items-center gap-1.5"
                 >
                   <span>Đà Nẵng</span> → <span>Quy Nhơn (Biển xanh)</span>
                 </button>
@@ -78,7 +83,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
                 <button
                   type="button"
                   onClick={() => onSelectRoute?.('Huế', 'Đà Nẵng')}
-                  className="hover:text-[#0097A7] transition-colors flex items-center gap-1.5"
+                  className="hover:text-[#53A5DB] transition-colors flex items-center gap-1.5"
                 >
                   <span>Huế</span> → <span>Đà Nẵng (Khứ hồi)</span>
                 </button>
@@ -96,7 +101,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
                 <button
                   type="button"
                   onClick={onOpenLookup}
-                  className="hover:text-[#0097A7] transition-colors"
+                  className="hover:text-[#53A5DB] transition-colors"
                 >
                   Tra cứu vé điện tử
                 </button>
@@ -121,7 +126,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
             <p className="text-xs text-slate-300 leading-relaxed">
               Trang web tuân thủ các tiêu chuẩn thiết kế hiện đại, hỗ trợ phím tắt và chế độ giảm hoạt ảnh (prefers-reduced-motion) cho mọi thiết bị.
             </p>
-            <div className="flex items-center gap-2 text-xs text-[#0097A7]">
+            <div className="flex items-center gap-2 text-xs text-[#53A5DB]">
               <Shield className="w-4 h-4 shrink-0" />
               <span>Bảo mật thông tin demo cục bộ</span>
             </div>
@@ -129,11 +134,11 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+        <div className="pt-8 border-t border-[#1E2F6B] flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
           <p>© 2026 DANAVA GO. Thiết kế & phát triển cho trải nghiệm bán vé xe khách cao cấp.</p>
           <div className="flex items-center gap-1">
             <span>Được xây dựng với tình yêu</span>
-            <Heart className="w-3.5 h-3.5 text-red-400 fill-red-400 inline" />
+            <Heart className="w-3.5 h-3.5 text-[#EE3132] fill-[#EE3132] inline" />
             <span>và sự chỉn chu</span>
           </div>
         </div>

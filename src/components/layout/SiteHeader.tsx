@@ -82,32 +82,28 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
           <button
             type="button"
             onClick={() => onNavigate('home')}
-            className="flex items-center gap-3 text-left group focus-visible:outline-2 focus-visible:outline-[#0097A7] rounded-xl p-1 -ml-1 transition-transform active:scale-98 cursor-pointer"
+            className="flex items-center gap-2.5 sm:gap-3 text-left group focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-xl p-1 -ml-1 transition-transform active:scale-98 cursor-pointer"
             aria-label="Trang chủ DANAVA GO"
           >
-            {/* SVG Logo Mark: DANAVA GO Icon with Teal & Amber Accent */}
-            <div className="w-10 h-10 rounded-xl bg-[#102744] flex items-center justify-center shadow-xs transition-all group-hover:bg-[#0097A7] group-hover:scale-105">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M6 5H12C15.866 5 19 8.13401 19 12C19 15.866 15.866 19 12 19H6V5Z"
-                  stroke="#FFFEFA"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M6 12C9 9 14 15 17 12"
-                  stroke="#00E5FF"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-                <circle cx="6" cy="12" r="1.8" fill="#F3B54A" />
-                <circle cx="17" cy="12" r="1.8" fill="#00E5FF" />
-              </svg>
+            {/* Brand Logo Icon */}
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white border border-[#E5E3DC]/90 shadow-2xs flex items-center justify-center p-1 overflow-hidden transition-all group-hover:scale-105 group-hover:shadow-md">
+              <img
+                src="/assets/danava-icon.png"
+                alt="DANAVA"
+                className="w-full h-full object-contain"
+              />
             </div>
-            <div className="flex flex-col">
-              <span className="font-sans font-bold text-2xl tracking-tight text-[#102744]">
-                DANAVA <span className="text-[#0097A7]">GO</span>
+            <div className="flex flex-col justify-center">
+              <div className="flex items-baseline gap-1.5 leading-none">
+                <span className="font-sans font-black text-2xl tracking-tight bg-gradient-to-r from-[#F5AE1B] via-[#F58220] to-[#EE3132] bg-clip-text text-transparent">
+                  DANAVA
+                </span>
+                <span className="font-sans font-black text-xl tracking-tight text-[#2B4294]">
+                  GO
+                </span>
+              </div>
+              <span className="text-[9px] font-bold tracking-[0.24em] text-[#2B4294]/85 uppercase mt-1 leading-none font-sans">
+                SOLUTIONS
               </span>
             </div>
           </button>
@@ -121,8 +117,8 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                 onClick={item.action}
                 className={`px-4 py-2 rounded-full text-sm font-sans font-medium transition-all cursor-pointer ${
                   currentTab === item.id
-                    ? 'text-[#0097A7] bg-[#E0F7FA]/80 font-semibold'
-                    : 'text-[#102744] hover:text-[#0097A7] hover:bg-black/5'
+                    ? 'text-[#2B4294] bg-[#EBF4FC] font-semibold shadow-2xs'
+                    : 'text-[#2B4294] hover:text-[#53A5DB] hover:bg-black/5'
                 }`}
               >
                 {item.label}
@@ -136,14 +132,14 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
-                className="flex items-center gap-2.5 px-3.5 py-1.5 bg-[#FAF8F5] hover:bg-[#F7F4EC] border border-[#E5E3DC] hover:border-[#0097A7] rounded-full transition-all cursor-pointer shadow-2xs group font-sans"
+                className="flex items-center gap-2.5 px-3.5 py-1.5 bg-[#FAF8F5] hover:bg-[#F7F4EC] border border-[#E5E3DC] hover:border-[#2B4294] rounded-full transition-all cursor-pointer shadow-2xs group font-sans"
                 title="Tài khoản thành viên (Sandbox)"
               >
-                <div className="w-7 h-7 rounded-full bg-[#102744] group-hover:bg-[#0097A7] text-white flex items-center justify-center text-xs font-bold font-sans transition-colors">
+                <div className="w-7 h-7 rounded-full bg-[#2B4294] group-hover:bg-[#53A5DB] text-white flex items-center justify-center text-xs font-bold font-sans transition-colors">
                   {currentUser.fullName.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-[#102744] max-w-[130px] truncate leading-tight font-sans">
+                  <span className="text-xs font-bold text-[#2B4294] max-w-[130px] truncate leading-tight font-sans">
                     {currentUser.fullName}
                   </span>
                   <span className="text-[9.5px] text-[#647084] leading-tight font-sans">
@@ -158,7 +154,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
-                className="px-5 py-2 text-sm font-medium font-sans text-[#102744] hover:text-white border border-[#102744] hover:bg-[#102744] rounded-full transition-all active:scale-95 shadow-2xs cursor-pointer flex items-center gap-2"
+                className="px-5 py-2 text-sm font-medium font-sans text-[#2B4294] hover:text-white border border-[#2B4294] hover:bg-[#2B4294] rounded-full transition-all active:scale-95 shadow-2xs cursor-pointer flex items-center gap-2"
               >
                 <User className="w-4 h-4" />
                 <span>Đăng nhập</span>
@@ -171,7 +167,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-[#102744] hover:text-[#0097A7] rounded-lg"
+              className="p-2 text-[#2B4294] hover:text-[#53A5DB] rounded-lg"
               aria-label={mobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
               aria-expanded={mobileMenuOpen}
             >
@@ -191,7 +187,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                   item.action();
                   setMobileMenuOpen(false);
                 }}
-                className="w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#102744] hover:bg-[#F7F4EC] hover:text-[#0097A7]"
+                className="w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#2B4294] hover:bg-[#F7F4EC] hover:text-[#53A5DB]"
               >
                 {item.label}
               </button>
@@ -202,11 +198,11 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-3 bg-[#FAF8F5] rounded-xl border border-[#E5E3DC]">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-[#102744] text-white flex items-center justify-center text-xs font-bold font-serif">
+                      <div className="w-8 h-8 rounded-full bg-[#2B4294] text-white flex items-center justify-center text-xs font-bold font-serif">
                         {currentUser.fullName.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-[#102744]">{currentUser.fullName}</div>
+                        <div className="text-xs font-bold text-[#2B4294]">{currentUser.fullName}</div>
                         <div className="text-[10.5px] text-[#647084]">{currentUser.phone}</div>
                       </div>
                     </div>
@@ -220,7 +216,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                       setAuthModalOpen(true);
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full py-2.5 text-center text-xs font-semibold bg-[#0097A7] text-white rounded-xl shadow-xs"
+                    className="w-full py-2.5 text-center text-xs font-semibold bg-[#2B4294] text-white rounded-xl shadow-xs"
                   >
                     Xem tài khoản & Lịch sử
                   </button>
@@ -233,7 +229,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                       setAuthModalOpen(true);
                       setMobileMenuOpen(false);
                     }}
-                    className="flex-1 py-2.5 text-center text-sm font-medium border border-[#E5E3DC] rounded-xl text-[#102744]"
+                    className="flex-1 py-2.5 text-center text-sm font-medium border border-[#E5E3DC] rounded-xl text-[#2B4294]"
                   >
                     Đăng nhập
                   </button>
@@ -243,7 +239,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                       setAuthModalOpen(true);
                       setMobileMenuOpen(false);
                     }}
-                    className="flex-1 py-2.5 text-center text-sm font-semibold bg-[#102744] text-white rounded-xl shadow-xs"
+                    className="flex-1 py-2.5 text-center text-sm font-semibold bg-[#2B4294] text-white rounded-xl shadow-xs"
                   >
                     Đăng ký
                   </button>

@@ -9,21 +9,21 @@ export const BookingSteps: React.FC = () => {
       title: 'Chọn chuyến đi',
       desc: 'Tìm kiếm tuyến đường mong muốn, so sánh giờ xuất bến, loại xe và mức giá tốt nhất.',
       icon: CalendarCheck2,
-      color: '#0097A7',
+      color: '#2B4294',
     },
     {
       num: '02',
       title: 'Chọn chỗ trực quan',
       desc: 'Mở sơ đồ 3D thực tế của xe, tự do chọn tầng và vị trí ghế/giường còn trống tức thì.',
       icon: Armchair,
-      color: '#F3B54A',
+      color: '#F5AE1B',
     },
     {
       num: '03',
       title: 'Nhận vé điện tử',
       desc: 'Xác nhận thông tin, thanh toán linh hoạt và nhận vé điện tử kèm mã QR lên xe tiện lợi.',
       icon: TicketCheck,
-      color: '#102744',
+      color: '#EE3132',
     },
   ];
 
@@ -32,12 +32,12 @@ export const BookingSteps: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0097A7]" />
-            <span className="text-xs font-bold tracking-widest text-[#0097A7] uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#2B4294]" />
+            <span className="text-xs font-bold tracking-widest text-[#2B4294] uppercase font-sans">
               QUY TRÌNH TINH GỌN
             </span>
           </div>
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#102744] tracking-tight">
+          <h2 className="font-sans text-3xl sm:text-4xl font-bold text-[#2B4294] tracking-tight">
             Ba bước đến hành trình
           </h2>
           <p className="mt-3 text-sm sm:text-base text-[#647084]">
@@ -55,7 +55,7 @@ export const BookingSteps: React.FC = () => {
                 y1="4"
                 x2="100%"
                 y2="4"
-                stroke="#0097A7"
+                stroke="#2B4294"
                 strokeWidth="2.5"
                 strokeDasharray="8 8"
                 initial={{ pathLength: 0 }}
@@ -75,7 +75,7 @@ export const BookingSteps: React.FC = () => {
                   className="bg-[#FFFEFA] rounded-3xl p-6 sm:p-8 border border-[#E5E3DC] shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center relative group"
                 >
                   {/* Step Number Badge */}
-                  <span className="absolute top-4 right-5 text-2xl font-serif font-bold text-[#102744]/15 group-hover:text-[#0097A7]/25 transition-colors">
+                  <span className="absolute top-4 right-5 text-2xl font-sans font-bold text-[#2B4294]/15 group-hover:text-[#2B4294]/30 transition-colors">
                     {step.num}
                   </span>
 
@@ -87,7 +87,7 @@ export const BookingSteps: React.FC = () => {
                     <Icon className="w-8 h-8" />
                   </div>
 
-                  <h3 className="font-serif text-xl font-bold text-[#102744] mb-2">
+                  <h3 className="font-sans text-xl font-bold text-[#2B4294] mb-2">
                     {step.title}
                   </h3>
 

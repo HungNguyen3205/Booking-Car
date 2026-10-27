@@ -249,7 +249,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               setToOpen(false);
               setPassengersOpen(false);
             }}
-            className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus:bg-[#FFFEFA] focus-visible:ring-2 focus-visible:ring-[#0097A7] text-left transition-all cursor-pointer ${
+            className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus:bg-[#FFFEFA] focus-visible:ring-2 focus-visible:ring-[#2B4294] text-left transition-all cursor-pointer ${
               !isHorizontalBar ? 'border border-[#E5E3DC] bg-[#F7F4EC]/60' : ''
             }`}
           >
@@ -257,14 +257,14 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               Nơi đi
             </span>
             <div className="flex items-center gap-2 overflow-hidden min-w-0">
-              <MapPin className="w-4 h-4 text-[#0097A7] shrink-0" />
+              <MapPin className="w-4 h-4 text-[#2B4294] shrink-0" />
               <div className="relative overflow-hidden min-w-0 flex-1">
                 <motion.span
                   key={`${from}-${swapCount}`}
                   initial={shouldReduceMotion ? false : { opacity: 0.25, y: isSwapping ? -5 : 0 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: 'easeOut' }}
-                  className="font-bold text-[15px] sm:text-[16px] text-[#102744] truncate block"
+                  className="font-bold text-[15px] sm:text-[16px] text-[#2B4294] truncate block"
                 >
                   {from}
                 </motion.span>
@@ -290,8 +290,8 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
                   role="option"
                   aria-selected={from === c.name}
                   onClick={() => handleSelectFrom(c.name)}
-                  className={`w-full text-left px-3.5 py-2.5 text-xs font-medium hover:bg-[#E0F7FA] transition-colors flex justify-between items-center cursor-pointer ${
-                    from === c.name ? 'text-[#0097A7] font-bold bg-[#E0F7FA]/40' : 'text-[#102744]'
+                  className={`w-full text-left px-3.5 py-2.5 text-xs font-medium hover:bg-[#EBF4FC] transition-colors flex justify-between items-center cursor-pointer ${
+                    from === c.name ? 'text-[#2B4294] font-bold bg-[#EBF4FC]' : 'text-[#2B4294]'
                   }`}
                 >
                   <span className="font-semibold text-sm">{c.name}</span>
@@ -309,7 +309,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
           <button
             type="button"
             onClick={handleSwap}
-            className="w-8 h-8 rounded-full bg-[#FFFDF8] hover:bg-[#E0F7FA] text-[#102744] hover:text-[#0097A7] border border-[#E5E3DC] hover:border-[#0097A7]/40 shadow-2xs flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7]"
+            className="w-8 h-8 rounded-full bg-[#FFFDF8] hover:bg-[#EBF4FC] text-[#2B4294] hover:text-[#53A5DB] border border-[#E5E3DC] hover:border-[#2B4294]/40 shadow-2xs flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B4294]"
             title="Đổi chiều nơi đi - nơi đến"
             aria-label="Đổi nơi đi và nơi đến"
           >
@@ -338,7 +338,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               setFromOpen(false);
               setPassengersOpen(false);
             }}
-            className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus:bg-[#FFFEFA] focus-visible:ring-2 focus-visible:ring-[#0097A7] text-left transition-all cursor-pointer ${
+            className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus:bg-[#FFFEFA] focus-visible:ring-2 focus-visible:ring-[#2B4294] text-left transition-all cursor-pointer ${
               !isHorizontalBar ? 'border border-[#E5E3DC] bg-[#F7F4EC]/60' : ''
             }`}
           >
@@ -346,14 +346,14 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               Nơi đến
             </span>
             <div className="flex items-center gap-2 overflow-hidden min-w-0">
-              <MapPin className="w-4 h-4 text-[#D97706] shrink-0" />
+              <MapPin className="w-4 h-4 text-[#F5AE1B] shrink-0" />
               <div className="relative overflow-hidden min-w-0 flex-1">
                 <motion.span
                   key={`${to}-${swapCount}`}
                   initial={shouldReduceMotion ? false : { opacity: 0.25, y: isSwapping ? 5 : 0 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: 'easeOut' }}
-                  className="font-bold text-[15px] sm:text-[16px] text-[#102744] truncate block"
+                  className="font-bold text-[15px] sm:text-[16px] text-[#2B4294] truncate block"
                 >
                   {to}
                 </motion.span>
@@ -379,8 +379,8 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
                   role="option"
                   aria-selected={to === c.name}
                   onClick={() => handleSelectTo(c.name)}
-                  className={`w-full text-left px-3.5 py-2.5 text-xs font-medium hover:bg-[#FEF3D6] transition-colors flex justify-between items-center cursor-pointer ${
-                    to === c.name ? 'text-[#D97706] font-bold bg-[#FEF3D6]/50' : 'text-[#102744]'
+                  className={`w-full text-left px-3.5 py-2.5 text-xs font-medium hover:bg-[#FEF7E6] transition-colors flex justify-between items-center cursor-pointer ${
+                    to === c.name ? 'text-[#2B4294] font-bold bg-[#FEF7E6]' : 'text-[#2B4294]'
                   }`}
                 >
                   <span className="font-semibold text-sm">{c.name}</span>
@@ -401,7 +401,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
             ======================================================== */}
         <div data-search-field="date" className="relative min-w-0">
           <div
-            className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus-within:bg-[#FFFEFA] focus-within:ring-2 focus-within:ring-[#0097A7] cursor-pointer transition-all ${
+            className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus-within:bg-[#FFFEFA] focus-within:ring-2 focus-within:ring-[#2B4294] cursor-pointer transition-all ${
               !isHorizontalBar ? 'border border-[#E5E3DC] bg-[#F7F4EC]/60' : ''
             }`}
           >
@@ -409,8 +409,8 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               Ngày đi
             </span>
             <div className="flex items-center gap-2 overflow-hidden min-w-0">
-              <Calendar className="w-4 h-4 text-[#0097A7] shrink-0 pointer-events-none" />
-              <span className="font-bold text-[15px] sm:text-[16px] text-[#102744] select-none whitespace-nowrap">
+              <Calendar className="w-4 h-4 text-[#2B4294] shrink-0 pointer-events-none" />
+              <span className="font-bold text-[15px] sm:text-[16px] text-[#2B4294] select-none whitespace-nowrap">
                 {formatVietnamDate(date) || 'Chọn ngày'}
               </span>
             </div>
@@ -449,7 +449,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               setFromOpen(false);
               setToOpen(false);
             }}
-            className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus:bg-[#FFFEFA] focus-visible:ring-2 focus-visible:ring-[#0097A7] text-left transition-all cursor-pointer ${
+            className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus:bg-[#FFFEFA] focus-visible:ring-2 focus-visible:ring-[#2B4294] text-left transition-all cursor-pointer ${
               !isHorizontalBar ? 'border border-[#E5E3DC] bg-[#F7F4EC]/60' : ''
             }`}
           >
@@ -457,8 +457,8 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               Hành khách
             </span>
             <div className="flex items-center gap-2 overflow-hidden min-w-0">
-              <Users className="w-4 h-4 text-[#0097A7] shrink-0" />
-              <span className="font-bold text-[15px] sm:text-[16px] text-[#102744] whitespace-nowrap">
+              <Users className="w-4 h-4 text-[#2B4294] shrink-0" />
+              <span className="font-bold text-[15px] sm:text-[16px] text-[#2B4294] whitespace-nowrap">
                 {passengers} người
               </span>
             </div>
@@ -482,12 +482,12 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
                     setPassengersOpen(false);
                     setErrorMsg(null);
                   }}
-                  className={`w-full text-left px-4 py-2.5 text-xs font-medium hover:bg-[#E0F7FA] transition-colors flex items-center justify-between cursor-pointer ${
-                    passengers === num ? 'text-[#0097A7] font-bold bg-[#E0F7FA]/40' : 'text-[#102744]'
+                  className={`w-full text-left px-4 py-2.5 text-xs font-medium hover:bg-[#EBF4FC] transition-colors flex items-center justify-between cursor-pointer ${
+                    passengers === num ? 'text-[#2B4294] font-bold bg-[#EBF4FC]' : 'text-[#2B4294]'
                   }`}
                 >
                   <span className="font-semibold text-sm">{num} người</span>
-                  {passengers === num && <span className="text-[#0097A7] font-bold">✓</span>}
+                  {passengers === num && <span className="text-[#2B4294] font-bold">✓</span>}
                 </button>
               ))}
             </div>
@@ -501,7 +501,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-[54px] sm:h-[58px] px-7 sm:px-8 bg-[#0097A7] hover:bg-[#00838F] active:bg-[#007887] active:scale-[0.98] text-[#FFFEFA] font-bold text-[15px] rounded-xl shadow-md shadow-[#0097A7]/25 flex items-center justify-center gap-2.5 transition-all cursor-pointer whitespace-nowrap disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] focus-visible:ring-offset-2"
+            className="w-full h-[54px] sm:h-[58px] px-7 sm:px-8 bg-[#2B4294] hover:bg-[#1E2F6B] active:bg-[#14204A] active:scale-[0.98] text-[#FFFEFA] font-bold text-[15px] rounded-xl shadow-md shadow-[#2B4294]/30 flex items-center justify-center gap-2.5 transition-all cursor-pointer whitespace-nowrap disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B4294] focus-visible:ring-offset-2"
           >
             {isLoading ? (
               <>

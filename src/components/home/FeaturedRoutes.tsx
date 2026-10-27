@@ -71,12 +71,12 @@ export const FeaturedRoutes: React.FC<FeaturedRoutesProps> = ({
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
           <div>
-            <div className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-[#0097A7] uppercase mb-1.5">
-              <Compass className="w-3.5 h-3.5 text-[#0097A7]" />
+            <div className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-[#2B4294] uppercase mb-1.5 font-sans">
+              <Compass className="w-3.5 h-3.5 text-[#2B4294]" />
               <span>ĐIỂM ĐẾN NỔI BẬT DANAVA GO</span>
             </div>
-            <h2 className="font-serif font-bold text-2xl sm:text-3xl lg:text-[34px] leading-tight text-[#102744]">
-              Mỗi cung đường, <span className="text-[#0097A7]">một câu chuyện di sản.</span>
+            <h2 className="font-sans font-bold text-2xl sm:text-3xl lg:text-[34px] leading-tight text-[#2B4294]">
+              Mỗi cung đường, <span className="text-[#53A5DB]">một câu chuyện di sản.</span>
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-[#647084] max-w-md">
@@ -89,7 +89,7 @@ export const FeaturedRoutes: React.FC<FeaturedRoutesProps> = ({
           {destinationCards.map((card) => (
             <div
               key={card.id}
-              className="group relative rounded-2xl overflow-hidden border border-[#E5E3DC] hover:border-[#0097A7]/60 shadow-2xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between bg-[#102744] h-[220px] sm:h-[240px] p-4"
+              className="group relative rounded-2xl overflow-hidden border border-[#E5E3DC] hover:border-[#2B4294]/60 shadow-2xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between bg-[#14204A] h-[220px] sm:h-[240px] p-4"
             >
               {/* Background Landscape Photo */}
               <img
@@ -100,11 +100,11 @@ export const FeaturedRoutes: React.FC<FeaturedRoutesProps> = ({
               />
 
               {/* Gradient Overlay for high readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#102744] via-[#102744]/40 to-black/30 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#14204A] via-[#14204A]/50 to-black/30 pointer-events-none" />
 
               {/* Top Badge Strip */}
               <div className="relative z-10 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-white bg-[#0097A7]/90 backdrop-blur-xs px-2.5 py-1 rounded-full shadow-xs">
+                <span className="text-[11px] font-bold text-white bg-[#2B4294]/90 backdrop-blur-xs px-2.5 py-1 rounded-full shadow-xs">
                   {card.badge}
                 </span>
                 <span className="text-xs font-semibold text-[#FFFEFA]/90 bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-md">
@@ -115,7 +115,7 @@ export const FeaturedRoutes: React.FC<FeaturedRoutesProps> = ({
               {/* Bottom Info and Dual Real Action Buttons */}
               <div className="relative z-10 flex flex-col gap-2">
                 <div>
-                  <h3 className="font-serif font-bold text-white text-base sm:text-lg drop-shadow-xs">
+                  <h3 className="font-sans font-bold text-white text-base sm:text-lg drop-shadow-xs">
                     {card.title}
                   </h3>
                   <p className="text-[11px] text-[#E2E8F0] line-clamp-1 opacity-90">
@@ -132,14 +132,14 @@ export const FeaturedRoutes: React.FC<FeaturedRoutesProps> = ({
                     title="Khám phá cảnh hành trình và cập nhật form"
                     aria-label={`Xem cảnh hành trình tuyến ${card.title}`}
                   >
-                    <Sparkles className="w-3 h-3 text-[#00E5FF]" />
+                    <Sparkles className="w-3 h-3 text-[#F5AE1B]" />
                     <span>Xem hành trình</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => onSelectRoute(card.from, card.to)}
-                    className="inline-flex items-center justify-center gap-1 py-1.5 px-2 bg-[#0097A7] hover:bg-[#00838F] active:scale-95 text-white text-[11px] font-bold rounded-lg transition-all cursor-pointer shadow-xs focus-visible:outline-2 focus-visible:outline-[#00E5FF]"
+                    className="inline-flex items-center justify-center gap-1 py-1.5 px-2 bg-[#2B4294] hover:bg-[#1E2F6B] active:scale-95 text-white text-[11px] font-bold rounded-lg transition-all cursor-pointer shadow-xs focus-visible:outline-2 focus-visible:outline-[#53A5DB]"
                     title="Tìm chuyến xe ngay cho tuyến này"
                     aria-label={`Tìm vé ngay tuyến ${card.title}`}
                   >

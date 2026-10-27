@@ -1,13 +1,430 @@
-.seat-experience{color:#102744;--seat-light:#4c637e;--seat-body:#203852;--seat-dark:#101e30;--seat-pillow:#8295aa;font-family:'Be Vietnam Pro',sans-serif}
-.seat-experience-heading{display:flex;align-items:center;gap:14px;margin-bottom:22px}.seat-theme-icon{background:#102744;color:#e2c28a;width:54px;height:54px;border-radius:16px;display:grid;place-items:center}.seat-experience-heading p{font-size:9px;font-weight:800;letter-spacing:.16em;color:#0097a7;margin:0 0 4px}.seat-experience-heading h3{font-size:24px;line-height:1.2;font-weight:800;letter-spacing:-.04em;margin:0}.seat-experience-heading span:not(.seat-theme-icon):not(.seat-capacity){font-size:11px;color:#758299}.seat-capacity{margin-left:auto;border:1px solid #dbd5c8;border-radius:20px;padding:7px 12px;font-size:11px;white-space:nowrap}
-.seat-map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}.seat-floor-tabs,.seat-view-tabs{display:flex;gap:4px;background:#ebe7df;padding:4px;border-radius:13px}.seat-map-toolbar button{display:flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:9px;padding:9px 12px;font-size:11px;font-weight:700;cursor:pointer;color:#617087;min-height:38px}.seat-map-toolbar button[aria-pressed=true]{background:#102744;color:#fff;box-shadow:0 3px 8px #1027441a}.seat-map-toolbar button small{font-weight:400;font-size:9px;opacity:.8}.seat-view-tabs button[aria-pressed=true]{background:#0097a7}.seat-map-invitation{font-size:11px;color:#758299;display:flex;justify-content:space-between;align-items:center;margin:12px 0}.seat-map-invitation>span{display:flex;align-items:center;gap:5px;color:#0097a7;font-size:10px;font-weight:700}.seat-floor-full{font-size:12px;background:#fff2d9;color:#85520d;padding:12px;border-radius:10px}
-.seat-chassis-scroll{max-width:100%;overflow:auto;padding:18px 8px 24px;background:radial-gradient(ellipse at center,#f1ece2,transparent 75%);border-radius:20px;scrollbar-width:thin;scrollbar-color:#bab4a7 transparent}.seat-chassis{position:relative;isolation:isolate;display:flex;width:max-content;margin:auto;border:9px solid #3a4650;border-radius:76px 39px 39px 76px;background:repeating-linear-gradient(0deg,#75685a 0,#75685a 15px,#6b5e52 16px,#807366 18px);padding:19px 22px 19px 15px;box-shadow:inset 0 0 0 2px #b3b8b8,inset 0 0 16px #07142080,0 20px 27px -17px #10274480;gap:20px}.seat-chassis:before,.seat-chassis:after{content:'';position:absolute;left:65px;right:30px;height:5px;border-radius:5px;background:linear-gradient(90deg,#5f7a89,#cdd3cf,#52707c);box-shadow:0 0 0 1px #1c2a35}.seat-chassis:before{top:-7px}.seat-chassis:after{bottom:-7px}.seat-cockpit{position:relative;width:116px;flex-shrink:0;border-radius:50px 15px 15px 50px;background:linear-gradient(90deg,#26353c,#4b4740);border-right:2px solid #bcac93;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:20px 8px;min-height:220px}.cockpit-windshield{position:absolute;left:0;top:20px;bottom:20px;width:20px;border:3px solid #1b2630;border-radius:60% 12px 12px 60%;background:linear-gradient(120deg,#1a3240,#85aab5aa,#273e48)}.cockpit-dashboard{display:flex;gap:3px;transform:rotate(-12deg);margin-left:18px;padding:10px 7px;background:#14242c;border-radius:7px}.cockpit-dashboard span{width:10px;height:14px;border:1px solid #749c9e;background:#195b72;box-shadow:inset 0 0 4px #6ed3dd}.cockpit-driver{margin-left:20px;color:#cebd9c;display:grid;justify-items:center;gap:7px}.cockpit-driver small{font-size:7px;letter-spacing:.12em}.driver-chair{width:39px;height:45px;border-radius:12px;background:linear-gradient(90deg,#334a54,#59737a,#253f48);border:3px solid #1e3039;box-shadow:inset 0 0 0 1px #8ca1a0}.cockpit-door{color:#e0c89c;font-size:8px;display:flex;align-items:center;gap:4px;margin-left:15px}.seat-passenger-deck{display:flex;flex-direction:column;gap:6px;padding:5px 0}.seat-lane{display:flex;gap:10px}.seat-aisle{height:34px;display:flex;align-items:center;justify-content:space-between;font-size:7px;letter-spacing:.16em;color:#e5d8c2;padding:0 12px;gap:15px}.seat-aisle i{flex:1;border-bottom:1px dashed #d6c7ae44}.seat-tail-light{position:absolute;right:-8px;top:30px;bottom:30px;width:4px;background:linear-gradient(#da7461 0 17%,transparent 17% 83%,#da7461 83%);border-radius:4px}.theme-cabin .seat-chassis{border-color:#504337;background:repeating-linear-gradient(0deg,#6d5540 0,#705a46 12px,#5d4838 13px,#6d5540 15px)}.theme-cabin .seat-aisle{height:44px;color:#f2d49f}.theme-cabin .seat-lane{gap:6px}.theme-limousine .seat-chassis{background:repeating-linear-gradient(0deg,#4d4640 0,#514b45 20px,#423c38 21px,#514b45 23px)}.theme-limousine .seat-aisle{height:48px}.theme-limousine .seat-lane{gap:9px}
-.seat-object{position:relative;display:block;flex-shrink:0;border:0;padding:0;background:transparent;cursor:pointer;filter:drop-shadow(1px 4px 2px #08142390);touch-action:manipulation;border-radius:15px;transition:filter .18s;--seat-light:#4c637e;--seat-body:#203852;--seat-dark:#101e30;--seat-pillow:#8295aa}.seat-object:focus-visible{outline:3px solid #00c4ce;outline-offset:3px}.seat-object.is-selected{--seat-light:#48bbc3;--seat-body:#008e9b;--seat-dark:#00545e;--seat-pillow:#89dcda;filter:drop-shadow(0 0 5px #57e9dfb3)}.seat-object.is-locked{--seat-light:#74777a;--seat-body:#535960;--seat-dark:#323e48;--seat-pillow:#858a8d;cursor:not-allowed;filter:grayscale(.85) brightness(.75)}.seat-object[data-seat-state=disabled]{opacity:.4}.seat-object.is-limited{opacity:.8}.seat-object-sleeper{width:112px;height:65px}.seat-object-seat{width:74px;height:74px}.seat-object-cabin{width:133px;height:78px}.seat-object-sleeper.seat-vertical{width:65px;height:112px}.seat-object-cabin.seat-vertical{width:78px;height:133px}.seat-illustration{width:100%;height:100%;overflow:visible;display:block}.seat-code-badge{position:absolute;left:55%;top:50%;transform:translate(-50%,-50%);min-width:25px;min-height:24px;display:grid;place-items:center;padding:3px 5px;border-radius:6px;background:#f1eee5;color:#15374b;font-size:11px;font-weight:800;line-height:1;box-shadow:0 1px 4px #09152240}.seat-object-seat .seat-code-badge{left:50%;top:56%;min-width:24px;font-size:10px}.seat-object-cabin .seat-code-badge{left:53%;font-size:10px;background:#f1e0bd}.seat-vertical:not(.seat-object-seat) .seat-code-badge{left:50%;top:54%}.seat-state-icon{position:absolute;right:3px;top:2px;padding:2px;width:17px;height:17px;background:#faf7ec;color:#677381;border-radius:50%;box-shadow:0 1px 3px #10274455}.is-selected .seat-state-icon{color:#008d91}.seat-empty{display:block;flex-shrink:0}.seat-empty-sleeper{width:112px;height:65px}.seat-empty-limousine{width:74px;height:74px}.seat-empty-cabin{width:133px;height:78px}
-.chassis-vertical{flex-direction:column;gap:14px;border-radius:65px 65px 35px 35px;padding:15px 14px 23px}.chassis-vertical:before,.chassis-vertical:after{top:60px;bottom:25px;width:4px;height:auto;left:-6px;right:auto}.chassis-vertical:after{left:auto;right:-6px}.chassis-vertical .seat-cockpit{width:auto;min-height:110px;flex-direction:row;gap:20px;padding:20px 12px 8px;border-right:0;border-bottom:2px solid #bcac93;border-radius:40px 40px 10px 10px}.chassis-vertical .cockpit-windshield{top:0;left:15px;right:15px;bottom:auto;height:16px;width:auto;border-radius:50% 50% 7px 7px}.chassis-vertical .cockpit-dashboard{display:none}.chassis-vertical .cockpit-driver{margin-left:0;display:flex;flex-wrap:wrap;width:66px;justify-content:center}.chassis-vertical .cockpit-driver svg{width:22px}.chassis-vertical .driver-chair{width:25px;height:29px}.chassis-vertical .cockpit-driver small{width:100%;text-align:center}.chassis-vertical .cockpit-door{margin-left:0;max-width:55px}.chassis-vertical .seat-passenger-deck{gap:11px}.seat-cross-row{display:flex;align-items:center;gap:0}.seat-vertical-aisle{width:24px;flex-shrink:0;align-self:stretch;border-left:1px dashed #e5d8c23a;margin-left:12px}.chassis-vertical .seat-empty-sleeper{width:65px;height:112px}.chassis-vertical .seat-empty-cabin{width:78px;height:133px}.chassis-vertical .seat-tail-light{left:25px;right:25px;top:auto;bottom:-7px;width:auto;height:4px}
-.seat-map-legend{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px 21px;margin-top:9px}.seat-map-legend>span{display:flex;align-items:center;gap:6px;font-size:10px;color:#687789}.seat-map-legend i{width:16px;height:16px;border-radius:5px;background:#203852;display:grid;place-items:center;color:white}.seat-map-legend .legend-selected{background:#0097a7}.seat-map-legend .legend-booked{background:#66717b}.seat-map-legend .legend-disabled{background:#e1e4e6;color:#8d969c}.seat-selection-note{padding:13px 15px;border-radius:12px;background:#eef6f5;color:#437371;font-size:11px;line-height:1.8;margin-top:20px}.seat-layout-note{font-size:10px;text-align:center;color:#87919e;margin-top:12px;line-height:1.8}
-@media(max-width:639px){.seat-experience-heading h3{font-size:21px}.seat-experience-heading{gap:10px}.seat-capacity{font-size:9px;padding:6px 8px}.seat-theme-icon{width:44px;height:44px}.seat-map-toolbar{gap:8px}.seat-map-toolbar button{padding:8px;font-size:10px}.seat-map-toolbar button small{font-size:8px}.seat-chassis-scroll{padding:14px 0 23px}.seat-map-invitation{font-size:9px;gap:7px}.seat-chassis.chassis-vertical{border-width:7px;padding-left:10px;padding-right:10px}.seat-vertical-aisle{width:15px;margin-left:7px}.seat-map-legend{gap:9px 13px}.seat-map-legend>span{font-size:9px}}
-@media(prefers-reduced-motion:reduce){.seat-experience *{animation:none!important;transition:none!important}}
+/* ═══════════════════════════════════════════════════════════════
+   DANAVA GO — Seat Experience Design System
+   Each vehicle type (sleeper / limousine / cabin) has its own
+   full visual identity: colors, chassis texture, glow, typography.
+   ═══════════════════════════════════════════════════════════════ */
 
-.seat-map-toolbar button{min-height:44px}
-.seat-map-legend>span{font-size:11px}
-@media(max-width:639px){.seat-map-legend>span{font-size:10px}.seat-map-invitation{font-size:10px}}
+/* ── Global font + base ── */
+.seat-experience {
+  color: #102744;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+  --seat-light: #4c637e; --seat-body: #203852;
+  --seat-dark: #101e30; --seat-pillow: #8295aa;
+}
+
+/* ── Heading block ── */
+.seat-experience-heading {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+  padding-bottom: 18px; border-bottom: 1px solid rgba(16,39,68,.1);
+}
+.seat-theme-icon {
+  width: 56px; height: 56px; border-radius: 18px;
+  display: grid; place-items: center; flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(0,0,0,.2);
+  transition: transform .25s;
+}
+.seat-theme-icon:hover { transform: rotate(-6deg) scale(1.07); }
+.seat-experience-heading p {
+  font-size: 9px; font-weight: 800; letter-spacing: .18em;
+  margin: 0 0 4px;
+}
+.seat-experience-heading h3 {
+  font-size: 22px; line-height: 1.15; font-weight: 800;
+  letter-spacing: -.04em; margin: 0;
+}
+.seat-experience-heading .seat-subtitle {
+  font-size: 11px; margin-top: 3px; display: block; opacity: .7;
+}
+.seat-capacity {
+  margin-left: auto; border-radius: 22px; padding: 7px 14px;
+  font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── Toolbar ── */
+.seat-map-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.seat-floor-tabs, .seat-view-tabs {
+  display: flex; gap: 4px; padding: 4px; border-radius: 14px;
+}
+.seat-map-toolbar button {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; border-radius: 10px; padding: 9px 13px; font-size: 11px;
+  font-weight: 700; cursor: pointer; color: #617087; min-height: 44px;
+  transition: all .18s;
+}
+.seat-map-toolbar button[aria-pressed=true] {
+  color: #fff; box-shadow: 0 3px 10px rgba(0,0,0,.18);
+}
+.seat-map-toolbar button small { font-weight: 400; font-size: 9px; opacity: .8; }
+.seat-map-invitation {
+  font-size: 11px; color: #758299; display: flex;
+  justify-content: space-between; align-items: center; margin: 10px 0;
+}
+.seat-map-invitation > span {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700;
+}
+.seat-floor-full {
+  font-size: 12px; padding: 12px; border-radius: 10px; margin-bottom: 12px;
+}
+
+/* ── Chassis scroll area ── */
+.seat-chassis-scroll {
+  max-width: 100%; overflow: auto; padding: 20px 8px 26px;
+  border-radius: 22px; scrollbar-width: thin;
+}
+
+/* ── Chassis body (horizontal default) ── */
+.seat-chassis {
+  position: relative; isolation: isolate; display: flex;
+  width: max-content; margin: auto;
+  border: 9px solid #3a4650;
+  border-radius: 76px 39px 39px 76px;
+  padding: 19px 24px 19px 15px;
+  box-shadow: inset 0 0 0 2px #b3b8b8, inset 0 0 18px #07142080,
+              0 22px 30px -18px rgba(16,39,68,.5);
+  gap: 20px;
+  animation: chassis-arrive .45s cubic-bezier(.22,.9,.45,1) both;
+}
+@keyframes chassis-arrive {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.seat-chassis::before, .seat-chassis::after {
+  content: ''; position: absolute; left: 65px; right: 30px;
+  height: 5px; border-radius: 5px;
+  box-shadow: 0 0 0 1px #1c2a35;
+}
+.seat-chassis::before { top: -7px; }
+.seat-chassis::after  { bottom: -7px; }
+
+/* Tail light strip */
+.seat-tail-light {
+  position: absolute; right: -8px; top: 30px; bottom: 30px;
+  width: 5px; border-radius: 4px;
+}
+
+/* ── Cockpit ── */
+.seat-cockpit {
+  position: relative; width: 116px; flex-shrink: 0;
+  border-radius: 50px 15px 15px 50px;
+  border-right: 2px solid #bcac93;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: space-between; padding: 20px 8px; min-height: 220px;
+}
+.cockpit-windshield {
+  position: absolute; left: 0; top: 20px; bottom: 20px; width: 20px;
+  border: 3px solid #1b2630; border-radius: 60% 12px 12px 60%;
+}
+.cockpit-dashboard {
+  display: flex; gap: 3px; transform: rotate(-12deg);
+  margin-left: 18px; padding: 10px 7px;
+  background: #14242c; border-radius: 7px;
+}
+.cockpit-dashboard span {
+  width: 10px; height: 14px;
+  border: 1px solid #749c9e; background: #195b72;
+  box-shadow: inset 0 0 4px #6ed3dd;
+}
+.cockpit-driver {
+  margin-left: 20px; display: grid; justify-items: center; gap: 7px;
+}
+.cockpit-driver small { font-size: 7px; letter-spacing: .12em; }
+.driver-chair {
+  width: 39px; height: 45px; border-radius: 12px;
+  border: 3px solid #1e3039; box-shadow: inset 0 0 0 1px #8ca1a0;
+}
+.cockpit-door {
+  font-size: 8px; display: flex; align-items: center; gap: 4px; margin-left: 15px;
+}
+
+/* ── Passenger deck ── */
+.seat-passenger-deck { display: flex; flex-direction: column; gap: 6px; padding: 5px 0; }
+.seat-lane { display: flex; gap: 10px; }
+.seat-aisle {
+  height: 34px; display: flex; align-items: center;
+  justify-content: space-between; font-size: 7px;
+  letter-spacing: .16em; padding: 0 12px; gap: 15px;
+}
+.seat-aisle i { flex: 1; border-bottom: 1px dashed rgba(255,255,255,.12); }
+
+/* ══════════════════════════════════════════
+   THEME — SLEEPER: midnight blue / teal pods
+   ══════════════════════════════════════════ */
+.theme-sleeper .seat-experience-heading p  { color: #0097a7; }
+.theme-sleeper .seat-theme-icon  { background: linear-gradient(135deg,#0b2238,#103a52); color: #4dd9e8; }
+.theme-sleeper .seat-capacity    { background: #e8f8fa; color: #006d7a; border: 1px solid #b2e9ee; }
+.theme-sleeper .seat-floor-tabs,
+.theme-sleeper .seat-view-tabs   { background: #dff4f6; }
+.theme-sleeper .seat-map-toolbar button[aria-pressed=true] { background: #0097a7; }
+.theme-sleeper .seat-map-invitation > span { color: #0097a7; }
+.theme-sleeper .seat-floor-full  { background: #dff4f6; color: #00565f; border: 1px solid #b2e9ee; }
+.theme-sleeper .seat-chassis-scroll { background: radial-gradient(ellipse at center, #daf0f3, transparent 70%); scrollbar-color: #89ccd1 transparent; }
+.theme-sleeper .seat-chassis {
+  border-color: #1a3a4a;
+  background: repeating-linear-gradient(0deg,#0d2535 0,#0d2535 14px,#0b1f2c 15px,#122d3d 17px);
+}
+.theme-sleeper .seat-chassis::before,
+.theme-sleeper .seat-chassis::after { background: linear-gradient(90deg,#0097a7,#4dd9e8,#0097a7); }
+.theme-sleeper .seat-cockpit { background: linear-gradient(90deg,#0b1d2b,#162d3e); }
+.theme-sleeper .cockpit-windshield { background: linear-gradient(120deg,#0a1e2e,#6db8c4aa,#112a3b); }
+.theme-sleeper .driver-chair { background: linear-gradient(135deg,#123347,#1d4a5e,#0e2a3a); }
+.theme-sleeper .cockpit-door { color: #6fdae5; }
+.theme-sleeper .seat-aisle { color: #6fd8e3; }
+.theme-sleeper .seat-tail-light { background: linear-gradient(#56d0da 0 15%, transparent 15% 85%, #56d0da 85%); }
+.theme-sleeper .seat-map-toolbar button[aria-pressed=true] { background: #0097a7; }
+.theme-sleeper .seat-map-invitation { color: #4a7d88; }
+.theme-sleeper .seat-selection-note { background: #e6f9fa; border: 1px solid #b2e9ee; color: #2b7079; }
+
+/* ══════════════════════════════════════════
+   THEME — LIMOUSINE: warm ivory / gold VIP
+   ══════════════════════════════════════════ */
+.theme-limousine .seat-experience-heading p  { color: #b5882a; }
+.theme-limousine .seat-theme-icon  { background: linear-gradient(135deg,#1a120a,#3d2510); color: #e8c06a; }
+.theme-limousine .seat-capacity    { background: #fdf5e6; color: #8a5e1a; border: 1px solid #ecd08a; }
+.theme-limousine .seat-floor-tabs,
+.theme-limousine .seat-view-tabs   { background: #f5edd8; }
+.theme-limousine .seat-map-toolbar button[aria-pressed=true] { background: #8a5e1a; }
+.theme-limousine .seat-map-invitation > span { color: #a0711f; }
+.theme-limousine .seat-floor-full  { background: #fdf5e6; color: #6b4413; border: 1px solid #ecd08a; }
+.theme-limousine .seat-chassis-scroll { background: radial-gradient(ellipse at center, #f7edd5, transparent 70%); scrollbar-color: #d4a85a transparent; }
+.theme-limousine .seat-chassis {
+  border-color: #3a2a1a;
+  background: repeating-linear-gradient(0deg,#2e1f12 0,#2e1f12 18px,#271a0f 19px,#382515 21px);
+}
+.theme-limousine .seat-chassis::before,
+.theme-limousine .seat-chassis::after { background: linear-gradient(90deg,#b5882a,#f0d080,#b5882a); }
+.theme-limousine .seat-cockpit { background: linear-gradient(90deg,#1c1008,#3a2414); }
+.theme-limousine .cockpit-windshield { background: linear-gradient(120deg,#150d05,#a8864eaa,#281809); }
+.theme-limousine .cockpit-dashboard span { background: #5a3c12; border-color: #c09050; box-shadow: inset 0 0 4px #e0b468; }
+.theme-limousine .driver-chair { background: linear-gradient(135deg,#3a2310,#5c3a1e,#2d1b0c); }
+.theme-limousine .cockpit-door { color: #e8c06a; }
+.theme-limousine .seat-aisle { color: #d4a85a; height: 52px; }
+.theme-limousine .seat-lane { gap: 11px; }
+.theme-limousine .seat-tail-light { background: linear-gradient(#f0b840 0 15%, transparent 15% 85%, #f0b840 85%); }
+.theme-limousine .seat-map-toolbar button[aria-pressed=true] { background: #8a5e1a; }
+.theme-limousine .seat-map-invitation { color: #8a7250; }
+.theme-limousine .seat-selection-note { background: #fdf5e6; border: 1px solid #ecd08a; color: #6b4413; }
+/* Limousine seat vars */
+.theme-limousine .seat-object {
+  --seat-light: #8a7155; --seat-body: #5c4530; --seat-dark: #3a2a18;
+  --seat-pillow: #c9a87a;
+}
+.theme-limousine .seat-object.is-selected {
+  --seat-light: #c9921a; --seat-body: #a0701a; --seat-dark: #6d4a0e;
+  --seat-pillow: #f0d08a;
+  filter: drop-shadow(0 0 6px rgba(224,176,60,.65));
+}
+.theme-limousine .seat-map-legend i { background: #5c4530; }
+.theme-limousine .seat-map-legend .legend-selected { background: #9a6c18; }
+
+/* ══════════════════════════════════════════
+   THEME — CABIN: royal navy / royal gold suite
+   ══════════════════════════════════════════ */
+.theme-cabin .seat-experience-heading p  { color: #c49a30; }
+.theme-cabin .seat-theme-icon  { background: linear-gradient(135deg,#12090a,#2a1520); color: #f0c85a; }
+.theme-cabin .seat-capacity    { background: #2a1520; color: #f0c85a; border: 1px solid #6a3830; }
+.theme-cabin .seat-floor-tabs,
+.theme-cabin .seat-view-tabs   { background: #1e1018; }
+.theme-cabin .seat-floor-tabs button, .theme-cabin .seat-view-tabs button { color: #b09060; }
+.theme-cabin .seat-map-toolbar button[aria-pressed=true] { background: #6a2a18; }
+.theme-cabin .seat-map-invitation > span { color: #c49a30; }
+.theme-cabin .seat-map-invitation { color: #8a7260; }
+.theme-cabin .seat-floor-full  { background: #1e1018; color: #d4a855; border: 1px solid #6a3830; }
+.theme-cabin .seat-chassis-scroll { background: radial-gradient(ellipse at center, #1a0f13, transparent 70%); scrollbar-color: #6a3830 transparent; }
+.theme-cabin .seat-chassis {
+  border-color: #4a2a1a;
+  background: repeating-linear-gradient(0deg,#1a0e10 0,#1a0e10 12px,#150b0d 13px,#200d10 15px);
+}
+.theme-cabin .seat-chassis::before,
+.theme-cabin .seat-chassis::after { background: linear-gradient(90deg,#8a4020,#f0c850,#8a4020); }
+.theme-cabin .seat-cockpit { background: linear-gradient(90deg,#100608,#1e0e12); }
+.theme-cabin .cockpit-windshield { background: linear-gradient(120deg,#0e0408,#9a5040aa,#160a0c); }
+.theme-cabin .cockpit-dashboard span { background: #4a1810; border-color: #c08048; box-shadow: inset 0 0 4px #e09050; }
+.theme-cabin .driver-chair { background: linear-gradient(135deg,#2a100e,#4a1a18,#200c0a); }
+.theme-cabin .cockpit-door { color: #f0c85a; }
+.theme-cabin .seat-aisle { color: #f0c85a; height: 50px; }
+.theme-cabin .seat-lane { gap: 7px; }
+.theme-cabin .seat-tail-light { background: linear-gradient(#d84830 0 17%, transparent 17% 83%, #d84830 83%); }
+.theme-cabin .seat-map-toolbar button[aria-pressed=true] { background: #6a2a18; }
+.theme-cabin .seat-selection-note { background: #1e1018; border: 1px solid #6a3830; color: #d4a855; }
+/* Cabin text colors */
+.theme-cabin .seat-experience-heading h3,
+.theme-cabin .seat-experience-heading .seat-subtitle,
+.theme-cabin .seat-experience-heading p { color: #f0c85a; }
+.theme-cabin .seat-experience-heading .seat-subtitle { color: #b09060; }
+.theme-cabin .seat-map-invitation { color: #8a7260; }
+.theme-cabin .seat-layout-note { color: #7a6250; }
+/* Cabin seat vars */
+.theme-cabin .seat-object {
+  --seat-light: #8a5535; --seat-body: #5a2c18; --seat-dark: #380d08;
+  --seat-pillow: #c88040;
+}
+.theme-cabin .seat-object.is-selected {
+  --seat-light: #d4802a; --seat-body: #a85018; --seat-dark: #6a2a08;
+  --seat-pillow: #f0b860;
+  filter: drop-shadow(0 0 7px rgba(240,160,60,.7));
+}
+.theme-cabin .seat-code-badge { background: #2a1510; color: #f0c85a; }
+.theme-cabin .seat-map-legend i { background: #5a2c18; }
+.theme-cabin .seat-map-legend .legend-selected { background: #a85018; }
+.theme-cabin .seat-map-legend > span { color: #9a8060; }
+
+/* ── Seat objects (shared) ── */
+.seat-object {
+  position: relative; display: block; flex-shrink: 0;
+  border: 0; padding: 0; background: transparent; cursor: pointer;
+  filter: drop-shadow(1px 4px 3px rgba(8,20,35,.55));
+  touch-action: manipulation; border-radius: 15px;
+  transition: filter .18s, transform .18s;
+  --seat-light: #4c637e; --seat-body: #203852;
+  --seat-dark: #101e30; --seat-pillow: #8295aa;
+}
+.seat-object:focus-visible { outline: 3px solid #00c4ce; outline-offset: 4px; }
+.seat-object.is-selected {
+  --seat-light: #48bbc3; --seat-body: #008e9b;
+  --seat-dark: #00545e; --seat-pillow: #89dcda;
+  filter: drop-shadow(0 0 6px rgba(87,233,223,.65));
+}
+.seat-object.is-locked {
+  --seat-light: #74777a; --seat-body: #535960;
+  --seat-dark: #323e48; --seat-pillow: #858a8d;
+  cursor: not-allowed; filter: grayscale(.85) brightness(.72);
+}
+.seat-object[data-seat-state=disabled] { opacity: .38; }
+.seat-object.is-limited { opacity: .75; }
+
+/* Sizes */
+.seat-object-sleeper { width: 112px; height: 65px; }
+.seat-object-seat    { width: 74px;  height: 74px;  }
+.seat-object-cabin   { width: 133px; height: 78px;  }
+.seat-object-sleeper.seat-vertical { width: 65px; height: 112px; }
+.seat-object-cabin.seat-vertical   { width: 78px; height: 133px; }
+
+.seat-illustration { width: 100%; height: 100%; overflow: visible; display: block; }
+
+/* Code badge */
+.seat-code-badge {
+  position: absolute; left: 55%; top: 50%;
+  transform: translate(-50%,-50%);
+  min-width: 25px; min-height: 24px;
+  display: grid; place-items: center;
+  padding: 3px 5px; border-radius: 7px;
+  background: #f1eee5; color: #15374b;
+  font-size: 11px; font-weight: 800; line-height: 1;
+  box-shadow: 0 1px 5px rgba(9,21,34,.28);
+  pointer-events: none;
+}
+.seat-object-seat   .seat-code-badge { left: 50%; top: 56%; min-width: 24px; font-size: 10px; }
+.seat-object-cabin  .seat-code-badge { left: 53%; font-size: 10px; background: #f1e0bd; }
+.seat-vertical:not(.seat-object-seat) .seat-code-badge { left: 50%; top: 54%; }
+
+/* State icon */
+.seat-state-icon {
+  position: absolute; right: 3px; top: 2px; padding: 2px;
+  width: 17px; height: 17px; background: #faf7ec; color: #677381;
+  border-radius: 50%; box-shadow: 0 1px 4px rgba(16,39,68,.33);
+  pointer-events: none;
+}
+.is-selected .seat-state-icon { color: #008d91; }
+
+/* Empty placeholder */
+.seat-empty { display: block; flex-shrink: 0; }
+.seat-empty-sleeper   { width: 112px; height: 65px; }
+.seat-empty-limousine { width: 74px;  height: 74px; }
+.seat-empty-cabin     { width: 133px; height: 78px; }
+
+/* ── Vertical chassis ── */
+.chassis-vertical {
+  flex-direction: column; gap: 14px;
+  border-radius: 65px 65px 35px 35px;
+  padding: 15px 14px 23px;
+}
+.chassis-vertical::before, .chassis-vertical::after {
+  top: 60px; bottom: 25px; width: 4px; height: auto;
+  left: -6px; right: auto;
+}
+.chassis-vertical::after { left: auto; right: -6px; }
+.chassis-vertical .seat-cockpit {
+  width: auto; min-height: 110px; flex-direction: row;
+  gap: 20px; padding: 20px 12px 8px;
+  border-right: 0; border-bottom: 2px solid #bcac93;
+  border-radius: 40px 40px 10px 10px;
+}
+.chassis-vertical .cockpit-windshield {
+  top: 0; left: 15px; right: 15px; bottom: auto;
+  height: 16px; width: auto; border-radius: 50% 50% 7px 7px;
+}
+.chassis-vertical .cockpit-dashboard { display: none; }
+.chassis-vertical .cockpit-driver {
+  margin-left: 0; display: flex; flex-wrap: wrap;
+  width: 66px; justify-content: center;
+}
+.chassis-vertical .cockpit-driver svg { width: 22px; }
+.chassis-vertical .driver-chair { width: 25px; height: 29px; }
+.chassis-vertical .cockpit-driver small { width: 100%; text-align: center; }
+.chassis-vertical .cockpit-door { margin-left: 0; max-width: 55px; }
+.chassis-vertical .seat-passenger-deck { gap: 11px; }
+.seat-cross-row { display: flex; align-items: center; gap: 0; }
+.seat-vertical-aisle {
+  width: 24px; flex-shrink: 0; align-self: stretch;
+  border-left: 1px dashed rgba(229,216,194,.24); margin-left: 12px;
+}
+.chassis-vertical .seat-empty-sleeper { width: 65px; height: 112px; }
+.chassis-vertical .seat-empty-cabin   { width: 78px; height: 133px; }
+.chassis-vertical .seat-tail-light {
+  left: 25px; right: 25px; top: auto; bottom: -7px;
+  width: auto; height: 4px;
+}
+
+/* ── Legend ── */
+.seat-map-legend {
+  display: flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 10px 18px; margin-top: 12px;
+}
+.seat-map-legend > span {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: #687789;
+}
+.seat-map-legend i {
+  width: 18px; height: 18px; border-radius: 6px;
+  background: #203852; display: grid; place-items: center; color: white;
+}
+.seat-map-legend .legend-selected  { background: #0097a7; }
+.seat-map-legend .legend-booked    { background: #66717b; }
+.seat-map-legend .legend-disabled  { background: #e1e4e6; color: #8d969c; }
+
+/* ── Notes ── */
+.seat-selection-note {
+  padding: 13px 15px; border-radius: 14px;
+  font-size: 11px; line-height: 1.8; margin-top: 18px;
+  background: #eef6f5; color: #437371;
+}
+.seat-layout-note {
+  font-size: 10px; text-align: center; color: #87919e;
+  margin-top: 12px; line-height: 1.8;
+}
+
+/* ── Responsive ── */
+@media (max-width: 639px) {
+  .seat-experience-heading h3   { font-size: 19px; }
+  .seat-experience-heading      { gap: 10px; margin-bottom: 18px; }
+  .seat-capacity                { font-size: 9px; padding: 6px 9px; }
+  .seat-theme-icon              { width: 46px; height: 46px; border-radius: 14px; }
+  .seat-map-toolbar             { gap: 8px; }
+  .seat-map-toolbar button      { padding: 8px; font-size: 10px; min-height: 40px; }
+  .seat-map-toolbar button small{ font-size: 8px; }
+  .seat-chassis-scroll          { padding: 14px 0 22px; }
+  .seat-map-invitation          { font-size: 9px; gap: 7px; }
+  .seat-chassis.chassis-vertical{ border-width: 7px; padding-left: 10px; padding-right: 10px; }
+  .seat-vertical-aisle          { width: 14px; margin-left: 7px; }
+  .seat-map-legend              { gap: 8px 13px; }
+  .seat-map-legend > span       { font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seat-experience *, .seat-chassis { animation: none !important; transition: none !important; }
+}
+

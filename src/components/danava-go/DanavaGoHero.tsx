@@ -87,7 +87,7 @@ export const DanavaGoHero: React.FC<DanavaGoHeroProps> = ({ initialParams, onSea
           transition={{ duration: reduced ? 0 : 0.4 }}
         >
           <div className="go-eyebrow">
-            <Sparkles size={14} className="text-[#0097A7]" />
+            <Sparkles size={14} className="text-[#2B4294]" />
             <span>HÀNH TRÌNH / KHÁM PHÁ VIỆT NAM</span>
           </div>
           <h1 className="go-title">

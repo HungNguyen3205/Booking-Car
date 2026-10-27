@@ -7,18 +7,18 @@
 .journey-landmark{position:absolute;inset:0;pointer-events:none}.journey-landmark-content{position:absolute;inset:0}
 .journey-landmark-label{position:absolute;top:20.5%;left:14%;transform:translateX(-50%);text-align:center;width:210px;color:#102744;text-shadow:0 1px 10px #fff9;z-index:10;pointer-events:none}
 .journey-landmark-destination .journey-landmark-label{left:90%;top:22%}
-.journey-landmark-label>span{display:block;font-size:10px;letter-spacing:.12em;font-weight:800;color:#0097a7;margin-bottom:5px}
+.journey-landmark-label>span{display:block;font-size:10px;letter-spacing:.12em;font-weight:800;color:#2B4294;margin-bottom:5px}
 .journey-landmark-label strong{display:block;font-size:clamp(19px,1.65vw,26px);font-weight:800;line-height:1.25}
 .journey-landmark-label small{display:block;font-size:11px;line-height:1.5;color:#52657b;margin-top:4px}
-.journey-landmark-label:after{content:'';display:block;margin:12px auto 0;height:48px;width:1px;border-left:2px dashed #0097a780}
+.journey-landmark-label:after{content:'';display:block;margin:12px auto 0;height:48px;width:1px;border-left:2px dashed #2B429480}
 .go-ui-container{position:relative;z-index:5;width:100%;max-width:1800px;margin:auto;min-height:max(760px,100svh,61vw);padding:106px 5.5% 6.2svh;display:flex;flex-direction:column;justify-content:space-between;align-items:center;pointer-events:none}
 .go-editorial-center{width:min(850px,70%);display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:auto}
-.go-eyebrow{display:flex;gap:8px;align-items:center;color:#008c9e;letter-spacing:.14em;font-size:10px;font-weight:800;margin-bottom:13px}
-.go-title{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-size:clamp(43px,3.7vw,60px);font-weight:800;line-height:1.14;letter-spacing:-.045em;margin:0 0 16px;overflow-wrap:normal}
-.go-title>span{display:block}.go-title-experience{color:#0097a7}
+.go-eyebrow{display:flex;gap:8px;align-items:center;color:#2B4294;letter-spacing:.14em;font-size:10px;font-weight:800;margin-bottom:13px}
+.go-title{font-family:'UTM Eremitage','Montserrat','Be Vietnam Pro',system-ui,sans-serif;font-size:clamp(43px,3.7vw,60px);font-weight:800;line-height:1.14;letter-spacing:-.045em;margin:0 0 16px;overflow-wrap:normal}
+.go-title>span{display:block}.go-title-experience{background:linear-gradient(135deg,#F5AE1B 0%,#EE3132 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;color:#EE3132}
 .go-description{font-size:14px;line-height:1.6;color:#52657b;margin:0 0 22px}
 .go-search-dock{width:100%;max-width:1440px;position:relative;z-index:20;padding-top:20px;pointer-events:auto;scroll-margin-top:95px}
-.go-search-dock form{background:#fffefa;box-shadow:0 14px 42px #10274415}
+.go-search-dock form{background:#fffefa;box-shadow:0 14px 42px #2B429418}
 .journey-bus{transform-origin:0px 0px!important;transform-box:view-box!important}
 .go-home-header[data-scrolled=false]{background:transparent;border-color:transparent;box-shadow:none}
 .go-home-header>div:first-child{max-width:1800px;padding-left:6.4%;padding-right:6.4%}
@@ -57,7 +57,7 @@
 
 /* Sky stays quiet like the approved reference; the scenery supplies the contrast. */
 .journey-sky-softener{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#f7f4ec99 0%,#f7f4ec44 24%,transparent 39%);z-index:0}
-.journey-landmark-label:before{content:'';position:absolute;left:calc(50% - 4px);bottom:-4px;width:8px;height:8px;border-radius:50%;background:#0097a7}
+.journey-landmark-label:before{content:'';position:absolute;left:calc(50% - 4px);bottom:-4px;width:8px;height:8px;border-radius:50%;background:#2B4294}
 @media(min-width:1024px){.go-search-dock [data-search-field]:not([data-search-field=swap]):not([data-search-field=submit])>button,.go-search-dock [data-search-field=date]>div{height:76px}.go-search-dock button[type=submit]{height:66px}}
 @media(max-width:1023px){.go-home-header button[aria-label='Trang chủ DANAVA GO']>div:first-child{width:42px;height:42px}}
 @media(min-width:1024px){

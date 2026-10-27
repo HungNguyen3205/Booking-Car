@@ -3,23 +3,31 @@
 @theme {
   --color-cream: #F7F4EC;
   --color-surface: #FFFEFA;
-  --color-navy: #102744;
-  --color-navy-dark: #0A192C;
-  --color-teal: #0097A7;
-  --color-teal-dark: #007887;
-  --color-teal-light: #E0F7FA;
-  --color-amber: #F3B54A;
-  --color-amber-light: #FEF3D6;
+  --color-navy: #2B4294;
+  --color-navy-dark: #1E2F6B;
+  --color-navy-deep: #14204A;
+  --color-teal: #53A5DB;
+  --color-teal-dark: #2B4294;
+  --color-teal-light: #EBF4FC;
+  --color-amber: #F5AE1B;
+  --color-amber-light: #FEF7E6;
+  --color-red: #EE3132;
+  --color-red-light: #FEEBEB;
+  --color-brand-blue: #2B4294;
+  --color-brand-yellow: #F5AE1B;
+  --color-brand-sky: #53A5DB;
+  --color-brand-red: #EE3132;
   --color-text-muted: #647084;
   --color-border-card: #E5E3DC;
 
   --font-serif: 'Noto Serif', Georgia, serif;
-  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --font-sans: 'UTM Eremitage', 'Montserrat', 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --font-brand: 'UTM Eremitage', 'Montserrat', 'Be Vietnam Pro', system-ui, sans-serif;
 }
 
 :root {
   font-family: var(--font-sans);
-  color: #102744;
+  color: #2B4294;
   background-color: #F7F4EC;
   -webkit-font-smoothing: antialiased;
 }

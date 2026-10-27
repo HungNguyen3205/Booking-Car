@@ -44,10 +44,10 @@ export const HeroVehicleSelector: React.FC<HeroVehicleSelectorProps> = ({
               type="button"
               aria-pressed={isActive}
               onClick={() => handleSelect(v.id)}
-              className={`inline-flex items-center gap-2 h-10 sm:h-11 px-4.5 sm:px-5.5 rounded-full text-xs sm:text-[13px] font-sans font-semibold transition-all duration-200 cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-[#0097A7] focus-visible:ring-offset-2 ${
+              className={`inline-flex items-center gap-2 h-10 sm:h-11 px-4.5 sm:px-5.5 rounded-full text-xs sm:text-[13px] font-sans font-semibold transition-all duration-200 cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-[#2B4294] focus-visible:ring-offset-2 ${
                 isActive
-                  ? 'bg-[#102744] text-[#FFFEFA] shadow-[0_4px_14px_rgba(16,39,68,0.22)] scale-[1.02]'
-                  : 'bg-[#FFF9ED] hover:bg-[#FFFEFA] text-[#102744] border border-[#D8D4C9] hover:border-[#102744]/70 hover:shadow-[0_2px_8px_rgba(16,39,68,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]'
+                  ? 'bg-[#2B4294] text-[#FFFEFA] shadow-[0_4px_14px_rgba(43,66,148,0.28)] scale-[1.02]'
+                  : 'bg-[#FFF9ED] hover:bg-[#FFFEFA] text-[#2B4294] border border-[#D8D4C9] hover:border-[#2B4294]/70 hover:shadow-[0_2px_8px_rgba(43,66,148,0.12)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]'
               }`}
             >
               {v.icon}

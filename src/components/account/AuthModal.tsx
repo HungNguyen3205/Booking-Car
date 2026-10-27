@@ -154,14 +154,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-11 h-11 rounded-2xl bg-[#E0F7FA] text-[#0097A7] flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-[#EBF4FC] text-[#2B4294] border border-[#2B4294]/20 flex items-center justify-center shrink-0">
             <User className="w-6 h-6" />
           </div>
           <div>
-            <h2 id="auth-modal-title" className="font-serif font-bold text-xl text-[#102744]">
+            <h2 id="auth-modal-title" className="font-sans font-bold text-xl text-[#2B4294]">
               {currentUser ? 'Tài khoản thành viên' : 'Đăng nhập & Đăng ký'}
             </h2>
-            <p className="text-xs text-[#647084] mt-0.5">
+            <p className="text-xs text-[#647084] mt-0.5 font-sans">
               DANAVA GO • Nền tảng đặt vé xe khách cao cấp
             </p>
           </div>

@@ -19,12 +19,12 @@ export const VehicleExperience: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0097A7]" />
-            <span className="text-xs font-bold tracking-widest text-[#0097A7] uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#2B4294]" />
+            <span className="text-xs font-bold tracking-widest text-[#2B4294] uppercase font-sans">
               TIÊU CHUẨN ĐỘI XE
             </span>
           </div>
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#102744] tracking-tight">
+          <h2 className="font-sans text-3xl sm:text-4xl font-bold text-[#2B4294] tracking-tight">
             Trải nghiệm theo loại xe
           </h2>
           <p className="mt-3 text-sm sm:text-base text-[#647084]">
@@ -43,8 +43,8 @@ export const VehicleExperience: React.FC = () => {
                 onClick={() => setActiveCategory(cat.id)}
                 className={`py-3 px-5 sm:px-6 rounded-2xl text-left border transition-all ${
                   isActive
-                    ? 'bg-[#102744] text-white border-[#102744] shadow-md'
-                    : 'bg-[#F7F4EC] text-[#102744] border-[#E5E3DC] hover:border-[#0097A7]'
+                    ? 'bg-[#2B4294] text-white border-[#2B4294] shadow-md'
+                    : 'bg-[#F7F4EC] text-[#2B4294] border-[#E5E3DC] hover:border-[#2B4294]'
                 }`}
               >
                 <div className="font-bold text-sm sm:text-base">{cat.label}</div>
@@ -84,10 +84,10 @@ export const VehicleExperience: React.FC = () => {
 
               {/* Vehicle Details */}
               <div className="lg:col-span-5 space-y-4">
-                <div className="inline-block px-3 py-1 bg-[#E0F7FA] text-[#0097A7] rounded-full text-xs font-bold uppercase tracking-wider">
+                <div className="inline-block px-3 py-1 bg-[#EBF4FC] text-[#2B4294] border border-[#2B4294]/20 rounded-full text-xs font-bold uppercase tracking-wider font-sans">
                   {vehicle.categoryLabel}
                 </div>
-                <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#102744]">
+                <h3 className="font-sans text-2xl sm:text-3xl font-bold text-[#2B4294]">
                   {vehicle.name}
                 </h3>
                 <p className="text-sm text-[#647084] leading-relaxed">
@@ -96,25 +96,25 @@ export const VehicleExperience: React.FC = () => {
 
                 {/* Key specs */}
                 <div className="grid grid-cols-2 gap-3 py-2 border-y border-[#E5E3DC]">
-                  <div className="flex items-center gap-2 text-xs text-[#102744] font-medium">
-                    <Users className="w-4 h-4 text-[#0097A7]" />
+                  <div className="flex items-center gap-2 text-xs text-[#2B4294] font-medium">
+                    <Users className="w-4 h-4 text-[#2B4294]" />
                     <span>Sức chứa: {vehicle.seatsTotal} chỗ</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-[#102744] font-medium">
-                    <Shield className="w-4 h-4 text-[#0097A7]" />
+                  <div className="flex items-center gap-2 text-xs text-[#2B4294] font-medium">
+                    <Shield className="w-4 h-4 text-[#2B4294]" />
                     <span>Cấu trúc: {vehicle.floors} tầng hiện đại</span>
                   </div>
                 </div>
 
                 {/* Amenities List */}
                 <div>
-                  <h4 className="text-xs font-bold text-[#102744] uppercase tracking-wider mb-2.5">
+                  <h4 className="text-xs font-bold text-[#2B4294] uppercase tracking-wider mb-2.5 font-sans">
                     Tiện ích nổi bật trên xe
                   </h4>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {vehicle.amenities.map((amenity, idx) => (
-                      <li key={idx} className="flex items-center gap-2 text-xs text-[#102744]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
+                      <li key={idx} className="flex items-center gap-2 text-xs text-[#2B4294]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#53A5DB] shrink-0" />
                         <span>{amenity}</span>
                       </li>
                     ))}

@@ -95,9 +95,9 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
               setFoundBooking(null);
               setNotFoundQuery(null);
             }}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102744] hover:text-[#0097A7] transition-colors bg-[#FFFEFA] px-3.5 py-2 rounded-full border border-[#E5E3DC] shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102744] hover:text-[#2B4294] transition-colors bg-[#FFFEFA] px-3.5 py-2 rounded-full border border-[#E5E3DC] shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 text-[#0097A7]" />
+            <ArrowLeft className="w-4 h-4 text-[#2B4294]" />
             <span>Tra cứu mã vé khác</span>
           </button>
         </div>
@@ -122,7 +122,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102744] hover:text-[#0097A7] mb-6 transition-colors group cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102744] hover:text-[#2B4294] mb-6 transition-colors group cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           <span>Quay lại trang chủ</span>
@@ -131,7 +131,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
         <div className="bg-[#FFFEFA] rounded-3xl p-6 sm:p-8 border border-[#E5E3DC] shadow-sm">
           {/* Header Title with Brand Icon */}
           <div className="flex items-center gap-3.5 mb-5">
-            <div className="w-12 h-12 rounded-2xl bg-[#E0F7FA] text-[#0097A7] flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-[#EBF4FC] text-[#2B4294] flex items-center justify-center shrink-0">
               <Ticket className="w-6 h-6" />
             </div>
             <div>
@@ -205,7 +205,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm font-mono font-semibold uppercase tracking-wider focus:ring-2 focus:outline-hidden transition-all ${
                     fieldErrors.code
                       ? 'border-red-400 bg-red-50/50 text-red-900 focus:ring-red-400'
-                      : 'border-[#E5E3DC] bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] text-[#102744] focus:ring-[#0097A7]'
+                      : 'border-[#E5E3DC] bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] text-[#102744] focus:ring-[#2B4294]'
                   }`}
                   aria-invalid={!!fieldErrors.code}
                   aria-describedby={fieldErrors.code ? 'lookup-code-error' : undefined}
@@ -245,7 +245,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm font-medium focus:ring-2 focus:outline-hidden transition-all ${
                     fieldErrors.phone
                       ? 'border-red-400 bg-red-50/50 text-red-900 focus:ring-red-400'
-                      : 'border-[#E5E3DC] bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] text-[#102744] focus:ring-[#0097A7]'
+                      : 'border-[#E5E3DC] bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] text-[#102744] focus:ring-[#2B4294]'
                   }`}
                   aria-invalid={!!fieldErrors.phone}
                   aria-describedby={fieldErrors.phone ? 'lookup-phone-error' : undefined}
@@ -267,7 +267,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
               <button
                 type="submit"
                 disabled={isSearching}
-                className="w-full py-3.5 bg-[#0097A7] hover:bg-[#007887] active:scale-98 text-white font-semibold text-sm rounded-xl shadow-md shadow-[#0097A7]/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
+                className="w-full py-3.5 bg-[#2B4294] hover:bg-[#1E2F6B] active:scale-98 text-white font-semibold text-sm rounded-xl shadow-md shadow-[#2B4294]/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
               >
                 {isSearching ? (
                   <>
@@ -287,7 +287,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
           {/* Demo Sandbox Assistance Panel (Clear honest separation, Requirement 5 & 7) */}
           <div className="mt-7 pt-5 border-t border-[#E5E3DC] space-y-3">
             <div className="flex items-center gap-2 text-xs font-bold text-[#102744]">
-              <Info className="w-4 h-4 text-[#0097A7]" />
+              <Info className="w-4 h-4 text-[#2B4294]" />
               <span>Gợi ý thử nghiệm (Sandbox Demo)</span>
             </div>
 
@@ -302,7 +302,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
                   className="p-3 bg-[#FAF8F5] rounded-xl border border-[#E5E3DC] flex items-center justify-between gap-3 text-xs"
                 >
                   <div>
-                    <div className="font-mono font-bold text-[#0097A7]">{b.id}</div>
+                    <div className="font-mono font-bold text-[#2B4294]">{b.id}</div>
                     <div className="text-[11px] text-[#647084]">
                       {b.trip.from} → {b.trip.to} • {b.passenger.fullName} ({b.passenger.phone})
                     </div>
@@ -310,7 +310,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
                   <button
                     type="button"
                     onClick={() => handleFillDemoTicket(b.id, b.passenger.phone)}
-                    className="px-2.5 py-1 text-[11px] font-semibold text-[#102744] hover:text-white bg-[#E0F7FA] hover:bg-[#0097A7] rounded-lg transition-colors cursor-pointer shrink-0"
+                    className="px-2.5 py-1 text-[11px] font-semibold text-[#102744] hover:text-white bg-[#EBF4FC] hover:bg-[#2B4294] rounded-lg transition-colors cursor-pointer shrink-0"
                   >
                     Nạp mã này
                   </button>
@@ -319,7 +319,7 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
             </div>
 
             <div className="text-[10.5px] text-[#647084] flex items-center gap-1.5 pt-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#0097A7] shrink-0" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
               <span>Dữ liệu vé được lưu trữ cục bộ và minh bạch trên trình duyệt của bạn.</span>
             </div>
           </div>

@@ -105,19 +105,19 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                 {/* Bus Main Chassis Body */}
                 <path
                   d="M30 115 C30 118 33 120 37 120 L75 120 C75 106 88 95 103 95 C118 95 131 106 131 120 L249 120 C249 106 262 95 277 95 C292 95 305 106 305 120 L345 120 C350 120 354 116 354 110 L352 50 C352 38 344 32 332 30 L60 30 C45 30 30 42 30 58 Z"
-                  fill="#102744"
+                  fill="#2B4294"
                 />
 
-                {/* Silver aerodynamic side stripe */}
+                {/* Brand Gold aerodynamic side stripe */}
                 <path
                   d="M30 84 Q120 74 200 86 T352 76 L352 86 Q280 94 180 82 T30 94 Z"
-                  fill="#E2E8F0"
+                  fill="#F5AE1B"
                 />
 
-                {/* Teal Dynamic Accent Wave */}
+                {/* Sky Blue Dynamic Accent Wave */}
                 <path
                   d="M50 88 C120 80 180 102 280 84 C310 78 340 82 352 84 L352 87 C335 85 305 81 278 87 C182 106 118 84 50 92 Z"
-                  fill="#0097A7"
+                  fill="#53A5DB"
                 />
 
                 {/* Front Windshield (Driver's view) */}
@@ -146,11 +146,11 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                 />
 
                 {/* Bus Headlight beam */}
-                <path d="M30 98 L24 99 C22 99 20 97 20 95 L20 91 C20 89 22 87 24 87 L30 88 Z" fill="#F3B54A" />
+                <path d="M30 98 L24 99 C22 99 20 97 20 95 L20 91 C20 89 22 87 24 87 L30 88 Z" fill="#F5AE1B" />
                 <polygon points="20,89 -40,75 -40,115 20,97" fill="url(#headlight-beam)" opacity="0.3" />
 
                 {/* Bus Taillight */}
-                <rect x="350" y="86" width="4" height="14" rx="2" fill="#EF4444" />
+                <rect x="350" y="86" width="4" height="14" rx="2" fill="#EE3132" />
 
                 {/* Brand Logo on Bus Side */}
                 <text
@@ -166,10 +166,10 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                   DANAVA GO
                 </text>
 
-                {/* Teal wave icon beside brand */}
+                {/* Sky blue ribbon beside brand */}
                 <path
                   d="M125 106 Q130 102 135 106 T145 106"
-                  stroke="#0097A7"
+                  stroke="#53A5DB"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   fill="none"
@@ -181,7 +181,7 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                   <g className={shouldReduceMotion ? '' : 'animate-spin-wheel'} style={{ transformOrigin: '0 0' }}>
                     <circle cx="0" cy="0" r="18" fill="#1E293B" stroke="#64748B" strokeWidth="2.5" />
                     <circle cx="0" cy="0" r="12" fill="#CBD5E1" stroke="#94A3B8" strokeWidth="1.5" />
-                    <circle cx="0" cy="0" r="5" fill="#0097A7" />
+                    <circle cx="0" cy="0" r="5" fill="#53A5DB" />
                     <line x1="0" y1="-12" x2="0" y2="12" stroke="#475569" strokeWidth="2" />
                     <line x1="-10.4" y1="-6" x2="10.4" y2="6" stroke="#475569" strokeWidth="2" />
                     <line x1="-10.4" y1="6" x2="10.4" y2="-6" stroke="#475569" strokeWidth="2" />
@@ -194,7 +194,7 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                   <g className={shouldReduceMotion ? '' : 'animate-spin-wheel'} style={{ transformOrigin: '0 0' }}>
                     <circle cx="0" cy="0" r="18" fill="#1E293B" stroke="#64748B" strokeWidth="2.5" />
                     <circle cx="0" cy="0" r="12" fill="#CBD5E1" stroke="#94A3B8" strokeWidth="1.5" />
-                    <circle cx="0" cy="0" r="5" fill="#0097A7" />
+                    <circle cx="0" cy="0" r="5" fill="#53A5DB" />
                     <line x1="0" y1="-12" x2="0" y2="12" stroke="#475569" strokeWidth="2" />
                     <line x1="-10.4" y1="-6" x2="10.4" y2="6" stroke="#475569" strokeWidth="2" />
                     <line x1="-10.4" y1="6" x2="10.4" y2="-6" stroke="#475569" strokeWidth="2" />
@@ -204,8 +204,8 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                 {/* Defs */}
                 <defs>
                   <linearGradient id="headlight-beam" x1="20" y1="93" x2="-40" y2="93" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#FDE047" stopOpacity="0.8" />
-                    <stop offset="1" stopColor="#FDE047" stopOpacity="0" />
+                    <stop stopColor="#F5AE1B" stopOpacity="0.8" />
+                    <stop offset="1" stopColor="#F5AE1B" stopOpacity="0" />
                   </linearGradient>
                 </defs>
               </svg>
@@ -220,7 +220,7 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                   y1="2"
                   x2="320"
                   y2="2"
-                  stroke="#0097A7"
+                  stroke="#2B4294"
                   strokeWidth="2.5"
                   strokeDasharray={shouldReduceMotion ? undefined : '14 18'}
                   className={shouldReduceMotion ? '' : 'animate-road-flow'}
@@ -230,7 +230,7 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
 
             {/* Status text & Progress */}
             <div className="flex flex-col items-center text-center">
-              <p className="text-sm font-semibold tracking-wide text-[#102744] mb-3">
+              <p className="text-sm font-semibold tracking-wide text-[#2B4294] mb-3">
                 Đang mở hành trình…
               </p>
 
@@ -239,8 +239,8 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                 <div
                   className={`absolute top-0 bottom-0 ${
                     shouldReduceMotion
-                      ? 'w-full bg-[#0097A7]'
-                      : 'w-24 bg-gradient-to-r from-transparent via-[#0097A7] to-transparent rounded-full animate-[shimmer_1.4s_infinite]'
+                      ? 'w-full bg-[#2B4294]'
+                      : 'w-24 bg-gradient-to-r from-transparent via-[#2B4294] to-transparent rounded-full animate-[shimmer_1.4s_infinite]'
                   }`}
                 />
               </div>
@@ -248,7 +248,7 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
               {/* Sub-legend */}
               <div className="mt-4 flex items-center gap-3 text-xs text-[#647084]">
                 <span className="flex items-center gap-1">
-                  <span className="inline-block w-2 h-2 rounded-full bg-[#0097A7]" />
+                  <span className="inline-block w-2 h-2 rounded-full bg-[#2B4294]" />
                   Bánh xe
                 </span>
                 <span>→</span>
@@ -257,7 +257,7 @@ export const BusPreloader: React.FC<BusPreloaderProps> = ({
                   Vạch đường
                 </span>
                 <span>→</span>
-                <span className="flex items-center gap-1 text-[#102744] font-medium">
+                <span className="flex items-center gap-1 text-[#2B4294] font-medium">
                   Chuyển vào trang chủ
                 </span>
               </div>
