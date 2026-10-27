@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
-import { FAQ_LIST } from '../../data/mockData';
+
 import { ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 export const FaqSection: React.FC = () => {
+  const reduced=useReducedMotion();
+  const FAQ_LIST=[
+    {question:'Tôi có thể đổi hoặc hủy vé như thế nào?',answer:'Điều kiện đổi, hủy phụ thuộc từng chuyến và nhà vận chuyển. Hãy kiểm tra chính sách áp dụng trước khi đặt. Bản demo hiện chưa xử lý hoàn tiền thực tế.'},
+    {question:'Làm thế nào để nhận và tra cứu vé?',answer:'Sau bước xác nhận, vé điện tử được hiển thị để bạn lưu hoặc in. Bản demo lưu vé trên trình duyệt đã đặt; bạn có thể tra cứu lại tại mục Tra cứu vé.'},
+    {question:'Tôi có được chọn ghế hoặc giường không?',answer:'Bạn có thể chọn vị trí còn trống trên sơ đồ của chuyến đã chọn. Loại ghế, tầng và số lượng phụ thuộc từng xe.'},
+    {question:'Tôi chọn điểm đón và trả ở đâu?',answer:'Danh sách điểm đón và trả xuất hiện ở bước thông tin hành khách, sau khi bạn chọn chuyến và chỗ ngồi.'}
+  ];
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const toggle = (idx: number) => {
@@ -11,9 +18,9 @@ export const FaqSection: React.FC = () => {
   };
 
   return (
-    <section className="py-16 sm:py-20 bg-[#F7F4EC]">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
+    <section id="faq-section" className="editorial-section editorial-faq">
+      <div className="editorial-container editorial-faq-layout">
+        <div className="editorial-faq-heading">
           <div className="inline-flex items-center gap-2 mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#2B4294]" />
             <span className="text-xs font-bold tracking-widest text-[#2B4294] uppercase font-sans">
@@ -21,11 +28,12 @@ export const FaqSection: React.FC = () => {
             </span>
           </div>
           <h2 className="font-sans text-3xl sm:text-4xl font-bold text-[#2B4294] tracking-tight">
-            Câu hỏi thường gặp
+            Trước khi lên đường
           </h2>
           <p className="mt-3 text-sm sm:text-base text-[#647084]">
-            Những thắc mắc phổ biến nhất khi đặt vé trực tuyến và trải nghiệm dịch vụ xe khách.
+            Một vài giải đáp để bạn tự tin bắt đầu hành trình.
           </p>
+          <a className="editorial-contact" href="mailto:hello@danava.vn">hello@danava.vn ↗</a>
         </div>
 
         <div className="space-y-3">
@@ -61,7 +69,7 @@ export const FaqSection: React.FC = () => {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      transition={{ duration: reduced ? 0 : 0.25, ease: 'easeInOut' }}
                     >
                       <div className="px-6 pb-4 pt-1 text-xs sm:text-sm text-[#647084] leading-relaxed border-t border-[#F7F4EC]">
                         {faq.answer}
@@ -74,6 +82,7 @@ export const FaqSection: React.FC = () => {
           })}
         </div>
       </div>
+      <div className="editorial-container editorial-final-cta"><h2>Chuyến đi tiếp theo<br/>bắt đầu từ đâu?</h2><button className="editorial-cta" onClick={()=>document.getElementById('hero-search')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}>Tìm chuyến của bạn →</button></div>
     </section>
   );
 };

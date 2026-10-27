@@ -121,14 +121,14 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
           {/* Cam kết Demo */}
           <div className="lg:col-span-3 space-y-3">
             <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-              An toàn & Bảo mật
+              Liên hệ & Hỗ trợ
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Trang web tuân thủ các tiêu chuẩn thiết kế hiện đại, hỗ trợ phím tắt và chế độ giảm hoạt ảnh (prefers-reduced-motion) cho mọi thiết bị.
+              Cần hỗ trợ chọn hành trình hoặc tra cứu thông tin? Liên hệ đội ngũ DANAVA.
             </p>
             <div className="flex items-center gap-2 text-xs text-[#53A5DB]">
               <Shield className="w-4 h-4 shrink-0" />
-              <span>Bảo mật thông tin demo cục bộ</span>
+              <a href="mailto:hello@danava.vn">hello@danava.vn</a>
             </div>
           </div>
         </div>

@@ -32,6 +32,12 @@ Load only skills relevant to the current task. Review the actual browser result 
 This is a 2.5D image/SVG/DOM implementation with Framer Motion. Three.js, WebGL,
 procedural 3D and the legacy hero were removed intentionally. Do not recreate them.
 
+## Lower homepage
+
+Shared layout/styles: `src/components/home/home-editorial.css`. Keep route crops
+from existing landmark banks and preview/search callbacks. See `docs/home-editorial.md`
+for the section map, working actions and validation.
+
 ## Invariants
 
 Origin is left; destination is right. Every selectable city has its own landmark.
