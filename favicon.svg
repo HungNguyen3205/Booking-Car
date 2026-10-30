@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Rounded Background Container in Brand Navy -->
+  <rect width="64" height="64" rx="16" fill="#2B4294"/>
+  
+  <!-- Subtle Cream Glow Outline -->
+  <rect x="1.5" y="1.5" width="61" height="61" rx="14.5" stroke="#F5AE1B" stroke-opacity="0.25" stroke-width="2"/>
+  
+  <!-- Stylized Brand D Icon -->
+  <g transform="translate(10, 10) scale(0.68)">
+    <defs>
+      <linearGradient id="favBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#2B4294" />
+        <stop offset="100%" stop-color="#53A5DB" />
+      </linearGradient>
+      <linearGradient id="favOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#F5AE1B" />
+        <stop offset="100%" stop-color="#EE3132" />
+      </linearGradient>
+    </defs>
+    <!-- Outer D Blue Arch -->
+    <path d="M0 10 L40 10 C58 10 65 24 65 35 C65 52 50 64 35 64 L20 64 C28 55 38 45 42 35 C44 28 40 22 30 22 L14 22 L0 10 Z" fill="#53A5DB" />
+    <path d="M0 10 L35 10 C52 10 62 20 62 34 C62 48 50 58 35 60 C42 50 48 38 42 28 C38 21 30 19 22 19 L6 19 Z" fill="url(#favBlue)" />
+    <!-- Inner Orange/Red Fold -->
+    <path d="M0 64 L16 32 L32 32 L16 64 Z" fill="url(#favOrange)" />
+    <path d="M16 32 L32 32 C38 32 44 38 40 46 C36 54 28 64 16 64 L22 52 C28 44 28 40 24 38 Z" fill="#EE3132" />
+  </g>
+</svg>
