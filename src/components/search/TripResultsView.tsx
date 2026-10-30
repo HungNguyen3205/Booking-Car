@@ -6,7 +6,6 @@ import { TripFilters, type FilterState, MAX_FILTER_PRICE } from './TripFilters';
 import { TripSearchForm } from '../home/TripSearchForm';
 import {
   ArrowLeft,
-  ArrowRight,
   SlidersHorizontal,
   ArrowUpDown,
   Calendar,
@@ -168,71 +167,80 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
           1. SURFACE SUMMARY BAR (Sticky Below Header)
           Clear route info, adjacent day switcher, and inline edit toggle
           ============================================================ */}
-      <div className="bg-[#FFFEFA] border-b border-[#E5E3DC] shadow-2xs py-3 sm:py-3.5 sticky top-16 sm:top-[68px] z-30">
+      {/* ============================================================
+          1. SURFACE SUMMARY BAR (Sticky Below Header)
+          Clear route info, adjacent day switcher, and inline edit toggle
+          ============================================================ */}
+      <div className="bg-white/95 backdrop-blur-md border-b border-[#E2DDD0] shadow-xs py-2.5 sm:py-3 sticky top-16 sm:top-[68px] z-30 transition-all">
+        {/* Dynamic Brand Accent Stripe */}
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#2B4294] via-[#0284C7] via-[#F5AE1B] to-[#EE3132]" />
         <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             {/* Left: Origin -> Destination, Date & Passenger Count */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[#102744]">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
               {/* Back to Home Button */}
               <button
                 type="button"
                 onClick={onModifySearch}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[#647084] hover:text-[#2B4294] transition-colors p-1 -ml-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-md"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#475569] hover:text-[#2B4294] bg-[#F1F5F9]/80 hover:bg-[#E2E8F0] px-2.5 py-1.5 rounded-xl transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294]"
                 title="Quay lại trang chủ"
                 aria-label="Quay lại trang chủ"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Trang chủ</span>
               </button>
 
               <span className="text-[#CBD5E1] hidden sm:inline">•</span>
 
-              {/* Origin -> Destination Pill */}
-              <div className="flex items-center gap-1.5 font-bold text-sm sm:text-base text-[#102744]">
-                <MapPin className="w-4 h-4 text-[#2B4294] shrink-0" />
-                <span>{searchParams.from}</span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
-                <span>{searchParams.to}</span>
+              {/* Origin -> Destination Vibrant Badges */}
+              <div className="flex items-center gap-1.5 font-bold text-sm sm:text-base">
+                <div className="inline-flex items-center gap-1.5 bg-[#EBF4FC] text-[#1E3A8A] border border-[#2B4294]/25 px-2.5 py-1 rounded-xl shadow-2xs">
+                  <MapPin className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
+                  <span>{searchParams.from}</span>
+                </div>
+                <span className="text-[#EE3132] font-black px-0.5">→</span>
+                <div className="inline-flex items-center gap-1.5 bg-[#FFF7ED] text-[#C2410C] border border-[#EA580C]/25 px-2.5 py-1 rounded-xl shadow-2xs">
+                  <MapPin className="w-3.5 h-3.5 text-[#EA580C] shrink-0" />
+                  <span>{searchParams.to}</span>
+                </div>
               </div>
 
               <span className="text-[#CBD5E1] hidden sm:inline">•</span>
 
               {/* Travel Date */}
-              <div className="flex items-center gap-1.5 text-[#475569] font-medium text-xs sm:text-sm">
-                <Calendar className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
+              <div className="inline-flex items-center gap-1.5 bg-[#F8FAFC] border border-[#E2E8F0] px-2.5 py-1 rounded-xl text-[#334155] font-semibold text-xs sm:text-sm shadow-2xs">
+                <Calendar className="w-3.5 h-3.5 text-[#0284C7] shrink-0" />
                 <span>{formatVietnamDate(searchParams.date)}</span>
               </div>
 
-              <span className="text-[#CBD5E1] hidden sm:inline">•</span>
-
               {/* Passengers Count */}
-              <div className="flex items-center gap-1.5 text-[#475569] font-medium text-xs sm:text-sm">
-                <Users className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
-                <span>{searchParams.passengers} hành khách</span>
+              <div className="inline-flex items-center gap-1.5 bg-[#F0FDF4] border border-[#BBF7D0] px-2.5 py-1 rounded-xl text-[#166534] font-semibold text-xs sm:text-sm shadow-2xs">
+                <Users className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+                <span>{searchParams.passengers} khách</span>
               </div>
             </div>
 
             {/* Right: Quick Day Switcher & Modify Search Button */}
             <div className="flex items-center gap-2">
               {/* Adjacent Day Switcher */}
-              <div className="flex items-center bg-[#F7F4EC] rounded-xl p-0.5 border border-[#E5E3DC]">
+              <div className="flex items-center bg-white rounded-xl p-0.5 border border-[#CBD5E1] shadow-2xs">
                 <button
                   type="button"
                   onClick={handlePrevDay}
                   disabled={!canGoPrevDay || isLoading}
-                  className="px-2 py-1 text-xs font-medium text-[#102744] hover:text-[#2B4294] disabled:opacity-35 disabled:hover:text-[#102744] transition-colors flex items-center gap-0.5 cursor-pointer disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-lg"
+                  className="px-2.5 py-1 text-xs font-semibold text-[#1E293B] hover:text-[#2B4294] hover:bg-[#F8FAFC] disabled:opacity-35 disabled:hover:text-[#1E293B] transition-colors flex items-center gap-0.5 cursor-pointer disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-lg"
                   title="Xem ngày hôm trước"
                   aria-label="Xem ngày hôm trước"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   <span className="hidden md:inline">Hôm trước</span>
                 </button>
-                <div className="w-[1px] h-3.5 bg-[#CBD5E1]" />
+                <div className="w-[1px] h-3.5 bg-[#E2E8F0]" />
                 <button
                   type="button"
                   onClick={handleNextDay}
                   disabled={isLoading}
-                  className="px-2 py-1 text-xs font-medium text-[#102744] hover:text-[#2B4294] disabled:opacity-35 transition-colors flex items-center gap-0.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-lg"
+                  className="px-2.5 py-1 text-xs font-semibold text-[#1E293B] hover:text-[#2B4294] hover:bg-[#F8FAFC] disabled:opacity-35 transition-colors flex items-center gap-0.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] rounded-lg"
                   title="Xem ngày hôm sau"
                   aria-label="Xem ngày hôm sau"
                 >
@@ -245,15 +253,15 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEditingSearch(!isEditingSearch)}
-                className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] ${
+                className={`inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full border transition-all cursor-pointer shadow-2xs focus-visible:outline-2 focus-visible:outline-[#2B4294] ${
                   isEditingSearch
-                    ? 'bg-[#102744] text-white border-[#102744]'
-                    : 'text-[#2B4294] hover:text-[#1E2F6B] hover:bg-[#EBF4FC] border-[#2B4294]/40 bg-[#FFFEFA]'
+                    ? 'bg-[#102744] text-white border-[#102744] shadow-sm'
+                    : 'text-[#2B4294] hover:text-[#1E2F6B] hover:bg-[#EBF4FC] border-[#2B4294]/40 bg-white'
                 }`}
                 aria-expanded={isEditingSearch}
                 aria-controls="inline-search-editor"
               >
-                <Edit3 className="w-3.5 h-3.5" />
+                <Edit3 className="w-3.5 h-3.5 text-[#2B4294]" />
                 <span>{isEditingSearch ? 'Đóng form' : 'Sửa tìm kiếm'}</span>
               </button>
             </div>
@@ -422,21 +430,21 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
             {/* Results Column (Remainder) */}
             <div className="flex-1 min-w-0">
               {/* Header row: Title + Count + Time tabs + Sort */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-[#E5E3DC]">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 mb-4 border-b border-[#E2DDD0]">
                 {/* Title and trip count */}
-                <div className="flex items-baseline gap-2">
-                  <h2 className="font-sans text-lg sm:text-xl font-bold text-[#102744]">
+                <div className="flex items-center gap-2.5">
+                  <h2 className="font-sans text-lg sm:text-xl font-extrabold text-[#102744]">
                     Chọn chuyến phù hợp
                   </h2>
-                  <span className="text-xs text-[#647084] font-medium">
-                    ({filteredTrips.length} chuyến tìm thấy)
+                  <span className="inline-flex items-center bg-[#EBF4FC] text-[#1E3A8A] border border-[#2B4294]/20 text-xs font-bold px-2.5 py-0.5 rounded-full shadow-2xs">
+                    {filteredTrips.length} chuyến
                   </span>
                 </div>
 
                 {/* Controls: Time slot pills & Sort */}
                 <div className="flex items-center gap-2.5">
                   {/* Quick time slots pills */}
-                  <div className="hidden sm:flex items-center gap-1 bg-[#FFFEFA] p-0.5 rounded-xl border border-[#E5E3DC]">
+                  <div className="hidden sm:flex items-center gap-1 bg-[#ECE8DC]/70 p-1 rounded-2xl border border-[#DCD6C8] shadow-inner">
                     {[
                       { id: 'all', label: 'Tất cả' },
                       { id: 'night', label: 'Rạng sáng' },
@@ -448,10 +456,10 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => setQuickTimeTab(tab.id)}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2B4294] ${
                           quickTimeTab === tab.id
-                            ? 'bg-[#102744] text-white shadow-2xs'
-                            : 'text-[#647084] hover:text-[#102744] hover:bg-[#F7F4EC]'
+                            ? 'bg-gradient-to-r from-[#102744] via-[#1E3A8A] to-[#2B4294] text-white shadow-xs'
+                            : 'text-[#475569] hover:text-[#102744] hover:bg-white/80'
                         }`}
                       >
                         {tab.label}
@@ -460,13 +468,13 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
                   </div>
 
                   {/* Sắp xếp dropdown */}
-                  <div className="flex items-center gap-1.5 bg-[#FFFEFA] px-3 py-1.5 rounded-xl border border-[#E5E3DC] text-xs shadow-2xs">
+                  <div className="flex items-center gap-1.5 bg-white px-3.5 py-1.5 rounded-xl border border-[#CBD5E1] text-xs shadow-2xs hover:border-[#2B4294]/50 transition-all">
                     <ArrowUpDown className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
-                    <span className="text-[#647084] hidden md:inline">Sắp xếp:</span>
+                    <span className="text-[#647084] font-medium hidden md:inline">Sắp xếp:</span>
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value as any)}
-                      className="bg-transparent font-semibold text-[#102744] focus:outline-hidden cursor-pointer text-xs"
+                      className="bg-transparent font-bold text-[#102744] focus:outline-hidden cursor-pointer text-xs"
                       aria-label="Sắp xếp danh sách chuyến xe"
                     >
                       <option value="early">Giờ đi sớm nhất</option>
