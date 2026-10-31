@@ -61,3 +61,10 @@ Review 1440×900, 1280×800, 390px screenshots. Do not commit test output or dup
 phone normalization and storage/payment edge cases. `npm run test:audit` runs the
 new browser regression paths after build. See `docs/review-2026-10-27.md` for the
 review score, confirmed fixes and remaining demo/backend boundaries.
+
+## cPanel deployment reference
+
+For danavago.com hosting updates, read [docs/CPANEL_UPDATE.md](docs/CPANEL_UPDATE.md) first.
+It records the confirmed GitHub remote, Node PATH, separate source/public directories,
+fail-fast update commands, backup and /app rewrite checks. Creating documentation
+does not authorize deployment; follow the user's current scope.

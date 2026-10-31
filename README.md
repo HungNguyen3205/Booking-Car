@@ -2,6 +2,10 @@
 
 Website đặt vé xe khách với hero du lịch toàn màn hình, xe chuyển động và ảnh địa danh đổi độc lập theo điểm đi/điểm đến. Màu navy, teal, cream; font Be Vietnam Pro. React + TypeScript + Vite + Framer Motion. Không cần WebGL hoặc mô hình 3D.
 
+## Cập nhật website trên cPanel
+
+Đọc [hướng dẫn cập nhật danavago.com](docs/CPANEL_UPDATE.md): repo đúng, kích hoạt Node, build/copy an toàn và xử lý `/app`. AI cần đọc tài liệu này trước khi hướng dẫn hoặc thực hiện cập nhật hosting.
+
 ## Chạy dự án
 
 Dùng Node.js đáp ứng `engines` của phiên bản Vite trong lockfile (Node 22.12+ hoặc bản LTS mới tương thích).
