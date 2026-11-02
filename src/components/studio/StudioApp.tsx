@@ -1,6 +1,6 @@
 import StudioTable from "./StudioTable";
 import AppBrandSettings from "./AppBrandSettings";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import {
   LayoutDashboard,
@@ -45,6 +45,7 @@ import {
 } from "./studioConfig";
 import type { Item } from "./studioConfig";
 import "./studio.css";
+import "./studio-navy.css";
 const tomorrow = () => {
   const d = new Date();
   d.setDate(d.getDate() + 1);
@@ -224,36 +225,16 @@ function Empty({
   );
 }
 function Chart({ days }: { days: Item[] }) {
-  const max = Math.max(0, ...days.map((d) => Math.abs(d.value)));
-  if (!max)
-    return (
-      <div className="ds-chart ds-chart-empty" role="status">
-        Chưa có khoản thu/hoàn trong 7 ngày.
-      </div>
-    );
-  return (
-    <div className="ds-chart" role="img" aria-label="Tiền thu ròng 7 ngày">
-      <div className="ds-chart-axis">
-        <span>{money(max)}</span>
-        <span>0đ</span>
-      </div>
-      <div className="ds-chart-bars">
-        {days.map((d) => (
-          <div key={d.date}>
-            <span
-              className="ds-chart-bar"
-              style={{
-                height: `${(Math.abs(d.value) / max) * 100}%`,
-              }}
-              title={`${d.date}: ${money(d.value)}`}
-            />
-            <small>{String(d.date).slice(5).replace("-", "/")}</small>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  const id = useId().replace(/:/g, "");
+  const values = days.map(d=>Number(d.value)||0);
+  const max=Math.max(0,...values), min=Math.min(0,...values);
+  if(!max&&!min) return <div className="ds-chart ds-chart-empty" role="status">Chưa có khoản thu/hoàn trong 7 ngày.</div>;
+  const y=(v:number)=>165-((v-min)/(max-min||1))*140;
+  const points=days.map((d,i)=>[55+i*(590/Math.max(1,days.length-1)),y(Number(d.value)||0)]);
+  const line=points.map((p,i)=>`${i?'L':'M'}${p[0]},${p[1]}`).join(' ');
+  return <div className="ds-area-chart"><svg viewBox="0 0 700 208" role="img" aria-label="Tiền thu ròng thực tế trong 7 ngày"><defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#2b78e8" stopOpacity=".3"/><stop offset="100%" stopColor="#2b78e8" stopOpacity=".02"/></linearGradient></defs>{[0,.5,1].map(n=><g key={n}><line x1="55" x2="645" y1={y(min+(max-min)*n)} y2={y(min+(max-min)*n)} stroke="#dce7f3" strokeDasharray="3 4"/><text x="50" y={y(min+(max-min)*n)-6} textAnchor="end" fontSize="10" fill="#6c809c">{new Intl.NumberFormat('vi-VN',{notation:'compact'}).format(min+(max-min)*n)}</text></g>)}<path d={`${line} L${points.at(-1)?.[0]},${y(0)} L55,${y(0)} Z`} fill={`url(#${id})`}/><path d={line} fill="none" stroke="#1c63d5" strokeWidth="3" strokeLinejoin="round"/>{points.map((p,i)=><g key={days[i].date}><circle cx={p[0]} cy={p[1]} r="4" fill="#1765e8" stroke="white" strokeWidth="2"><title>{formatDate(days[i].date)}: {money(values[i])}</title></circle><text x={p[0]} y="198" textAnchor="middle" fontSize="11" fill="#6b7f98">{String(days[i].date).slice(5).split('-').reverse().join('/')}</text></g>)}</svg><span className="ds-sr-only">{days.map((d,i)=>`${formatDate(d.date)}: ${money(values[i])}`).join('; ')}</span></div>;
 }
+
 function Editor({
   kind,
   item,
@@ -1398,7 +1379,7 @@ export default function StudioApp() {
               </span>
               <h1>
                 {page === "overview"
-                  ? `Một ngày tốt lành, ${user.name.split(" ").at(-1)}.`
+                  ? "Tổng quan vận hành"
                   : currentTitle}
               </h1>
               <p>
@@ -1475,46 +1456,6 @@ export default function StudioApp() {
             </Empty>
           ) : page === "overview" ? (
             <>
-              <section className="ds-overview-grid">
-                <div className="ds-journey-card">
-                  <div>
-                    <span className="ds-kicker">THE NEXT DEPARTURE</span>
-                    <h2>
-                      {context.upcoming?.[0]
-                        ? `${context.upcoming[0].from} → ${context.upcoming[0].to}`
-                        : "Hành trình tiếp theo đang chờ."}
-                    </h2>
-                    <p>
-                      {context.upcoming?.[0]
-                        ? `${formatDate(context.upcoming[0].date)} · ${context.upcoming[0].departureTime} · ${context.upcoming[0].availableSeatsCount} chỗ trống`
-                        : "Lên lịch chuyến, phân công xe và bắt đầu mở bán."}
-                    </p>
-                  </div>
-                  <button onClick={() => navigate("trips")}>
-                    Mở điều hành chuyến
-                    <ArrowUpRight size={15} />
-                  </button>
-                </div>
-                <div className="ds-panel ds-revenue">
-                  <div className="ds-panel-top">
-                    <span>Tiền thu ròng · 7 ngày</span>
-                    <span className="ds-live">
-                      <i /> Server
-                    </span>
-                  </div>
-                  <h2>
-                    {context.totals?.revenue === null
-                      ? "Theo phân quyền"
-                      : money(
-                          (context.days || []).reduce(
-                            (sum: number, d: Item) => sum + d.value,
-                            0,
-                          ),
-                        )}
-                  </h2>
-                  <Chart days={context.days || []} />
-                </div>
-              </section>
               <section className="ds-stats">
                 {[
                   {
@@ -1554,6 +1495,47 @@ export default function StudioApp() {
                   </article>
                 ))}
               </section>
+              <section className="ds-overview-grid">
+                <div className="ds-journey-card">
+                  <img className="ds-floating-coach" src={context.upcoming?.[0]?.vehicle?.image || "/assets/images/bus_coach_sleeper.png"} alt="" aria-hidden="true" onError={e=>{e.currentTarget.style.display="none";}} />
+                  <div>
+                    <span className="ds-kicker">CHUYẾN KHỞI HÀNH TIẾP THEO</span>
+                    <h2>
+                      {context.upcoming?.[0]
+                        ? `${context.upcoming[0].from} → ${context.upcoming[0].to}`
+                        : "Hành trình tiếp theo đang chờ."}
+                    </h2>
+                    <p>
+                      {context.upcoming?.[0]
+                        ? `${formatDate(context.upcoming[0].date)} · ${context.upcoming[0].departureTime} · ${context.upcoming[0].availableSeatsCount} chỗ trống`
+                        : "Lên lịch chuyến, phân công xe và bắt đầu mở bán."}
+                    </p>
+                  </div>
+                  <button onClick={() => navigate("trips")}>
+                    Mở điều hành chuyến
+                    <ArrowUpRight size={15} />
+                  </button>
+                </div>
+                <div className="ds-panel ds-revenue">
+                  <div className="ds-panel-top">
+                    <span>Tiền thu ròng · 7 ngày</span>
+                    <span className="ds-live">
+                      <i /> Server
+                    </span>
+                  </div>
+                  <h2>
+                    {context.totals?.revenue === null
+                      ? "Theo phân quyền"
+                      : money(
+                          (context.days || []).reduce(
+                            (sum: number, d: Item) => sum + d.value,
+                            0,
+                          ),
+                        )}
+                  </h2>
+                  <Chart days={context.days || []} />
+                </div>
+              </section>
               <section className="ds-panel">
                 <div className="ds-panel-top">
                   <h2>Lịch chạy sắp tới</h2>
@@ -1585,6 +1567,10 @@ export default function StudioApp() {
                 ) : (
                   <Empty />
                 )}
+              </section>
+              <section className="ds-panel">
+                <div className="ds-panel-top"><h2>Đơn vé gần đây</h2><button onClick={()=>navigate("bookings")}>Xem tất cả <ArrowUpRight size={15}/></button></div>
+                {context.latest?.length ? <div className="ds-table-wrap"><StudioTable key={"latest"+tenantId}><thead><tr><th>Mã vé / Hành khách</th><th>Hành trình</th><th>Khởi hành</th><th>Thành tiền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{context.latest.map((b:Item)=><tr key={b.id}><td><strong>{b.passenger?.fullName}</strong><small>{b.id}</small></td><td>{b.trip?.from} → {b.trip?.to}</td><td>{formatDate(b.date)}<small>{b.trip?.departureTime}</small></td><td><strong>{money(b.totalAmount)}</strong></td><td><Badge value={b.paymentStatus}/></td><td><button className="ds-row-actions" onClick={()=>navigate("bookings")}>Mở đơn vé <ArrowUpRight size={14}/></button></td></tr>)}</tbody></StudioTable></div> : <Empty title="Chưa có đơn vé">Đơn mới sẽ xuất hiện tại đây khi hành khách đặt vé.</Empty>}
               </section>
             </>
           ) : page === "platform" ? (
