@@ -4,5 +4,11 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  server: { allowedHosts: ["terminal.local"] },
+  server: {
+    allowedHosts: ["terminal.local"],
+    proxy: {
+      "/api": "http://127.0.0.1:8787",
+      "/uploads": "http://127.0.0.1:8787",
+    },
+  },
 });

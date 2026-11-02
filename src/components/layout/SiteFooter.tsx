@@ -1,3 +1,4 @@
+import { marketplaceApiEnabled } from '../../services/platformApi';
 import React from 'react';
 import { Shield, Heart } from 'lucide-react';
 
@@ -42,7 +43,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
               Nền tảng đặt vé xe khách trực tuyến cao cấp. Mang đến trải nghiệm di chuyển êm ái, an toàn và văn minh trên mọi nẻo đường Việt Nam.
             </p>
             <div className="text-xs text-slate-300 bg-white/5 p-3 rounded-xl border border-white/10">
-              <span className="text-[#F5AE1B] font-semibold">Bản demo tương tác:</span> Mọi thông tin chuyến, giá vé và sơ đồ ghế phục vụ mục đích trình diễn giao diện và công nghệ.
+              {marketplaceApiEnabled ? 'Lịch trình, giá và tồn ghế do nhà xe quản lý. Kiểm tra thông tin điểm đón và chính sách trước khi đặt.' : <><span className="text-[#F5AE1B] font-semibold">Bản demo tương tác:</span> Mọi thông tin chuyến, giá vé và sơ đồ ghế phục vụ mục đích trình diễn giao diện và công nghệ.</>}
             </div>
           </div>
 

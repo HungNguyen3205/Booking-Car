@@ -37,3 +37,8 @@ npm run test:journey    # final booking integration
 - `docs/cleanup.md`: danh sách nhóm tài nguyên đã dọn và lý do.
 
 Bản này là frontend demo với thanh toán mô phỏng, không phải hệ thống thu tiền production.
+
+
+### Operator management pilot
+
+See [docs/OPERATOR_STUDIO.md](docs/OPERATOR_STUDIO.md) for the `/manage` operator dashboard, DANAVAGO sample data, API setup and verification. This branch requires a running Node backend; a static `dist` upload alone is insufficient.

@@ -1,8 +1,8 @@
-import React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { QRCodeSVG } from 'qrcode.react';
-import type { Booking } from '../../types';
-import { bookingService } from '../../services/bookingService';
+import React from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { QRCodeSVG } from "qrcode.react";
+import type { Booking } from "../../types";
+import { bookingService } from "../../services/bookingService";
 import {
   Printer,
   Search,
@@ -18,7 +18,7 @@ import {
   CreditCard,
   Bus,
   Info,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface BoardingTicketProps {
   booking: Booking | null;
@@ -75,7 +75,8 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
             Chưa có thông tin vé
           </h2>
           <p className="text-xs sm:text-sm text-[#647084] mt-2 mb-6 leading-relaxed">
-            Hệ thống chưa ghi nhận phiên đặt vé hợp lệ. Quý khách vui lòng quay lại tìm chuyến xe để thực hiện đặt chỗ.
+            Hệ thống chưa ghi nhận phiên đặt vé hợp lệ. Quý khách vui lòng quay
+            lại tìm chuyến xe để thực hiện đặt chỗ.
           </p>
           <button
             type="button"
@@ -96,29 +97,49 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
 
   // Safe stop resolutions
   const pickupStop =
-    booking.trip.departureStops?.find((s) => s.id === booking.passenger.pickupStopId) ||
-    booking.trip.departureLocation;
+    booking.trip.departureStops?.find(
+      (s) => s.id === booking.passenger.pickupStopId,
+    ) || booking.trip.departureLocation;
 
   const dropoffStop =
-    booking.trip.dropoffStops?.find((s) => s.id === booking.passenger.dropoffStopId) ||
-    booking.trip.arrivalLocation;
+    booking.trip.dropoffStops?.find(
+      (s) => s.id === booking.passenger.dropoffStopId,
+    ) || booking.trip.arrivalLocation;
 
   // Verifiable QR Code payload (direct URL to verify/lookup this booking)
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://danavago.vn';
+  const baseUrl =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://danavago.vn";
   const qrPayload = `${baseUrl}/?step=lookup&code=${encodeURIComponent(booking.id)}`;
 
   // Payment method human label
   const paymentMethodLabels: Record<string, string> = {
-    vietqr: 'VietQR (Quét mã Napas 24/7)',
-    momo: 'Ví điện tử MoMo',
-    vnpay: 'Cổng thanh toán VNPAY-QR',
-    credit_card: 'Thẻ thanh toán Quốc tế',
+    cash: "Thanh toán tại nhà xe",
+    transfer: "Chuyển khoản đã đối chiếu",
+    vietqr: "VietQR (Quét mã Napas 24/7)",
+    momo: "Ví điện tử MoMo",
+    vnpay: "Cổng thanh toán VNPAY-QR",
+    credit_card: "Thẻ thanh toán Quốc tế",
   };
 
-  const paymentMethodDisplay = paymentMethodLabels[booking.paymentMethod] || booking.paymentMethod;
+  const paymentMethodDisplay =
+    paymentMethodLabels[booking.paymentMethod] || booking.paymentMethod;
 
   // Payment status badge
-  const isPaymentCompleted = booking.paymentStatus === 'completed';
+  const remote = !!booking.tenantId;
+  const isPaymentCompleted =
+    booking.paymentStatus === "paid" || booking.paymentStatus === "completed";
+  const paymentLabel =
+    booking.status === "cancelled"
+      ? booking.paymentStatus === "refund_due"
+        ? "Đã hủy · Chờ hoàn tiền"
+        : "Vé đã hủy"
+      : isPaymentCompleted
+        ? remote
+          ? "Đã thanh toán"
+          : "Đã thanh toán (Sandbox)"
+        : "Chờ thanh toán tại nhà xe";
 
   return (
     <div className="min-h-[calc(100svh-72px)] bg-[#F7F4EC] py-6 sm:py-8 px-4 sm:px-6 flex flex-col items-center justify-start">
@@ -129,7 +150,10 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
         <motion.div
           initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: shouldReduceMotion ? 0.04 : 0.45, ease: 'easeOut' }}
+          transition={{
+            duration: shouldReduceMotion ? 0.04 : 0.45,
+            ease: "easeOut",
+          }}
           className="ticket-print-card bg-[#FFFEFA] rounded-3xl border border-[#E5E3DC] shadow-lg shadow-[#102744]/6 overflow-hidden flex flex-col lg:flex-row relative"
         >
           {/* Decorative Left Edge Barcode (Desktop) */}
@@ -153,9 +177,16 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                         strokeWidth="2.8"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        initial={shouldReduceMotion ? { pathLength: 1 } : { pathLength: 0 }}
+                        initial={
+                          shouldReduceMotion
+                            ? { pathLength: 1 }
+                            : { pathLength: 0 }
+                        }
                         animate={{ pathLength: 1 }}
-                        transition={{ duration: shouldReduceMotion ? 0.04 : 0.45, ease: 'easeOut' }}
+                        transition={{
+                          duration: shouldReduceMotion ? 0.04 : 0.45,
+                          ease: "easeOut",
+                        }}
                       />
                     </svg>
                   </div>
@@ -166,7 +197,11 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                         Vé điện tử
                       </h1>
                       <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">
-                        Demo Sandbox
+                        {remote
+                          ? booking.status === "cancelled"
+                            ? "VÉ ĐÃ HỦY"
+                            : "XÁC NHẬN ĐẶT CHỖ"
+                          : "Demo Sandbox"}
                       </span>
                     </div>
                     <p className="text-xs sm:text-sm text-[#647084] mt-0.5">
@@ -183,7 +218,10 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                     {booking.id}
                   </span>
                   <span className="text-[10px] text-[#647084] block">
-                    Ngày đặt: {new Date(booking.createdAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+                    Ngày đặt:{" "}
+                    {new Date(booking.createdAt).toLocaleDateString("vi-VN", {
+                      timeZone: "Asia/Ho_Chi_Minh",
+                    })}
                   </span>
                 </div>
               </div>
@@ -194,7 +232,9 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                   <span className="font-sans font-bold text-lg sm:text-2xl text-[#102744]">
                     {booking.trip.from}
                   </span>
-                  <span className="text-[#0097A7] font-bold text-lg sm:text-xl">→</span>
+                  <span className="text-[#0097A7] font-bold text-lg sm:text-xl">
+                    →
+                  </span>
                   <span className="font-sans font-bold text-lg sm:text-2xl text-[#102744]">
                     {booking.trip.to}
                   </span>
@@ -223,7 +263,8 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                       Ngày đi · Giờ khởi hành
                     </span>
                     <span className="text-sm font-bold text-[#102744] block mt-0.5">
-                      {booking.trip.departureTime} • {bookingService.formatDisplayDate(booking.date)}
+                      {booking.trip.departureTime} •{" "}
+                      {bookingService.formatDisplayDate(booking.date)}
                     </span>
                     <span className="text-[11px] text-[#647084]">
                       Thời gian hành trình dự kiến: {booking.trip.duration}
@@ -271,12 +312,15 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                       Hành khách đại diện
                     </span>
                     <span className="text-xs font-bold text-[#102744] block mt-0.5">
-                      {booking.passenger.fullName} ({booking.selectedSeats.length} vé)
+                      {booking.passenger.fullName} (
+                      {booking.selectedSeats.length} vé)
                     </span>
                     <div className="flex items-center gap-3 mt-1 text-[11px] text-[#647084] flex-wrap">
                       <span className="inline-flex items-center gap-1">
                         <Phone className="w-3 h-3 text-[#0097A7]" />
-                        <span className="font-mono font-medium">{booking.passenger.phone}</span>
+                        <span className="font-mono font-medium">
+                          {booking.passenger.phone}
+                        </span>
                       </span>
                       {booking.passenger.email && (
                         <span className="inline-flex items-center gap-1">
@@ -308,8 +352,12 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                   <div className="flex items-start gap-2 p-2.5 bg-[#FAF8F5] rounded-xl border border-[#E5E3DC] text-[11px]">
                     <FileText className="w-3.5 h-3.5 text-[#647084] shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-[#102744]">Ghi chú: </span>
-                      <span className="text-[#647084]">{booking.passenger.note}</span>
+                      <span className="font-semibold text-[#102744]">
+                        Ghi chú:{" "}
+                      </span>
+                      <span className="text-[#647084]">
+                        {booking.passenger.note}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -326,18 +374,24 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[11px] mt-0.5">
-                      <span className="text-[#647084]">{paymentMethodDisplay}</span>
+                      <span className="text-[#647084]">
+                        {paymentMethodDisplay}
+                      </span>
                       <span
                         className={`inline-flex items-center gap-1 font-bold ${
-                          isPaymentCompleted ? 'text-emerald-700' : 'text-amber-700'
+                          isPaymentCompleted
+                            ? "text-emerald-700"
+                            : "text-amber-700"
                         }`}
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            isPaymentCompleted ? 'bg-emerald-500' : 'bg-amber-500'
+                            isPaymentCompleted
+                              ? "bg-emerald-500"
+                              : "bg-amber-500"
                           }`}
                         />
-                        {isPaymentCompleted ? 'Đã thanh toán (Sandbox)' : 'Chờ thanh toán'}
+                        {paymentLabel}
                       </span>
                     </div>
                   </div>
@@ -349,7 +403,9 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
             <div className="mt-6 pt-3.5 border-t border-[#E5E3DC] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-[#647084]">
               <span className="italic flex items-center gap-1.5 text-amber-900 bg-amber-50 sm:bg-transparent px-2.5 sm:px-0 py-1 sm:py-0 rounded-lg">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#0097A7] shrink-0 inline" />
-                Bản vé demo thử nghiệm giao diện — không có giá trị lên xe thực tế.
+                {remote
+                  ? "Xuất trình mã đặt chỗ và liên hệ nhà xe để xác nhận thanh toán trước khi lên xe."
+                  : "Bản vé demo thử nghiệm giao diện — không có giá trị lên xe thực tế."}
               </span>
               <span className="font-mono text-[10px] text-[#647084]">
                 DANAVA-REF: {booking.id}
@@ -393,7 +449,11 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
             {/* Stub Header */}
             <div>
               <div className="flex items-center justify-center gap-1.5 mb-0.5">
-                <img src="/assets/danava-icon.png" alt="DANAVA" className="w-5 h-5 object-contain" />
+                <img
+                  src="/assets/danava-icon.png"
+                  alt="DANAVA"
+                  className="w-5 h-5 object-contain"
+                />
                 <span className="font-sans font-extrabold text-sm tracking-tight bg-gradient-to-r from-[#F5AE1B] via-[#F58220] to-[#EE3132] bg-clip-text text-transparent">
                   DANAVA <span className="text-[#2B4294]">GO</span>
                 </span>
@@ -405,9 +465,16 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
 
             {/* Verifiable High-Contrast QR Code */}
             <motion.div
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+              initial={
+                shouldReduceMotion
+                  ? { opacity: 1 }
+                  : { opacity: 0, scale: 0.95 }
+              }
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: shouldReduceMotion ? 0.04 : 0.35, delay: 0.15 }}
+              transition={{
+                duration: shouldReduceMotion ? 0.04 : 0.35,
+                delay: 0.15,
+              }}
               className="my-3 p-3 bg-white rounded-2xl border border-[#E5E3DC] shadow-xs flex flex-col items-center justify-center"
             >
               <QRCodeSVG
@@ -417,7 +484,7 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
                 includeMargin={true}
               />
               <span className="text-[9px] font-mono text-[#647084] font-bold mt-1 tracking-wider uppercase">
-                QR DEMO • VERIFIED
+                {remote ? "MÃ TRA CỨU VÉ" : "QR DEMO • VERIFIED"}
               </span>
             </motion.div>
 
@@ -434,7 +501,10 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
 
               <div className="p-2 bg-[#F7F4EC] rounded-xl border border-[#E5E3DC] text-[9.5px] text-[#647084] leading-tight flex items-start gap-1.5 text-left">
                 <Info className="w-3.5 h-3.5 text-[#0097A7] shrink-0 mt-0.5" />
-                <span>Quét mã QR để mở trang tra cứu và xác thực vé trực tiếp trên hệ thống.</span>
+                <span>
+                  Quét mã QR để mở trang tra cứu và xác thực vé trực tiếp trên
+                  hệ thống.
+                </span>
               </div>
             </div>
           </div>
@@ -442,7 +512,8 @@ export const BoardingTicket: React.FC<BoardingTicketProps> = ({
 
         {/* Print-only footer for clean physical paper printouts */}
         <div className="hidden print:block text-center mt-6 text-[10px] text-slate-500 pt-4 border-t border-slate-300">
-          DANAVA GO — Nền tảng đặt vé xe khách cao cấp • Bản in vé điện tử thử nghiệm • Mã vé: {booking.id} • Hotline: 1900 8886
+          DANAVA GO — Nền tảng đặt vé xe khách cao cấp • Bản in vé điện tử thử
+          nghiệm • Mã vé: {booking.id} • Hotline: 1900 8886
         </div>
 
         {/* ============================================================

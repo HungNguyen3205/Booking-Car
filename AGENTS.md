@@ -69,3 +69,21 @@ For danavago.com hosting updates, read [docs/CPANEL_UPDATE.md](docs/CPANEL_UPDAT
 It records the confirmed GitHub remote, Node PATH, separate source/public directories,
 fail-fast update commands, backup and /app rewrite checks. Creating documentation
 does not authorize deployment; follow the user's current scope.
+
+
+## Operator Studio / full-stack pilot
+
+Read `docs/OPERATOR_STUDIO.md` for setup, API contracts, role matrix and limitations.
+`/manage` and `/admin` use `src/components/studio/StudioApp.tsx`, `studioConfig.ts`,
+`studio.css` and `src/services/platformApi.ts`. Do not modify the homepage scene
+for management changes. Server modules: `server/index.mjs` (HTTP/RBAC),
+`security.mjs` (sessions), `domain.mjs` (booking/inventory/ledger), `database.mjs`
+(SQLite) and `seed.mjs` (DANAVAGO sample). Run `npm run test:server` after changes
+to API, authorization or money/inventory logic. Node 22.13+ or 24 is required.
+Normal frontend mode uses the API; never silently fall back to mock trips when it
+fails. `VITE_BOOKING_MODE=demo` explicitly opts into the old standalone demo.
+`/app` remains the existing Cửa Ông demo, separate from this API pilot.
+Do not commit `.env`, `var/`, SQLite databases, credentials or uploaded customer
+images. Never enable an authentication bypass or ship QA fixture accounts.
+Static cPanel `dist` updates alone do not run this backend. Do not use the old
+static deployment procedure for this branch without setting up the Node service.
