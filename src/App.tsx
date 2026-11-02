@@ -16,6 +16,7 @@ import { bookingService } from './services/bookingService';
 import { preloadJourney } from './components/danava-go/journeyStageConfig';
 import { getLocationDisplayName } from './data/sceneManifest';
 import { getVietnamTodayDateStr, isValidBookingDate } from './utils/dateUtils';
+import { readSearchNavigation, syncSearchNavigation } from './utils/searchNavigation';
 
 // Code-split dynamic booking steps and ticket lookup to optimize initial bundle
 const SeatSelectionModal = React.lazy(() =>
@@ -34,24 +35,6 @@ const TicketLookupView = React.lazy(() =>
   import('./components/tickets/TicketLookupView').then((m) => ({ default: m.TicketLookupView }))
 );
 
-// Sync search params to URL query string without reloading
-const updateUrlParams = (params: SearchParams, step?: BookingStep) => {
-  if (typeof window !== 'undefined') {
-    const url = new URL(window.location.href);
-    url.searchParams.set('from', params.from);
-    url.searchParams.set('to', params.to);
-    url.searchParams.set('date', params.date);
-    url.searchParams.set('passengers', params.passengers.toString());
-    if (step && step !== 'home') {
-      url.searchParams.set('step', step);
-    } else if (step === 'home') {
-      url.searchParams.delete('step');
-    }
-    if (url.toString() !== window.location.href) window.history.replaceState({}, '', url.toString());
-  }
-};
-
-
 export const App: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
 
@@ -63,10 +46,10 @@ export const App: React.FC = () => {
   const [loaderExitComplete, setLoaderExitComplete] = useState(() => !!shouldReduceMotion);
   const [heroIntroReady, setHeroIntroReady] = useState(() => !!shouldReduceMotion);
 
-  // Navigation Step with URL restoration support
+  // Restore legacy links or this tab’s clean-URL history entry.
   const [currentStep, setCurrentStep] = useState<BookingStep>(() => {
     if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
+      const urlParams = readSearchNavigation();
       const step = urlParams.get('step');
       if (step === 'search') return 'search';
       if (step === 'lookup') return 'lookup';
@@ -74,11 +57,11 @@ export const App: React.FC = () => {
     return 'home';
   });
 
-  // Booking Flow States with safe URL restoration and strict validation
+  // Search values remain validated whether restored from an old link or history.
   const [searchParams, setSearchParams] = useState<SearchParams>(() => {
     const today = getVietnamTodayDateStr();
     if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
+      const urlParams = readSearchNavigation();
       const rawFrom = urlParams.get('from')?.trim();
       const rawTo = urlParams.get('to')?.trim();
       const rawDate = urlParams.get('date')?.trim();
@@ -172,7 +155,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     // Later steps require in-memory selection. A reload safely returns to results.
     const routeStep = currentStep === 'home' || currentStep === 'lookup' ? currentStep : 'search';
-    updateUrlParams(searchParams, routeStep);
+    syncSearchNavigation(searchParams, routeStep);
   }, [currentStep, searchParams]);
 
   // Handle Search Submission

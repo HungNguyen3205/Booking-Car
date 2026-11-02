@@ -205,13 +205,14 @@ async function choose(p, field, city) {
     await departure.goto(base);await vehicle(departure).waitFor();
     await departure.locator('#search-date').fill(travelDate);
     await departure.emulateMedia({reducedMotion:'no-preference'});
-    await departure.evaluate(()=>{window.searchWrites=0;const old=history.replaceState.bind(history);history.replaceState=(...args)=>{if(String(args[2]).includes('step=search'))window.searchWrites++;return old(...args)}});
+    await departure.evaluate(()=>{window.searchWrites=0;const old=history.replaceState.bind(history);history.replaceState=(...args)=>{if(args[0]?.danavaSearch?.step==='search')window.searchWrites++;return old(...args)}});
     await scene(departure).getByRole('button',{name:'Tìm chuyến',exact:true}).click();
-    check('Valid search starts departure before leaving the homepage',await scene(departure).getAttribute('data-search-transition')==='departing' && !departure.url().includes('step=search'));
+    check('Valid search starts departure before leaving the homepage',await scene(departure).getAttribute('data-search-transition')==='departing' && (await departure.evaluate(()=>history.state?.danavaSearch?.step))!=='search');
     await departure.evaluate(()=>{const form=document.querySelector('#hero-search form');form.requestSubmit();form.requestSubmit()});
     await departure.waitForFunction(()=>{const el=document.querySelector('[data-search-curtain]');return el && el.dataset.searchCurtain==='approaching' && new DOMMatrix(getComputedStyle(el.firstElementChild).transform).a>1.3});
     check('Search vehicle grows in a viewport overlay before navigation', true);
-    await departure.waitForURL(/step=search/);
+    await departure.getByRole('heading',{name:/Chọn chuyến phù hợp/}).waitFor();
+    check('Search keeps the address clean',new URL(departure.url()).search==='');
     check('Departure performs exactly one search navigation',await departure.evaluate(()=>window.searchWrites)===1);
     await departure.waitForFunction(()=>!document.querySelector('[data-search-curtain]'));
     check('Search curtain clears after revealing results',true);
