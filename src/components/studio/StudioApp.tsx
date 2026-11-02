@@ -1,3 +1,4 @@
+import StudioTable from "./StudioTable";
 import AppBrandSettings from "./AppBrandSettings";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
@@ -1243,18 +1244,20 @@ export default function StudioApp() {
           )}
         </div>
         <nav aria-label="Quản trị nhà xe">
-          <small>VẬN HÀNH</small>
-          {visibleNav.map((n) => (
-            <button
-              className={page === n.id ? "active" : ""}
-              key={n.id}
-              onClick={() => navigate(n.id)}
-            >
-              <n.icon size={17} />
-              {n.name}
-              {page === n.id && <span className="ds-nav-dot" />}
-            </button>
-          ))}
+          {[
+            {name:"Tổng quan", ids:["overview"]},
+            {name:"Điều hành & Bán vé", ids:["trips","bookings","routes"]},
+            {name:"Đội xe & Nhân sự", ids:["vehicles","drivers","staff","shifts","branches"]},
+            {name:"Kinh doanh & Tài chính", ids:["customers","agencies","promotions","ledger","reports"]},
+            {name:"Thương hiệu & Hệ thống", ids:["app","settings","audit"]},
+          ].map(group => {
+            const entries = visibleNav.filter(n=>group.ids.includes(n.id));
+            if (!entries.length) return null;
+            return <details key={group.name} className="ds-nav-group" open={group.ids.includes(page) || group.ids.includes("overview")}>
+              <summary>{group.name}<ChevronRight size={14}/></summary>
+              {entries.map(n=><button className={page===n.id?"active":""} aria-current={page===n.id?"page":undefined} key={n.id} onClick={()=>navigate(n.id)}><n.icon size={19}/>{n.name}{page===n.id&&<span className="ds-nav-dot"/>}</button>)}
+            </details>;
+          })}
           {user.role === "platform" && (
             <>
               <small>NỀN TẢNG</small>
@@ -1387,7 +1390,7 @@ export default function StudioApp() {
             </div>
           )}
         </header>
-        <div className="ds-content">
+        <div className="ds-content" key={page}>
           <div className="ds-heading">
             <div>
               <span className="ds-kicker">
@@ -1752,7 +1755,7 @@ export default function StudioApp() {
                   <span>Tiền đã thu và đã hoàn được tách riêng</span>
                 </div>
                 <div className="ds-table-wrap">
-                  <table>
+                  <StudioTable key={page + tenantId}>
                     <thead>
                       <tr>
                         <th>Tuyến</th>
@@ -1773,7 +1776,7 @@ export default function StudioApp() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StudioTable>
                 </div>
               </section>
               <section className="ds-panel">
@@ -1846,7 +1849,7 @@ export default function StudioApp() {
                 </div>
               ) : page === "trips" ? (
                 <div className="ds-table-wrap">
-                  <table>
+                  <StudioTable key={page + tenantId}>
                     <thead>
                       <tr>
                         <th>Hành trình</th>
@@ -1951,11 +1954,11 @@ export default function StudioApp() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StudioTable>
                 </div>
               ) : page === "bookings" ? (
                 <div className="ds-table-wrap">
-                  <table>
+                  <StudioTable key={page + tenantId}>
                     <thead>
                       <tr>
                         <th>Vé / Hành khách</th>
@@ -2037,11 +2040,11 @@ export default function StudioApp() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StudioTable>
                 </div>
               ) : page === "staff" ? (
                 <div className="ds-table-wrap">
-                  <table>
+                  <StudioTable key={page + tenantId}>
                     <thead>
                       <tr>
                         <th>Nhân viên</th>
@@ -2074,11 +2077,11 @@ export default function StudioApp() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StudioTable>
                 </div>
               ) : page === "customers" ? (
                 <div className="ds-table-wrap">
-                  <table>
+                  <StudioTable key={page + tenantId}>
                     <thead>
                       <tr>
                         <th>Khách hàng</th>
@@ -2099,11 +2102,11 @@ export default function StudioApp() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StudioTable>
                 </div>
               ) : page === "ledger" ? (
                 <div className="ds-table-wrap">
-                  <table>
+                  <StudioTable key={page + tenantId}>
                     <thead>
                       <tr>
                         <th>Ngày</th>
@@ -2137,11 +2140,11 @@ export default function StudioApp() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StudioTable>
                 </div>
               ) : page === "audit" ? (
                 <div className="ds-table-wrap">
-                  <table>
+                  <StudioTable key={page + tenantId}>
                     <thead>
                       <tr>
                         <th>Thời điểm</th>
@@ -2163,11 +2166,11 @@ export default function StudioApp() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StudioTable>
                 </div>
               ) : modules[page] ? (
                 <div className="ds-table-wrap">
-                  <table>
+                  <StudioTable key={page + tenantId}>
                     <thead>
                       <tr>
                         {modules[page].labels.map((s) => (
@@ -2219,7 +2222,7 @@ export default function StudioApp() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StudioTable>
                 </div>
               ) : null}
               {!filtered.length && !loading && <Empty />}
