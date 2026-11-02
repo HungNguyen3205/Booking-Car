@@ -23,6 +23,7 @@ Load only skills relevant to the current task. Review the actual browser result 
 - `src/data/mockData.ts`: cities, vehicles, routes and demo trips.
 - `src/components/home/TripSearchForm.tsx`: existing search/validation, shared by hero.
 - `src/App.tsx`: booking navigation and shared SearchParams.
+- `src/utils/searchNavigation.ts`: clean root URL, legacy query import and per-history-entry search restore; never mutate /app or future admin paths. `npm run test:navigation` covers this contract.
 - `src/components/seats/SeatButton.tsx`, `SeatMap.tsx`, `seat-experience.css`: capsule / leather armchair / private-suite artwork and inventory-driven layout.
 - `src/components/seats/SeatSelectionModal.tsx`: existing selection totals and passenger limit.
 - `src/components/search`, `checkout`, `tickets`: booking flow; preserve behavior.

@@ -11,6 +11,7 @@
     "test:journey": "node scripts/verify-journey.cjs",
     "test:hero": "node scripts/verify-journey.cjs --hero-only",
     "test:logic": "node scripts/verify-logic.cjs",
+    "test:navigation": "node scripts/verify-search-navigation.cjs",
     "test:audit": "node scripts/verify-audit.cjs"
   },
   "dependencies": {
