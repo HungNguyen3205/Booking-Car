@@ -71,19 +71,19 @@ fail-fast update commands, backup and /app rewrite checks. Creating documentatio
 does not authorize deployment; follow the user's current scope.
 
 
-## Operator Studio / full-stack pilot
+## Laravel / operator apps
 
-Read `docs/OPERATOR_STUDIO.md` for setup, API contracts, role matrix and limitations.
-`/manage` and `/admin` use `src/components/studio/StudioApp.tsx`, `studioConfig.ts`,
-`studio.css` and `src/services/platformApi.ts`. Do not modify the homepage scene
-for management changes. Server modules: `server/index.mjs` (HTTP/RBAC),
-`security.mjs` (sessions), `domain.mjs` (booking/inventory/ledger), `database.mjs`
-(SQLite) and `seed.mjs` (DANAVAGO sample). Run `npm run test:server` after changes
-to API, authorization or money/inventory logic. Node 22.13+ or 24 is required.
-Normal frontend mode uses the API; never silently fall back to mock trips when it
-fails. `VITE_BOOKING_MODE=demo` explicitly opts into the old standalone demo.
-`/app` remains the existing Cửa Ông demo, separate from this API pilot.
-Do not commit `.env`, `var/`, SQLite databases, credentials or uploaded customer
-images. Never enable an authentication bypass or ship QA fixture accounts.
-Static cPanel `dist` updates alone do not run this backend. Do not use the old
-static deployment procedure for this branch without setting up the Node service.
+Read `docs/LARAVEL_PORTALS.md` before API, hosting or multi-domain changes.
+PHP Laravel backend lives in `backend/`; React frontend and hero animations stay.
+`/manage` and `/admin` use StudioApp; `/app` is the common live booking app,
+`/app/{slug}` is a local preview of a tenant app, `/nha-xe/{slug}` is its profile.
+PortalService resolves only active verified domains to the correct tenant.
+Never trust a client tenant ID to override a tenant-app hostname. Keep sessions
+host-only and require CSRF for public booking writes as well as management.
+Run `npm run test:server`, `npm run test:php`, build/lint and relevant browser QA.
+Backend PHP needs 8.3+, Composer 2; production document root is `backend/public`.
+Use `npm run build:hosting`, never replace Laravel .htaccess with SPA rewrites.
+Do not commit .env, vendor, local runtime, SQLite files, session files or uploads.
+Do not deploy or change DNS without the user's authorization and credentials.
+No migration of real Node data/passwords is implicit; preserve the old DB until
+an explicit data migration and reconciliation have been completed.

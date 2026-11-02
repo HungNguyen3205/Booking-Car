@@ -2,6 +2,7 @@ import type { Booking, PassengerInfo, SearchParams, Trip } from "../types";
 export const marketplaceApiEnabled =
   import.meta.env.VITE_BOOKING_MODE !== "demo";
 let csrf = "";
+let csrfBootstrap: Promise<SessionResponse> | null = null;
 export interface OperatorUser {
   id: string;
   tenantId: string | null;
@@ -27,6 +28,15 @@ export async function api<T>(
     headers?: Record<string, string>;
   } = {},
 ): Promise<T> {
+  if (
+    options.method &&
+    !["GET", "HEAD"].includes(options.method.toUpperCase()) &&
+    !csrf &&
+    path !== "/auth/me"
+  )
+    await (csrfBootstrap ??= loadSession().finally(() => {
+      csrfBootstrap = null;
+    }));
   const res = await fetch("/api" + path, {
     method: options.method || "GET",
     credentials: "same-origin",

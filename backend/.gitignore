@@ -1,0 +1,13 @@
+/vendor/
+/.env
+/.phpunit.cache/
+/database/*.sqlite*
+/public/assets/
+/public/robots.txt
+/public/favicon.svg
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+
+/public/spa.html
+/public/*.webmanifest
+/.phpunit.result.cache

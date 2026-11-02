@@ -1,36 +1,95 @@
+import { request as httpRequest } from "node:http";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 const dir = mkdtempSync(join(tmpdir(), "danava-api-")),
   token = randomBytes(24).toString("hex"),
   base = "http://127.0.0.1:18787";
-const child = spawn(process.execPath, ["server/index.mjs", "--dev"], {
-  env: {
-    ...process.env,
-    PORT: "18787",
-    DANAVA_DB: join(dir, "db.sqlite"),
-    DANAVA_UPLOAD_DIR: join(dir, "uploads"),
-    DANAVA_SETUP_TOKEN: token,
-  },
-  stdio: ["ignore", "pipe", "pipe"],
+const php = process.env.PHP_BINARY || "php";
+const env = {
+  ...process.env,
+  APP_ENV: "local",
+  APP_KEY: "base64:" + randomBytes(32).toString("base64"),
+  APP_DEBUG: "false",
+  APP_URL: base,
+  DB_CONNECTION: "sqlite",
+  DB_DATABASE: join(dir, "db.sqlite"),
+  SESSION_FILES: join(dir, "sessions"),
+  CACHE_PATH: join(dir, "cache"),
+  SESSION_SECURE_COOKIE: "false",
+  DANAVA_SETUP_TOKEN: token,
+  DANAVA_ALLOW_DEMO_SEED: "true",
+  BCRYPT_ROUNDS: "4",
+  TENANT_WILDCARD_READY: "true",
+};
+mkdirSync(join(dir, "sessions"), { recursive: true });
+mkdirSync(join(dir, "cache"), { recursive: true });
+const migration = spawnSync(php, ["backend/artisan", "migrate", "--force"], {
+  env,
+  encoding: "utf8",
 });
+if (migration.status !== 0)
+  throw new Error(migration.stderr + migration.stdout);
+const child = spawn(
+  php,
+  ["-S", "127.0.0.1:18787", "-t", "backend/public", "backend/server.php"],
+  {
+    env,
+    stdio: ["ignore", "pipe", "pipe"],
+  },
+);
 let log = "";
 child.stdout.on("data", (d) => (log += d));
 child.stderr.on("data", (d) => (log += d));
 const password = randomBytes(18).toString("hex");
+function httpFetch(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    const req = httpRequest(
+      url,
+      { method: options.method || "GET", headers: options.headers || {} },
+      (res) => {
+        const chunks = [];
+        res.on("data", (c) => chunks.push(c));
+        res.on("end", () =>
+          resolve({
+            status: res.statusCode,
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            headers: { getSetCookie: () => res.headers["set-cookie"] || [] },
+            json: async () => JSON.parse(Buffer.concat(chunks).toString()),
+          }),
+        );
+      },
+    );
+    req.on("error", reject);
+    if (options.body) req.write(options.body);
+    req.end();
+  });
+}
+let anonymous = null;
+const cookie = (r) =>
+  r.headers
+    .getSetCookie()
+    .find((c) => c.startsWith("danava_session="))
+    ?.split(";")[0];
 async function request(path, options = {}) {
-  const r = await fetch(base + "/api" + path, {
+  if (!anonymous && path !== "/health") {
+    const bootstrap = await httpFetch(base + "/api/auth/me");
+    const data = await bootstrap.json();
+    anonymous = { cookie: cookie(bootstrap), csrf: data.csrf };
+  }
+  const session = options.session || anonymous;
+  const r = await httpFetch(base + "/api" + path, {
     method: options.method || "GET",
     headers: {
       "Content-Type": "application/json",
-      ...(options.session
+      ...(session
         ? {
-            Cookie: options.session.cookie,
-            "X-CSRF-Token": options.session.csrf,
+            Cookie: session.cookie,
+            "X-CSRF-Token": session.csrf,
           }
         : {}),
       ...(options.tenant ? { "X-Tenant-Id": options.tenant } : {}),
@@ -41,10 +100,12 @@ async function request(path, options = {}) {
       : {}),
   });
   const data = await r.json().catch(() => ({}));
+  if (path.startsWith("/auth/") && r.ok && path !== "/auth/me")
+    anonymous = null;
   return {
     status: r.status,
     data,
-    cookie: r.headers.get("set-cookie")?.split(";")[0],
+    cookie: cookie(r),
   };
 }
 let admin, tenant, trip, booking, hold;
@@ -61,7 +122,7 @@ test("Full operator/marketplace API with tenant and financial invariants", async
       if ((await request("/health")).status === 200) break;
     } catch {}
     await new Promise((r) => setTimeout(r, 50));
-    if (i === 79) throw Error(log);
+    if (i === 79) throw Error(log.slice(-2000));
   }
   await t.test("Setup token required and only one platform owner", async () => {
     const bad = await request("/auth/setup", {
@@ -78,7 +139,7 @@ test("Full operator/marketplace API with tenant and financial invariants", async
         name: "QA Platform",
       },
     });
-    assert.equal(r.status, 201, JSON.stringify(r));
+    assert.equal(r.status, 201, JSON.stringify(r.data));
     admin = { cookie: r.cookie, csrf: r.data.csrf };
     assert.equal(
       (
@@ -105,7 +166,7 @@ test("Full operator/marketplace API with tenant and financial invariants", async
           body: {},
         })
       ).status,
-      403,
+      419,
     );
   });
   await t.test(
@@ -116,7 +177,7 @@ test("Full operator/marketplace API with tenant and financial invariants", async
         session: admin,
         body: {},
       });
-      assert.equal(r.status, 201, JSON.stringify(r));
+      assert.equal(r.status, 201, JSON.stringify(r.data));
       tenant = r.data.tenant;
       assert.equal(tenant.name, "DANAVAGO");
       const trips = await request("/manage/trips", {
@@ -162,7 +223,7 @@ test("Full operator/marketplace API with tenant and financial invariants", async
       headers: { "X-Booking-Token": publicToken },
       body: { tripId: trip.id, seats: ["A1"] },
     });
-    assert.equal(r.status, 201, JSON.stringify(r));
+    assert.equal(r.status, 201, JSON.stringify(r.data));
     hold = r.data;
     const other = await request("/public/holds", {
       method: "POST",
@@ -198,7 +259,7 @@ test("Full operator/marketplace API with tenant and financial invariants", async
         body,
       };
       const r = await request("/public/bookings", options);
-      assert.equal(r.status, 201, JSON.stringify(r));
+      assert.equal(r.status, 201, JSON.stringify(r.data));
       booking = r.data;
       assert.equal(booking.totalAmount, 180000);
       assert.equal(booking.paymentStatus, "unpaid");
@@ -276,7 +337,7 @@ test("Full operator/marketplace API with tenant and financial invariants", async
         note: "QA tiền đã đối chiếu",
       },
     });
-    assert.equal(r.status, 201, JSON.stringify(r));
+    assert.equal(r.status, 201, JSON.stringify(r.data));
     assert.equal(
       (
         await request("/manage/bookings/" + booking.id, {
@@ -497,7 +558,7 @@ test("Full operator/marketplace API with tenant and financial invariants", async
         headers: { "Idempotency-Key": "partial-booking-unique" },
         body: { tripId: trip.id, seats: ["A4"], passenger },
       });
-      assert.equal(r.status, 201, JSON.stringify(r));
+      assert.equal(r.status, 201, JSON.stringify(r.data));
       const key = "partial-ledger-unique";
       const opts = {
         method: "POST",
@@ -653,6 +714,95 @@ test("Full operator/marketplace API with tenant and financial invariants", async
         },
       });
       assert.equal(bad.status, 422);
+    },
+  );
+  await t.test(
+    "Operator profiles and shared app expose separate brands",
+    async () => {
+      const profile = await request("/public/operators/cua-ong-limousine");
+      assert.equal(profile.status, 200);
+      assert.equal(profile.data.name, "Cửa Ông Limousine");
+      assert.equal(profile.data.appEnabled, true);
+      assert.ok(
+        profile.data.profileUrl.includes("danava.com/nha-xe/cua-ong-limousine"),
+      );
+      const platform = await request("/public/context", {
+        headers: { Host: "app.danavago.com" },
+      });
+      assert.equal(platform.data.kind, "platform-app");
+      const own = await request("/public/context", {
+        headers: { Host: "cuaonglimousine.danavago.com" },
+      });
+      assert.equal(own.data.kind, "operator");
+      assert.equal(own.data.operator.id, profile.data.id);
+    },
+  );
+  await t.test(
+    "Operator app cannot search or reserve another operator inventory",
+    async () => {
+      const headers = { Host: "cuaonglimousine.danavago.com" };
+      const s = await request(
+        "/public/search?" +
+          new URLSearchParams({
+            from: "Đà Nẵng",
+            to: "Huế",
+            date: trip.date,
+            operator: tenant.id,
+          }),
+        { headers },
+      );
+      assert.equal(s.status, 403);
+      const h = await request("/public/holds", {
+        method: "POST",
+        headers: {
+          ...headers,
+          "X-Booking-Token": randomBytes(24).toString("hex"),
+        },
+        body: { tripId: trip.id, seats: ["A8"] },
+      });
+      assert.equal(h.status, 403);
+      const q = await request("/public/lookup", {
+        method: "POST",
+        headers,
+        body: { code: booking.id, phone: passenger.phone },
+      });
+      assert.equal(q.status, 404);
+    },
+  );
+  await t.test(
+    "Domain registration stays pending and is tenant-scoped",
+    async () => {
+      const config = {
+        appEnabled: true,
+        appSlug: "danavagotest",
+        customDomain: "tickets.danava-review.example",
+      };
+      const created = await request("/manage/app", {
+        method: "PATCH",
+        session: admin,
+        tenant: tenant.id,
+        body: config,
+      });
+      assert.equal(created.status, 200);
+      const d = created.data.domains.find((d) => d.type === "custom");
+      assert.equal(d.status, "pending");
+      assert.ok(d.verificationRecord[0].startsWith("_danava-challenge."));
+      const collision = await request("/manage/app", {
+        method: "PATCH",
+        session: admin,
+        tenant: otherTenant.id,
+        body: config,
+      });
+      assert.equal(collision.status, 409);
+      const activate = await request(
+        "/platform/domains/" + d.id + "/activate",
+        { method: "POST", session: admin, body: { hostingReady: true } },
+      );
+      assert.equal(activate.status, 409);
+      const unknown = await request("/public/context", {
+        headers: { Host: d.hostname },
+      });
+      assert.equal(unknown.status, 404);
     },
   );
   await t.test(

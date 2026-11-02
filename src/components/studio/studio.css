@@ -1467,3 +1467,34 @@
 .ds-chart-bar {
   min-height: 0;
 }
+
+.ds-domain {
+  padding: 24px 0;
+  border-top: 1px solid var(--ds-line);
+  margin-top: 24px;
+}
+.ds-domain h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.ds-domain dl {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px;
+  margin: 20px 0;
+}
+.ds-domain code {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  color: #f1cfa8;
+}
+.ds-settings a {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}

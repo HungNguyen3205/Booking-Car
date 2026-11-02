@@ -14,8 +14,10 @@
     "test:navigation": "node scripts/verify-search-navigation.cjs",
     "test:audit": "node scripts/verify-audit.cjs",
     "dev:web": "vite",
-    "start": "node --env-file-if-exists=.env server/index.mjs",
-    "test:server": "node --test server/tests/*.test.mjs"
+    "start": "php -S 127.0.0.1:8787 -t backend/public backend/server.php",
+    "test:server": "node --test backend/tests/api-contract.test.mjs",
+    "test:php": "php backend/vendor/bin/phpunit -c backend/phpunit.xml",
+    "build:hosting": "npm run build && node scripts/build-hosting.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
@@ -39,6 +41,6 @@
     "vite": "^8.3.4"
   },
   "engines": {
-    "node": ">=22.13.0 <23 || >=24.0.0 <25"
+    "node": ">=22.12.0 <23 || >=24.0.0 <25"
   }
 }

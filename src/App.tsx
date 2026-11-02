@@ -1,3 +1,4 @@
+import OperatorDirectory from "./components/portals/OperatorDirectory";
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import {
   motion,
@@ -547,7 +548,8 @@ export const App: React.FC = () => {
                     />
                     <VehicleExperience />
                     <BookingSteps />
-                    <BenefitsSection
+                    <OperatorDirectory />
+                  <BenefitsSection
                       onOpenLookup={() => setCurrentStep("lookup")}
                     />
                     <FaqSection />

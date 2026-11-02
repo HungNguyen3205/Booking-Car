@@ -1,0 +1,62 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use App\Services\OperatorService;
+use App\Services\PortalService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\TestCase;
+
+class PortalTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function actor(): User
+    {
+        return User::create(['id' => (string) Str::uuid(), 'name' => 'QA', 'email' => 'qa@example.test', 'password' => Hash::make('only-local-test-password'), 'role' => 'platform', 'active' => true]);
+    }
+
+    public function test_custom_domain_requires_dns_ownership_and_platform_activation(): void
+    {
+        $u = $this->actor();
+        $ops = app(OperatorService::class);
+        $t = $ops->createTenant(['name' => 'Nhà xe QA', 'slug' => 'qa-bus'], $u);
+        $p = app(PortalService::class);
+        $p->save($t['id'], ['appEnabled' => true, 'appSlug' => 'qabus', 'customDomain' => 'app.qa-bus.example'], $u);
+        $domain = DB::table('tenant_domains')->where('type', 'custom')->first();
+        $this->actingAs($u)->postJson('/api/platform/domains/'.$domain->id.'/activate', ['hostingReady' => true])->assertStatus(409);
+        $mock = \Mockery::mock(PortalService::class, [$ops])->makePartial();
+        $mock->shouldReceive('txt')->once()->andReturn(['not-the-token']);
+        try {
+            $mock->verify($t['id'], $domain->id, $u);
+            $this->fail('Wrong TXT must fail');
+        } catch (HttpException $e) {
+            $this->assertSame(422, $e->getStatusCode());
+        }
+        $this->assertSame('pending', DB::table('tenant_domains')->where('id', $domain->id)->value('status'));
+        $good = \Mockery::mock(PortalService::class, [$ops])->makePartial();
+        $good->shouldReceive('txt')->once()->andReturn(['danava-verification='.$domain->verification_token]);
+        $good->verify($t['id'], $domain->id, $u);
+        $this->assertSame('verified', DB::table('tenant_domains')->where('id', $domain->id)->value('status'));
+        $this->actingAs($u)->postJson('/api/platform/domains/'.$domain->id.'/activate', ['hostingReady' => true])->assertOk();
+        $this->getJson('https://app.qa-bus.example/api/public/context')->assertOk()->assertJsonPath('operator.id', $t['id']);
+    }
+
+    public function test_app_domain_collision_and_disabled_app_are_enforced(): void
+    {
+        $u = $this->actor();
+        $ops = app(OperatorService::class);
+        $a = $ops->createTenant(['name' => 'A', 'slug' => 'tenant-a'], $u);
+        $b = $ops->createTenant(['name' => 'B', 'slug' => 'tenant-b'], $u);
+        $p = app(PortalService::class);
+        $p->save($a['id'], ['appEnabled' => true, 'appSlug' => 'tenant-a', 'customDomain' => ''], $u);
+        $this->actingAs($u)->withHeader('X-Tenant-Id', $b['id'])->patchJson('/api/manage/app', ['appEnabled' => true, 'appSlug' => 'tenant-a', 'customDomain' => ''])->assertStatus(409);
+        $p->save($a['id'], ['appEnabled' => false, 'appSlug' => 'tenant-a', 'customDomain' => ''], $u);
+        $this->getJson('https://tenant-a.danavago.com/api/public/context')->assertNotFound();
+    }
+}

@@ -1,3 +1,4 @@
+import AppBrandSettings from "./AppBrandSettings";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import {
@@ -55,6 +56,7 @@ const unique = () =>
     b.toString(16).padStart(2, "0"),
   ).join("");
 const nav = [
+  { id: "app", name: "App & Tên miền", icon: Bus, roles: ["owner", "manager"] },
   { id: "overview", name: "Tổng quan", icon: LayoutDashboard, roles: ["all"] },
   { id: "trips", name: "Điều hành chuyến", icon: CalendarDays, roles: ["all"] },
   { id: "bookings", name: "Bán vé & Đơn vé", icon: Ticket, roles: ["all"] },
@@ -1186,13 +1188,15 @@ export default function StudioApp() {
                 ? "Sổ thu chi"
                 : page === "reports"
                   ? "Báo cáo & Đối soát"
-                  : page === "settings"
-                    ? "Cài đặt nhà xe"
-                    : page === "audit"
-                      ? "Nhật ký hoạt động"
-                      : page === "platform"
-                        ? "Nhà xe trên nền tảng"
-                        : modules[page]?.title || page;
+                  : page === "app"
+                    ? "App & Tên miền"
+                    : page === "settings"
+                      ? "Cài đặt nhà xe"
+                      : page === "audit"
+                        ? "Nhật ký hoạt động"
+                        : page === "platform"
+                          ? "Nhà xe trên nền tảng"
+                          : modules[page]?.title || page;
   const canAdd =
     page === "platform"
       ? user.role === "platform"
@@ -1654,6 +1658,13 @@ export default function StudioApp() {
                 ))}
               </div>
             </>
+          ) : page === "app" ? (
+            <AppBrandSettings
+              data={context}
+              tenantId={tenantId}
+              platform={user.role === "platform"}
+              onSaved={refresh}
+            />
           ) : page === "settings" ? (
             <section className="ds-panel ds-settings">
               <h2>Thương hiệu & Thông tin vận hành</h2>
