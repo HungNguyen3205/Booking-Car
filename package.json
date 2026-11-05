@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node --env-file-if-exists=.env scripts/dev-full.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -12,7 +12,12 @@
     "test:hero": "node scripts/verify-journey.cjs --hero-only",
     "test:logic": "node scripts/verify-logic.cjs",
     "test:navigation": "node scripts/verify-search-navigation.cjs",
-    "test:audit": "node scripts/verify-audit.cjs"
+    "test:audit": "node scripts/verify-audit.cjs",
+    "dev:web": "vite",
+    "start": "php -S 127.0.0.1:8787 -t backend/public backend/server.php",
+    "test:server": "node --test backend/tests/api-contract.test.mjs",
+    "test:php": "php backend/vendor/bin/phpunit -c backend/phpunit.xml",
+    "build:hosting": "npm run build && node scripts/build-hosting.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
@@ -34,5 +39,8 @@
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3",
     "vite": "^8.3.4"
+  },
+  "engines": {
+    "node": ">=22.12.0 <23 || >=24.0.0 <25"
   }
 }

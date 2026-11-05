@@ -1,0 +1,1004 @@
+/* ==========================================================================
+   DANAVA GO ADMIN DESIGN SYSTEM
+   Palette synchronized with letanthanh.com:
+     - Footer Color (Menu/Sidebar): #0f1117 (dark-1), #171a22 (dark-2), text: #aeb3bf
+     - Orange Gradient Buttons: linear-gradient(135deg, #ffa64a 0%, #f2730e 100%)
+     - Button Box Shadow: 0 8px 22px rgba(242, 115, 14, 0.35)
+     - Red Accent (Logout): #EE3132
+   ========================================================================== */
+
+:root {
+  /* Letanthanh.com Exact Colors */
+  --lt-orange: #f2730e;
+  --lt-orange-bright: #ffa64a;
+  --lt-orange-dark: #c85a0a;
+  --lt-orange-soft: #fff4e9;
+  --lt-orange-grad: linear-gradient(135deg, #ffa64a 0%, #f2730e 100%);
+  --lt-orange-grad-hover: linear-gradient(135deg, #ffb35e 0%, #f47d1f 100%);
+  --lt-orange-shadow: 0 8px 22px rgba(242, 115, 14, 0.35);
+  --lt-orange-shadow-hover: 0 12px 28px rgba(242, 115, 14, 0.45);
+
+  /* Primary Brand Button & Accent */
+  --ds-primary: #f2730e;
+  --ds-primary-hover: #c85a0a;
+  --ds-primary-subtle: #fff4e9;
+
+  --ds-secondary: #F5AE1B;
+  --ds-secondary-subtle: #fef8e7;
+  --ds-info: #53A5DB;
+  --ds-info-subtle: #eef7fc;
+  --ds-danger: #EE3132;
+  --ds-danger-subtle: #fef2f2;
+  --ds-success: #16a34a;
+  --ds-success-subtle: #eafaf1;
+
+  --ds-bg-canvas: #f4f6fa;
+  --ds-bg-card: #ffffff;
+  --ds-border: #edf2f7;
+  --ds-border-light: #f1f5f9;
+
+  /* SIDEBAR MENU COLOR = FOOTER COLOR FROM LETANTHANH.COM */
+  --ds-sidebar-bg: #0f1117;
+  --ds-sidebar-active: #171a22;
+  --ds-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --ds-sidebar-text: #aeb3bf;
+  --ds-sidebar-muted: #6b7280;
+
+  --ds-text-dark: #1a202c;
+  --ds-text-body: #334155;
+  --ds-text-muted: #64748b;
+  --ds-text-subtle: #8a99ad;
+
+  --ds-radius-card: 20px;
+  --ds-radius-pill: 9999px;
+  --ds-radius-md: 12px;
+  --ds-shadow-card: 0 4px 20px rgba(15, 17, 23, 0.04);
+  --ds-shadow-elevated: 0 10px 30px rgba(15, 17, 23, 0.08);
+
+  --ds-font: 'UTM Eremitage', 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Global Root Container */
+.ds-root {
+  background-color: var(--ds-bg-canvas) !important;
+  color: var(--ds-text-dark) !important;
+  font-family: var(--ds-font) !important;
+  font-size: 14.5px;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+.ds-atmosphere {
+  display: none;
+}
+
+/* ==========================================================================
+   SIDEBAR (COLOR OF FOOTER LETANTHANH.COM: #0f1117 & #171a22)
+   ========================================================================== */
+.ds-sidebar {
+  background: var(--ds-sidebar-bg) !important;
+  color: var(--ds-sidebar-text) !important;
+  width: 250px;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 12px 35px rgba(15, 17, 23, 0.16) !important;
+  padding: 20px 14px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  margin: 16px 0 16px 16px;
+  border-radius: 24px !important;
+  height: calc(100vh - 32px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sidebar Header Row with Brand & Mobile Close */
+.ds-sidebar-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  position: relative;
+}
+
+.ds-sidebar-close-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #aeb3bf;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.ds-sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+/* Mobile Sidebar Backdrop */
+.ds-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 23, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+  animation: ds-fade-in 0.2s ease;
+}
+
+/* Mobile Hamburger Menu in Topbar */
+.ds-mobile-menu {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  color: #1a202c;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 17, 23, 0.05);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.ds-mobile-menu:hover {
+  border-color: var(--lt-orange);
+  color: var(--lt-orange);
+  box-shadow: 0 4px 12px rgba(242, 115, 14, 0.15);
+}
+
+/* Brand Wordmark with Image 2 Logo */
+.ds-sidebar .ds-wordmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  color: #ffffff !important;
+  text-decoration: none;
+  flex: 1;
+}
+
+.ds-brand-logo-img {
+  width: 100%;
+  max-width: 180px;
+  height: auto;
+  max-height: 85px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+}
+
+.ds-brand-badge-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--lt-orange-grad) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: var(--lt-orange-shadow);
+  flex-shrink: 0;
+}
+
+.ds-brand-logo-text {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.ds-brand-logo-text span {
+  color: var(--lt-orange);
+}
+
+/* Workspace selector */
+.ds-sidebar .ds-workspace {
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ds-sidebar .ds-workspace small {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ds-sidebar-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 3px;
+}
+
+.ds-sidebar select {
+  background: transparent !important;
+  color: #ffffff !important;
+  border: none !important;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.ds-sidebar select option {
+  background: #0f1117;
+  color: #ffffff;
+}
+
+/* Navigation Groups */
+.ds-sidebar nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ds-sidebar nav::-webkit-scrollbar {
+  width: 4px;
+}
+.ds-sidebar nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.ds-nav-group summary {
+  padding: 12px 14px 6px;
+  font-size: 12px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #8c98a9 !important;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  opacity: 0.95;
+}
+
+.ds-nav-group summary::-webkit-details-marker {
+  display: none;
+}
+
+.ds-nav-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Nav Item Button - Larger & clearer typography */
+.ds-sidebar nav button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: transparent;
+  color: var(--ds-sidebar-text);
+  border-radius: var(--ds-radius-md);
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.ds-sidebar nav button:hover {
+  background: var(--ds-sidebar-hover);
+  color: #ffffff;
+}
+
+/* Active Nav Item: #171a22 + border cam nhẹ + badge cam gradian */
+.ds-sidebar nav button.active {
+  background: var(--ds-sidebar-active) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(242, 115, 14, 0.3) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.ds-nav-icon-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--ds-sidebar-muted);
+  transition: all 0.18s ease;
+}
+
+.ds-sidebar nav button.active .ds-nav-icon-badge {
+  background: var(--lt-orange-grad) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(242, 115, 14, 0.45);
+}
+
+.ds-nav-dot {
+  display: none !important;
+}
+
+/* Footer Nav & Logout */
+.ds-footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 8px;
+}
+
+.ds-footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: transparent;
+  color: var(--ds-sidebar-text);
+  border-radius: 8px;
+  border: none;
+  font-size: 13.5px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.ds-footer-btn:hover {
+  background: var(--ds-sidebar-hover);
+  color: #ffffff;
+}
+
+.ds-sidebar-bottom {
+  margin-top: 10px;
+  padding-top: 8px;
+}
+
+/* Red Logout Button */
+.ds-logout-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 11px 16px;
+  background: rgba(238, 49, 50, 0.08);
+  color: var(--ds-danger) !important;
+  border: 1px solid rgba(238, 49, 50, 0.2);
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.ds-logout-action-btn:hover {
+  background: var(--ds-danger) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(238, 49, 50, 0.35);
+}
+
+/* ==========================================================================
+   MAIN CONTENT & TOPBAR
+   ========================================================================== */
+.ds-main {
+  margin-left: 282px;
+  background-color: var(--ds-bg-canvas);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.25s ease;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ds-sidebar.collapsed {
+  width: 72px;
+}
+.ds-sidebar.collapsed .ds-brand-logo-img {
+  max-width: 48px;
+  max-height: 48px;
+}
+.ds-sidebar.collapsed .ds-brand-logo-text,
+.ds-sidebar.collapsed .ds-workspace,
+.ds-sidebar.collapsed nav button span:not(.ds-nav-icon-badge),
+.ds-sidebar.collapsed .ds-nav-group summary span,
+.ds-sidebar.collapsed .ds-footer-btn span,
+.ds-sidebar.collapsed .ds-logout-action-btn span {
+  display: none !important;
+}
+.ds-main.collapsed {
+  margin-left: 104px;
+}
+
+/* Topbar Header */
+.ds-topbar {
+  background: transparent !important;
+  border: none !important;
+  padding: 22px 36px 14px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 74px;
+}
+
+.ds-topbar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ds-topbar-page-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--ds-text-dark);
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+}
+
+.ds-topbar-breadcrumb-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ds-text-subtle);
+  font-weight: 500;
+}
+
+.ds-topbar-breadcrumb-wrap span.current {
+  color: var(--lt-orange);
+  font-weight: 600;
+}
+
+/* Topbar Right Section */
+.ds-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Pill Search Input */
+.ds-topbar-search-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #edf2f7;
+  border-radius: var(--ds-radius-pill);
+  padding: 7px 18px 7px 16px;
+  width: 260px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.ds-topbar-search-pill:focus-within {
+  background: #ffffff;
+  border-color: var(--lt-orange);
+  box-shadow: 0 0 0 3px rgba(242, 115, 14, 0.15);
+  width: 300px;
+}
+
+.ds-topbar-search-pill svg {
+  color: var(--ds-text-subtle);
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.ds-topbar-search-pill input {
+  border: none !important;
+  background: transparent !important;
+  outline: none;
+  font-size: 13px;
+  color: var(--ds-text-dark);
+  width: 100%;
+  padding: 0 !important;
+}
+
+.ds-topbar-search-pill input::placeholder {
+  color: var(--ds-text-subtle);
+}
+
+/* Bell Notification Button */
+.ds-topbar-bell-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid var(--ds-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ds-text-body);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.ds-topbar-bell-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.ds-bell-dot-indicator {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lt-orange);
+  border: 2px solid #ffffff;
+}
+
+/* User Profile Badge (Rightmost Topbar) */
+.ds-topbar-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 4px 4px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid var(--ds-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ds-topbar-user-profile:hover {
+  box-shadow: 0 4px 12px rgba(242, 115, 14, 0.1);
+}
+
+.ds-topbar-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--lt-orange-grad) !important;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(242, 115, 14, 0.3);
+}
+
+.ds-topbar-user-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.ds-topbar-user-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ds-text-dark);
+}
+
+.ds-topbar-user-role {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--ds-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ds-topbar-user-chevron {
+  color: var(--ds-text-subtle);
+  margin-left: 2px;
+}
+
+/* Search Dropdown Results */
+.ds-search-popover-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid var(--ds-border);
+  box-shadow: var(--ds-shadow-elevated);
+  padding: 8px;
+  z-index: 120;
+}
+
+.ds-search-popover-results button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ds-text-dark);
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+}
+
+.ds-search-popover-results button:hover {
+  background: var(--lt-orange-soft);
+  color: var(--lt-orange);
+}
+
+/* ==========================================================================
+   CONTENT WRAPPER
+   ========================================================================== */
+.ds-content {
+  padding: 0 36px 48px 36px;
+  flex: 1;
+  max-width: 1680px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   FLOATING WHITE BLOCKS
+   ========================================================================== */
+.ds-block-card,
+.ds-card,
+.ds-panel,
+.ds-journey-card,
+.ds-filter-bar,
+.ds-stat {
+  background: var(--ds-bg-card) !important;
+  border-radius: var(--ds-radius-card) !important;
+  border: 1px solid var(--ds-border) !important;
+  box-shadow: var(--ds-shadow-card) !important;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   MÀU CAM GRADIAN LẤY TỪ LETANTHANH.COM CHO CÁC NÚT BẤM
+   ========================================================================== */
+.ds-primary,
+button.ds-primary {
+  background: var(--lt-orange-grad) !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  border: none !important;
+  font-weight: 600 !important;
+  box-shadow: var(--lt-orange-shadow) !important;
+  transition: all 0.25s var(--ease, cubic-bezier(.16, .84, .44, 1)) !important;
+}
+
+.ds-primary:hover,
+button.ds-primary:hover {
+  background: var(--lt-orange-grad-hover) !important;
+  box-shadow: var(--lt-orange-shadow-hover) !important;
+  transform: translateY(-2px);
+}
+
+.ds-secondary,
+button.ds-secondary {
+  background: #ffffff !important;
+  color: var(--lt-orange) !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+}
+
+.ds-secondary:hover,
+button.ds-secondary:hover {
+  background: var(--lt-orange-soft) !important;
+  border-color: var(--lt-orange) !important;
+}
+
+/* ==========================================================================
+   DROPDOWN & INPUT CONTROLS (FIXING IMAGE 1 UI/UX)
+   ========================================================================== */
+.ds-root input:not(.ds-sidebar input),
+.ds-root select:not(.ds-sidebar select),
+.ds-panel select,
+.ds-card select,
+.ds-filter-bar select,
+.ds-filter-select {
+  background-color: #ffffff !important;
+  color: #1a202c !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+.ds-root select:not(.ds-sidebar select),
+.ds-panel select,
+.ds-card select,
+.ds-filter-bar select,
+.ds-filter-select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  background-size: 14px !important;
+  padding: 8px 38px 8px 14px !important;
+  min-height: 42px !important;
+  cursor: pointer !important;
+}
+
+.ds-root select:not(.ds-sidebar select):hover,
+.ds-panel select:hover,
+.ds-card select:hover,
+.ds-filter-bar select:hover,
+.ds-filter-select:hover {
+  border-color: #cbd5e1 !important;
+  background-color: #f8fafc !important;
+}
+
+.ds-root select:not(.ds-sidebar select):focus,
+.ds-panel select:focus,
+.ds-card select:focus,
+.ds-filter-bar select:focus,
+.ds-filter-select:focus,
+.ds-root input:not(.ds-sidebar input):focus {
+  border-color: var(--lt-orange) !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(242, 115, 14, 0.18) !important;
+  outline: none !important;
+}
+
+.ds-root select option {
+  background-color: #ffffff !important;
+  color: #1a202c !important;
+  padding: 10px 14px !important;
+  font-size: 13.5px !important;
+}
+
+/* Styled Date Filter */
+.ds-filter-date-wrap {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background-color: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 0 12px !important;
+  min-height: 42px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  transition: all 0.2s ease !important;
+}
+
+.ds-filter-date-wrap:hover {
+  border-color: #cbd5e1 !important;
+  background-color: #f8fafc !important;
+}
+
+.ds-filter-date-wrap:focus-within {
+  border-color: var(--lt-orange) !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(242, 115, 14, 0.18) !important;
+}
+
+.ds-filter-date-wrap input[type="date"] {
+  border: none !important;
+  background: transparent !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  color: #1a202c !important;
+  outline: none !important;
+  padding: 8px 0 !important;
+  cursor: pointer !important;
+}
+
+/* Floating AI Assistant Button (Orange Gradient from letanthanh.com) */
+.ds-floating-ai-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--lt-orange-grad) !important;
+  color: #ffffff !important;
+  padding: 10px 22px;
+  border-radius: var(--ds-radius-pill);
+  font-size: 13.5px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--lt-orange-shadow);
+  transition: all 0.25s cubic-bezier(0.16, 0.84, 0.44, 1);
+}
+
+.ds-floating-ai-btn:hover {
+  transform: translateY(-2px);
+  background: var(--lt-orange-grad-hover) !important;
+  box-shadow: var(--lt-orange-shadow-hover);
+}
+
+/* Badges */
+.ds-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ds-badge.active, .ds-badge.paid, .ds-badge.checked_in {
+  background: var(--ds-success-subtle);
+  color: var(--ds-success);
+}
+.ds-badge.pending, .ds-badge.draft, .ds-badge.unpaid {
+  background: var(--ds-secondary-subtle);
+  color: #b45309;
+}
+.ds-badge.confirmed {
+  background: var(--ds-info-subtle);
+  color: #0369a1;
+}
+.ds-badge.cancelled, .ds-badge.suspended {
+  background: var(--ds-danger-subtle);
+  color: var(--ds-danger);
+}
+
+/* Modals & Scrim */
+.ds-modal-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 23, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.ds-modal {
+  background: #ffffff !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--ds-border) !important;
+  box-shadow: 0 25px 60px rgba(15, 17, 23, 0.2) !important;
+  padding: 28px !important;
+  width: 100%;
+  max-width: 580px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   RESPONSIVE ADAPTATION: 15-INCH, 13-INCH, TABLET & MOBILE VIEWPORTS
+   ========================================================================== */
+
+/* 1. Laptop 13-inch to 14-inch (1024px to 1440px) */
+@media (max-width: 1440px) {
+  .ds-sidebar {
+    width: 236px;
+  }
+  .ds-main {
+    margin-left: 266px;
+  }
+  .ds-topbar {
+    padding: 16px 24px 10px 24px;
+    gap: 16px;
+  }
+  .ds-topbar-search-pill {
+    width: 200px;
+  }
+  .ds-topbar-search-pill:focus-within {
+    width: 240px;
+  }
+  .ds-content {
+    padding: 0 24px 36px 24px;
+  }
+}
+
+/* 2. Tablets & Small Laptops (<= 1024px) */
+@media (max-width: 1024px) {
+  .ds-main {
+    margin-left: 0 !important;
+  }
+  .ds-main.collapsed {
+    margin-left: 0 !important;
+  }
+  .ds-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: -320px;
+    width: 280px;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0 24px 24px 0 !important;
+    z-index: 200;
+    box-shadow: 12px 0 45px rgba(0, 0, 0, 0.45) !important;
+  }
+  .ds-sidebar.open {
+    left: 0 !important;
+  }
+  .ds-sidebar-close-btn {
+    display: flex;
+  }
+  .ds-mobile-menu {
+    display: inline-flex;
+  }
+  .ds-topbar {
+    padding: 14px 20px;
+    gap: 14px;
+  }
+  .ds-topbar-search-pill {
+    display: none;
+  }
+  .ds-content {
+    padding: 0 20px 32px 20px;
+  }
+}
+
+/* 3. Mobile Phones (<= 640px) */
+@media (max-width: 640px) {
+  .ds-topbar {
+    padding: 10px 14px;
+    min-height: 56px;
+    gap: 8px;
+  }
+  .ds-topbar-page-title {
+    font-size: 18px;
+  }
+  .ds-topbar-breadcrumb-wrap {
+    font-size: 11px;
+  }
+  .ds-topbar-user-meta,
+  .ds-topbar-user-chevron {
+    display: none !important;
+  }
+  .ds-topbar-user-profile {
+    padding: 2px !important;
+    border: none !important;
+    background: transparent !important;
+  }
+  .ds-topbar-user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+  .ds-topbar-bell-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .ds-content {
+    padding: 0 12px 28px 12px;
+  }
+  .ds-modal {
+    padding: 18px !important;
+    border-radius: 18px !important;
+    width: 100% !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100vh - 20px) !important;
+  }
+  .ds-floating-ai-btn {
+    bottom: 16px;
+    right: 16px;
+    padding: 8px 15px;
+    font-size: 12px;
+  }
+}

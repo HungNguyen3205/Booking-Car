@@ -1,8 +1,12 @@
-import { normalizeVietnamPhone } from '../../utils/phoneUtils';
-import React, { useState } from 'react';
-import { bookingService } from '../../services/bookingService';
-import type { Booking } from '../../types';
-import { BoardingTicket } from './BoardingTicket';
+import {
+  marketplaceApiEnabled,
+  lookupRemoteBooking,
+} from "../../services/platformApi";
+import { normalizeVietnamPhone } from "../../utils/phoneUtils";
+import React, { useState } from "react";
+import { bookingService } from "../../services/bookingService";
+import type { Booking } from "../../types";
+import { BoardingTicket } from "./BoardingTicket";
 import {
   Search,
   Ticket,
@@ -13,7 +17,7 @@ import {
   RefreshCw,
   SearchX,
   ShieldCheck,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface TicketLookupViewProps {
   initialBookingCode?: string;
@@ -29,39 +33,50 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
   onNavigateHome,
 }) => {
   // Requirement 5: Do NOT prefill fake seeds into inputs by default unless navigated with an actual initial booking code
-  const [bookingCode, setBookingCode] = useState(initialBookingCode || '');
-  const [phone, setPhone] = useState(initialPhone || '');
-  const isSearching = false;
+  const [bookingCode, setBookingCode] = useState(initialBookingCode || "");
+  const [phone, setPhone] = useState(initialPhone || "");
+  const [isSearching, setIsSearching] = useState(false);
+  const [remoteError, setRemoteError] = useState("");
   const [foundBooking, setFoundBooking] = useState<Booking | null>(() => {
-    if (initialBookingCode) {
+    if (initialBookingCode && !marketplaceApiEnabled) {
       return bookingService.findBooking(initialBookingCode);
     }
     return null;
   });
 
-  const [fieldErrors, setFieldErrors] = useState<{ code?: string; phone?: string }>({});
-  const [notFoundQuery, setNotFoundQuery] = useState<{ code: string; phone?: string } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    code?: string;
+    phone?: string;
+  }>({});
+  const [notFoundQuery, setNotFoundQuery] = useState<{
+    code: string;
+    phone?: string;
+  } | null>(null);
 
   const validate = (): boolean => {
     const errors: { code?: string; phone?: string } = {};
+    if (marketplaceApiEnabled && !phone.trim())
+      errors.phone = "Cần số điện thoại đặt vé để xác minh.";
     const cleanCode = bookingCode.trim();
     const cleanPhone = normalizeVietnamPhone(phone);
 
     if (!cleanCode) {
-      errors.code = 'Vui lòng nhập mã đặt vé (ví dụ: DG2610258123 hoặc HT250426001).';
+      errors.code =
+        "Vui lòng nhập mã đặt vé (ví dụ: DG2610258123 hoặc HT250426001).";
     } else if (cleanCode.length < 5) {
-      errors.code = 'Mã đặt vé tối thiểu 5 ký tự.';
+      errors.code = "Mã đặt vé tối thiểu 5 ký tự.";
     }
 
     if (cleanPhone && !/^0[35789]\d{8}$/.test(cleanPhone)) {
-      errors.phone = 'Số điện thoại không đúng định dạng (10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09).';
+      errors.phone =
+        "Số điện thoại không đúng định dạng (10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09).";
     }
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleLookup = (e: React.FormEvent) => {
+  const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
@@ -69,11 +84,27 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
     setFoundBooking(null);
 
     // The local demo store is synchronous; never queue an obsolete lookup.
+    if (marketplaceApiEnabled) {
+      setIsSearching(true);
+      setRemoteError("");
+      try {
+        const result = await lookupRemoteBooking(bookingCode, phone);
+        setFoundBooking(result);
+      } catch (e) {
+        setRemoteError((e as Error).message);
+      } finally {
+        setIsSearching(false);
+      }
+      return;
+    }
     const result = bookingService.findBooking(bookingCode, phone);
     if (result) {
       setFoundBooking(result);
     } else {
-      setNotFoundQuery({code:bookingCode.trim().toUpperCase(),phone:phone.trim() || undefined});
+      setNotFoundQuery({
+        code: bookingCode.trim().toUpperCase(),
+        phone: phone.trim() || undefined,
+      });
     }
   };
 
@@ -114,7 +145,9 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
   }
 
   // Retrieve stored bookings list for tester guidance
-  const availableDemoBookings = bookingService.getAllBookings();
+  const availableDemoBookings = marketplaceApiEnabled
+    ? []
+    : bookingService.getAllBookings();
 
   return (
     <div className="min-h-screen bg-[#F7F4EC] py-10 sm:py-16">
@@ -154,25 +187,39 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
                     Không tìm thấy thông tin vé!
                   </div>
                   <p className="leading-relaxed text-rose-800">
-                    Hệ thống không tìm thấy vé nào khớp với mã{' '}
+                    Hệ thống không tìm thấy vé nào khớp với mã{" "}
                     <span className="font-mono font-bold bg-rose-100 px-1.5 py-0.5 rounded text-rose-900">
                       {notFoundQuery.code}
                     </span>
                     {notFoundQuery.phone ? (
                       <>
-                        {' '}và số điện thoại{' '}
-                        <span className="font-mono font-bold">{notFoundQuery.phone}</span>.
+                        {" "}
+                        và số điện thoại{" "}
+                        <span className="font-mono font-bold">
+                          {notFoundQuery.phone}
+                        </span>
+                        .
                       </>
                     ) : (
-                      '.'
+                      "."
                     )}
                   </p>
                   <div className="pt-2 border-t border-rose-200/80 text-[11px] text-rose-800">
-                    <span className="font-semibold block mb-0.5">Gợi ý kiểm tra:</span>
+                    <span className="font-semibold block mb-0.5">
+                      Gợi ý kiểm tra:
+                    </span>
                     <ul className="list-disc pl-4 space-y-0.5">
-                      <li>Kiểm tra lại mã vé ghi trong email hoặc tin nhắn SMS xác nhận.</li>
-                      <li>Nếu đã nhập số điện thoại, đảm bảo là số điện thoại lúc đặt vé.</li>
-                      <li>Mã vé phân biệt các ký tự, không chứa khoảng cách.</li>
+                      <li>
+                        Kiểm tra lại mã vé ghi trong email hoặc tin nhắn SMS xác
+                        nhận.
+                      </li>
+                      <li>
+                        Nếu đã nhập số điện thoại, đảm bảo là số điện thoại lúc
+                        đặt vé.
+                      </li>
+                      <li>
+                        Mã vé phân biệt các ký tự, không chứa khoảng cách.
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -181,6 +228,14 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
           )}
 
           {/* Search Form */}
+          {remoteError && (
+            <div
+              role="alert"
+              className="p-3 text-red-700 bg-red-50 rounded-xl mb-4"
+            >
+              {remoteError}
+            </div>
+          )}
           <form onSubmit={handleLookup} className="space-y-4" noValidate>
             {/* Booking Code Input */}
             <div>
@@ -198,21 +253,27 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
                   value={bookingCode}
                   onChange={(e) => {
                     setBookingCode(e.target.value.toUpperCase());
-                    if (fieldErrors.code) setFieldErrors((prev) => ({ ...prev, code: undefined }));
+                    if (fieldErrors.code)
+                      setFieldErrors((prev) => ({ ...prev, code: undefined }));
                     if (notFoundQuery) setNotFoundQuery(null);
                   }}
                   placeholder="Ví dụ: DG2610258123"
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm font-mono font-semibold uppercase tracking-wider focus:ring-2 focus:outline-hidden transition-all ${
                     fieldErrors.code
-                      ? 'border-red-400 bg-red-50/50 text-red-900 focus:ring-red-400'
-                      : 'border-[#E5E3DC] bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] text-[#102744] focus:ring-[#2B4294]'
+                      ? "border-red-400 bg-red-50/50 text-red-900 focus:ring-red-400"
+                      : "border-[#E5E3DC] bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] text-[#102744] focus:ring-[#2B4294]"
                   }`}
                   aria-invalid={!!fieldErrors.code}
-                  aria-describedby={fieldErrors.code ? 'lookup-code-error' : undefined}
+                  aria-describedby={
+                    fieldErrors.code ? "lookup-code-error" : undefined
+                  }
                 />
               </div>
               {fieldErrors.code && (
-                <p id="lookup-code-error" className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                <p
+                  id="lookup-code-error"
+                  className="mt-1 text-xs text-red-600 flex items-center gap-1"
+                >
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>{fieldErrors.code}</span>
                 </p>
@@ -228,7 +289,9 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
                 >
                   Số điện thoại hành khách
                 </label>
-                <span className="text-[11px] text-[#647084]">Không bắt buộc</span>
+                <span className="text-[11px] text-[#647084]">
+                  {marketplaceApiEnabled ? "Bắt buộc" : "Không bắt buộc"}
+                </span>
               </div>
               <div className="relative">
                 <Phone className="w-4 h-4 text-[#647084] absolute left-3.5 top-3" />
@@ -238,27 +301,34 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
                   value={phone}
                   onChange={(e) => {
                     setPhone(e.target.value);
-                    if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                    if (fieldErrors.phone)
+                      setFieldErrors((prev) => ({ ...prev, phone: undefined }));
                     if (notFoundQuery) setNotFoundQuery(null);
                   }}
                   placeholder="Ví dụ: 0905123456"
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm font-medium focus:ring-2 focus:outline-hidden transition-all ${
                     fieldErrors.phone
-                      ? 'border-red-400 bg-red-50/50 text-red-900 focus:ring-red-400'
-                      : 'border-[#E5E3DC] bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] text-[#102744] focus:ring-[#2B4294]'
+                      ? "border-red-400 bg-red-50/50 text-red-900 focus:ring-red-400"
+                      : "border-[#E5E3DC] bg-[#F7F4EC]/60 focus:bg-[#FFFEFA] text-[#102744] focus:ring-[#2B4294]"
                   }`}
                   aria-invalid={!!fieldErrors.phone}
-                  aria-describedby={fieldErrors.phone ? 'lookup-phone-error' : undefined}
+                  aria-describedby={
+                    fieldErrors.phone ? "lookup-phone-error" : undefined
+                  }
                 />
               </div>
               {fieldErrors.phone && (
-                <p id="lookup-phone-error" className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                <p
+                  id="lookup-phone-error"
+                  className="mt-1 text-xs text-red-600 flex items-center gap-1"
+                >
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>{fieldErrors.phone}</span>
                 </p>
               )}
               <p className="mt-1 text-[11px] text-[#647084]">
-                Nhập số điện thoại để tăng tính bảo mật và xác minh quyền sở hữu vé.
+                Nhập số điện thoại để tăng tính bảo mật và xác minh quyền sở hữu
+                vé.
               </p>
             </div>
 
@@ -292,7 +362,8 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
             </div>
 
             <p className="text-[11.5px] text-[#647084] leading-relaxed">
-              Bạn có thể thử nghiệm tính năng tra cứu bằng các vé mẫu có sẵn trong phiên kiểm thử:
+              Bạn có thể thử nghiệm tính năng tra cứu bằng các vé mẫu có sẵn
+              trong phiên kiểm thử:
             </p>
 
             <div className="space-y-2">
@@ -302,14 +373,19 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
                   className="p-3 bg-[#FAF8F5] rounded-xl border border-[#E5E3DC] flex items-center justify-between gap-3 text-xs"
                 >
                   <div>
-                    <div className="font-mono font-bold text-[#2B4294]">{b.id}</div>
+                    <div className="font-mono font-bold text-[#2B4294]">
+                      {b.id}
+                    </div>
                     <div className="text-[11px] text-[#647084]">
-                      {b.trip.from} → {b.trip.to} • {b.passenger.fullName} ({b.passenger.phone})
+                      {b.trip.from} → {b.trip.to} • {b.passenger.fullName} (
+                      {b.passenger.phone})
                     </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleFillDemoTicket(b.id, b.passenger.phone)}
+                    onClick={() =>
+                      handleFillDemoTicket(b.id, b.passenger.phone)
+                    }
                     className="px-2.5 py-1 text-[11px] font-semibold text-[#102744] hover:text-white bg-[#EBF4FC] hover:bg-[#2B4294] rounded-lg transition-colors cursor-pointer shrink-0"
                   >
                     Nạp mã này
@@ -320,7 +396,10 @@ export const TicketLookupView: React.FC<TicketLookupViewProps> = ({
 
             <div className="text-[10.5px] text-[#647084] flex items-center gap-1.5 pt-1">
               <ShieldCheck className="w-3.5 h-3.5 text-[#2B4294] shrink-0" />
-              <span>Dữ liệu vé được lưu trữ cục bộ và minh bạch trên trình duyệt của bạn.</span>
+              <span>
+                Dữ liệu vé được lưu trữ cục bộ và minh bạch trên trình duyệt của
+                bạn.
+              </span>
             </div>
           </div>
         </div>

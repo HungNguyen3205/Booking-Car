@@ -1,3 +1,4 @@
+import { marketplaceApiEnabled } from '../../services/platformApi';
 import React from 'react';
 import { Shield, Heart } from 'lucide-react';
 
@@ -17,32 +18,17 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({
           {/* Brand Col */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-xs border border-white/20 p-1 flex items-center justify-center">
-                <img
-                  src="/assets/danava-icon.png"
-                  alt="DANAVA"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <div className="flex flex-col justify-center">
-                <div className="flex items-baseline gap-1.5 leading-none">
-                  <span className="font-sans font-black text-2xl tracking-tight bg-gradient-to-r from-[#F5AE1B] via-[#F58220] to-[#EE3132] bg-clip-text text-transparent">
-                    DANAVA
-                  </span>
-                  <span className="font-sans font-black text-xl tracking-tight text-white">
-                    GO
-                  </span>
-                </div>
-                <span className="text-[9.5px] font-bold tracking-[0.24em] text-[#53A5DB] uppercase mt-1 leading-none font-sans">
-                  SOLUTIONS
-                </span>
-              </div>
+              <img
+                src="/assets/danava-logo-white-text.png"
+                alt="DANAVA GO"
+                className="h-14 sm:h-16 w-auto object-contain"
+              />
             </div>
             <p className="text-sm text-slate-300 leading-relaxed max-w-sm">
               Nền tảng đặt vé xe khách trực tuyến cao cấp. Mang đến trải nghiệm di chuyển êm ái, an toàn và văn minh trên mọi nẻo đường Việt Nam.
             </p>
             <div className="text-xs text-slate-300 bg-white/5 p-3 rounded-xl border border-white/10">
-              <span className="text-[#F5AE1B] font-semibold">Bản demo tương tác:</span> Mọi thông tin chuyến, giá vé và sơ đồ ghế phục vụ mục đích trình diễn giao diện và công nghệ.
+              {marketplaceApiEnabled ? 'Lịch trình, giá và tồn ghế do nhà xe quản lý. Kiểm tra thông tin điểm đón và chính sách trước khi đặt.' : <><span className="text-[#F5AE1B] font-semibold">Bản demo tương tác:</span> Mọi thông tin chuyến, giá vé và sơ đồ ghế phục vụ mục đích trình diễn giao diện và công nghệ.</>}
             </div>
           </div>
 

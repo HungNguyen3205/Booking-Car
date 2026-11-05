@@ -36,4 +36,13 @@ npm run test:journey    # final booking integration
 - `docs/hero.md`: chi tiết giao diện, tài nguyên, giới hạn.
 - `docs/cleanup.md`: danh sách nhóm tài nguyên đã dọn và lý do.
 
-Bản này là frontend demo với thanh toán mô phỏng, không phải hệ thống thu tiền production.
+Chế độ demo vẫn có để đối chiếu giao diện. Nhánh Laravel dùng API thật để quản lý vé; cổng thu tiền online chưa được tích hợp.
+
+
+### Laravel backend & multi-operator portals
+
+See [docs/LARAVEL_PORTALS.md](docs/LARAVEL_PORTALS.md) for setup and domain routing.
+PHP 8.3+ / Laravel 13 powers the existing React interface, booking inventory,
+operator administration and branded apps. `npm run build:hosting` prepares the
+frontend for Laravel's `backend/public` entry point. DNS/SSL is a hosting step,
+not an automatic side effect of saving a domain in the app.

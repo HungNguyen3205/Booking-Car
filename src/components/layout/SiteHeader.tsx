@@ -86,24 +86,11 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             aria-label="Trang chủ DANAVA GO"
           >
             {/* Brand Logo Icon */}
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white border border-[#E5E3DC]/90 shadow-2xs flex items-center justify-center p-1 overflow-hidden transition-all group-hover:scale-105 group-hover:shadow-md">
-              <img
-                src="/assets/danava-icon.png"
-                alt="DANAVA"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div className="flex flex-col justify-center">
-              <div className="flex items-baseline gap-1.5 leading-none">
-                <span className="font-sans font-black text-2xl tracking-tight bg-gradient-to-r from-[#F5AE1B] via-[#F58220] to-[#EE3132] bg-clip-text text-transparent">
-                  DANAVA
-                </span>
-                <span className="font-sans font-black text-xl tracking-tight text-[#2B4294]">
-                  GO
-                </span>
-              </div>
-
-            </div>
+            <img
+              src="/assets/danava-logo.png"
+              alt="DANAVA GO"
+              className="h-11 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+            />
           </button>
 
           {/* Desktop Nav Items (Absolutely Centered between Left and Right) */}

@@ -85,8 +85,10 @@ export interface Booking {
   selectedSeats: string[]; // ['A1', 'A2']
   passenger: PassengerInfo;
   totalAmount: number;
-  paymentMethod: 'vietqr' | 'momo' | 'vnpay' | 'credit_card';
-  paymentStatus: 'completed' | 'failed' | 'simulated';
+  paymentMethod: 'vietqr' | 'momo' | 'vnpay' | 'credit_card' | 'cash' | 'transfer';
+  paymentStatus: 'completed' | 'failed' | 'simulated' | 'unpaid' | 'paid' | 'refund_due' | 'refunded';
+  tenantId?: string;
+  status?: 'confirmed' | 'cancelled' | 'checked_in';
   createdAt: string;
 }
 

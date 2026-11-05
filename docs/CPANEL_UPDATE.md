@@ -1,3 +1,7 @@
+> **Nhánh Laravel:** nếu repository có `backend/composer.json`, dừng quy trình
+> copy `dist` bên dưới và làm theo [LARAVEL_PORTALS.md](LARAVEL_PORTALS.md).
+> PHP cần document root `backend/public`; giữ `index.php` và `.htaccess` Laravel.
+
 # Cập nhật DANAVA GO trên cPanel — hướng dẫn cho người dùng và AI
 
 ## 1. Thông tin đã xác nhận

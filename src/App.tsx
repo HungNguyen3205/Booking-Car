@@ -1,38 +1,72 @@
-import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
-import { BusPreloader } from './components/motion/BusPreloader';
-import { SiteHeader } from './components/layout/SiteHeader';
-import { SiteFooter } from './components/layout/SiteFooter';
-import { DanavaGoHero } from './components/danava-go/DanavaGoHero';
+import OperatorDirectory from "./components/portals/OperatorDirectory";
+import React, { useState, useEffect, useRef, Suspense } from "react";
+import {
+  motion,
+  AnimatePresence,
+  MotionConfig,
+  useReducedMotion,
+} from "framer-motion";
+import { BusPreloader } from "./components/motion/BusPreloader";
+import { SiteHeader } from "./components/layout/SiteHeader";
+import { SiteFooter } from "./components/layout/SiteFooter";
+import { DanavaGoHero } from "./components/danava-go/DanavaGoHero";
 
-import { FeaturedRoutes } from './components/home/FeaturedRoutes';
-import { VehicleExperience } from './components/home/VehicleExperience';
-import { BookingSteps } from './components/home/BookingSteps';
-import { BenefitsSection } from './components/home/BenefitsSection';
-import { FaqSection } from './components/home/FaqSection';
-import { TripResultsView } from './components/search/TripResultsView';
-import type { Booking, BookingStep, PassengerInfo, SearchParams, Seat, Trip } from './types';
-import { bookingService } from './services/bookingService';
-import { preloadJourney } from './components/danava-go/journeyStageConfig';
-import { getLocationDisplayName } from './data/sceneManifest';
-import { getVietnamTodayDateStr, isValidBookingDate } from './utils/dateUtils';
-import { readSearchNavigation, syncSearchNavigation } from './utils/searchNavigation';
+import { FeaturedRoutes } from "./components/home/FeaturedRoutes";
+import { VehicleExperience } from "./components/home/VehicleExperience";
+import { BookingSteps } from "./components/home/BookingSteps";
+import { BenefitsSection } from "./components/home/BenefitsSection";
+import { FaqSection } from "./components/home/FaqSection";
+import { TripResultsView } from "./components/search/TripResultsView";
+import type {
+  Booking,
+  BookingStep,
+  PassengerInfo,
+  SearchParams,
+  Seat,
+  Trip,
+} from "./types";
+import { bookingService } from "./services/bookingService";
+import { preloadJourney } from "./components/danava-go/journeyStageConfig";
+import { getLocationDisplayName } from "./data/sceneManifest";
+import { getVietnamTodayDateStr, isValidBookingDate } from "./utils/dateUtils";
+import {
+  readSearchNavigation,
+  syncSearchNavigation,
+} from "./utils/searchNavigation";
+import {
+  marketplaceApiEnabled,
+  searchMarketplace,
+  holdSeats,
+  releaseHold,
+  reserveBooking,
+} from "./services/platformApi";
+import { ApiReservation } from "./components/checkout/ApiReservation";
 
 // Code-split dynamic booking steps and ticket lookup to optimize initial bundle
 const SeatSelectionModal = React.lazy(() =>
-  import('./components/seats/SeatSelectionModal').then((m) => ({ default: m.SeatSelectionModal }))
+  import("./components/seats/SeatSelectionModal").then((m) => ({
+    default: m.SeatSelectionModal,
+  })),
 );
 const PassengerForm = React.lazy(() =>
-  import('./components/checkout/PassengerForm').then((m) => ({ default: m.PassengerForm }))
+  import("./components/checkout/PassengerForm").then((m) => ({
+    default: m.PassengerForm,
+  })),
 );
 const DemoPayment = React.lazy(() =>
-  import('./components/checkout/DemoPayment').then((m) => ({ default: m.DemoPayment }))
+  import("./components/checkout/DemoPayment").then((m) => ({
+    default: m.DemoPayment,
+  })),
 );
 const BoardingTicket = React.lazy(() =>
-  import('./components/tickets/BoardingTicket').then((m) => ({ default: m.BoardingTicket }))
+  import("./components/tickets/BoardingTicket").then((m) => ({
+    default: m.BoardingTicket,
+  })),
 );
 const TicketLookupView = React.lazy(() =>
-  import('./components/tickets/TicketLookupView').then((m) => ({ default: m.TicketLookupView }))
+  import("./components/tickets/TicketLookupView").then((m) => ({
+    default: m.TicketLookupView,
+  })),
 );
 
 export const App: React.FC = () => {
@@ -42,32 +76,40 @@ export const App: React.FC = () => {
   // 1. criticalAssetsReady: Default vehicle & initial route scenes loaded & decoded
   // 2. loaderExitComplete: Preloader has fully faded out and unmounted
   // 3. heroIntroReady: Signal for hero bus to begin smooth entrance
-  const [criticalAssetsReady, setCriticalAssetsReady] = useState(() => !!shouldReduceMotion);
-  const [loaderExitComplete, setLoaderExitComplete] = useState(() => !!shouldReduceMotion);
-  const [heroIntroReady, setHeroIntroReady] = useState(() => !!shouldReduceMotion);
+  const [criticalAssetsReady, setCriticalAssetsReady] = useState(
+    () => !!shouldReduceMotion,
+  );
+  const [loaderExitComplete, setLoaderExitComplete] = useState(
+    () => !!shouldReduceMotion,
+  );
+  const [heroIntroReady, setHeroIntroReady] = useState(
+    () => !!shouldReduceMotion,
+  );
 
   // Restore legacy links or this tab’s clean-URL history entry.
   const [currentStep, setCurrentStep] = useState<BookingStep>(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const urlParams = readSearchNavigation();
-      const step = urlParams.get('step');
-      if (step === 'search') return 'search';
-      if (step === 'lookup') return 'lookup';
+      const step = urlParams.get("step");
+      if (step === "search") return "search";
+      if (step === "lookup") return "lookup";
     }
-    return 'home';
+    return "home";
   });
 
   // Search values remain validated whether restored from an old link or history.
   const [searchParams, setSearchParams] = useState<SearchParams>(() => {
     const today = getVietnamTodayDateStr();
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const urlParams = readSearchNavigation();
-      const rawFrom = urlParams.get('from')?.trim();
-      const rawTo = urlParams.get('to')?.trim();
-      const rawDate = urlParams.get('date')?.trim();
-      const rawPassengers = urlParams.get('passengers')?.trim();
+      const rawFrom = urlParams.get("from")?.trim();
+      const rawTo = urlParams.get("to")?.trim();
+      const rawDate = urlParams.get("date")?.trim();
+      const rawPassengers = urlParams.get("passengers")?.trim();
 
-      const validDate = isValidBookingDate(rawDate) ? (rawDate as string) : today;
+      const validDate = isValidBookingDate(rawDate)
+        ? (rawDate as string)
+        : today;
       let validPassengers = 1;
       if (rawPassengers) {
         const parsed = Number(rawPassengers);
@@ -77,8 +119,10 @@ export const App: React.FC = () => {
       }
 
       {
-        const from = getLocationDisplayName(rawFrom || 'Đà Nẵng');
-        const to = getLocationDisplayName(rawTo || (from === 'Hội An' ? 'Đà Nẵng' : 'Hội An'));
+        const from = getLocationDisplayName(rawFrom || "Đà Nẵng");
+        const to = getLocationDisplayName(
+          rawTo || (from === "Hội An" ? "Đà Nẵng" : "Hội An"),
+        );
         return {
           from,
           to,
@@ -88,24 +132,71 @@ export const App: React.FC = () => {
       }
     }
     return {
-      from: 'Đà Nẵng',
-      to: 'Hội An',
+      from: "Đà Nẵng",
+      to: "Hội An",
       date: today,
       passengers: 1,
     };
   });
 
   const [availableTrips, setAvailableTrips] = useState<Trip[]>(() => {
-    return bookingService.searchTrips(searchParams);
+    return marketplaceApiEnabled
+      ? []
+      : bookingService.searchTrips(searchParams);
   });
+  const [marketplaceError, setMarketplaceError] = useState("");
+  const [marketplaceLoading, setMarketplaceLoading] = useState(false);
+  const [bookingBusy, setBookingBusy] = useState(false);
+  const [seatHold, setSeatHold] = useState<{
+    id: string;
+    expires: number;
+  } | null>(null);
+  const holdPending = useRef(false);
+  const bookingKey = useRef("");
+  useEffect(() => {
+    if (!marketplaceApiEnabled) return;
+    const controller = new AbortController();
+    // eslint-disable-next-line react/set-state-in-effect -- track the cancellable search request
+    setMarketplaceLoading(true);
+    setMarketplaceError("");
+    searchMarketplace(searchParams, controller.signal)
+      .then((r) => {
+        if (!controller.signal.aborted) setAvailableTrips(r.items);
+      })
+      .catch((e) => {
+        if (!controller.signal.aborted) {
+          setAvailableTrips([]);
+          setMarketplaceError(e.message);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setMarketplaceLoading(false);
+      });
+    return () => controller.abort();
+  }, [searchParams]);
+  useEffect(() => {
+    if (seatHold && !["passenger-info", "payment"].includes(currentStep)) {
+      releaseHold(seatHold.id).catch(
+        () => {},
+      ); /* eslint-disable-next-line react/set-state-in-effect -- release external seat hold when leaving checkout */
+      setSeatHold(null);
+    }
+  }, [seatHold, currentStep]);
   const paymentCommitted = useRef(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
-  const [passengerInfo, setPassengerInfo] = useState<PassengerInfo | null>(null);
-  const [completedBooking, setCompletedBooking] = useState<Booking | null>(null);
+  const [passengerInfo, setPassengerInfo] = useState<PassengerInfo | null>(
+    null,
+  );
+  const [completedBooking, setCompletedBooking] = useState<Booking | null>(
+    null,
+  );
   const [lookupPhone, setLookupPhone] = useState<string | undefined>(undefined);
-  const initialParamsRef = useRef({ from: searchParams.from, to: searchParams.to });
+  const initialParamsRef = useRef({
+    from: searchParams.from,
+    to: searchParams.to,
+  });
 
   // Preload critical hero assets immediately on mount without fake waiting
   useEffect(() => {
@@ -149,12 +240,18 @@ export const App: React.FC = () => {
 
   // Scroll to top on step change
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: shouldReduceMotion ? 'auto' : 'smooth' });
+    window.scrollTo({
+      top: 0,
+      behavior: shouldReduceMotion ? "auto" : "smooth",
+    });
   }, [currentStep, shouldReduceMotion]);
 
   useEffect(() => {
     // Later steps require in-memory selection. A reload safely returns to results.
-    const routeStep = currentStep === 'home' || currentStep === 'lookup' ? currentStep : 'search';
+    const routeStep =
+      currentStep === "home" || currentStep === "lookup"
+        ? currentStep
+        : "search";
     syncSearchNavigation(searchParams, routeStep);
   }, [currentStep, searchParams]);
 
@@ -167,9 +264,11 @@ export const App: React.FC = () => {
     setPassengerInfo(null);
     setCompletedBooking(null);
     setSearchParams(params);
-    const results = bookingService.searchTrips(params);
+    const results = marketplaceApiEnabled
+      ? []
+      : bookingService.searchTrips(params);
     setAvailableTrips(results);
-    setCurrentStep('search');
+    setCurrentStep("search");
   };
 
   // Handle Select Trip from Search Results
@@ -181,39 +280,130 @@ export const App: React.FC = () => {
     } else {
       // If re-entering the same trip, preserve only seats that are still valid and available
       setSelectedSeats((prev) =>
-        prev.filter((code) => trip.seats.some((s) => s.code === code && s.status === 'available'))
+        prev.filter((code) =>
+          trip.seats.some((s) => s.code === code && s.status === "available"),
+        ),
       );
     }
     setSelectedTrip(trip);
-    setCurrentStep('seat-select');
+    setCurrentStep("seat-select");
   };
 
   // Handle Seat Toggle with strict limit checking
   const handleToggleSeat = (seat: Seat) => {
-    if (seat.status === 'booked' || seat.status === 'disabled') return;
+    if (seat.status === "booked" || seat.status === "disabled") return;
 
-    if (!selectedTrip?.seats.some(s=>s.code===seat.code && s.status==='available')) return;
-    setSelectedSeats(prev=>prev.includes(seat.code) ? prev.filter(code=>code!==seat.code)
-      : prev.length < searchParams.passengers ? [...prev,seat.code] : prev);
+    if (
+      !selectedTrip?.seats.some(
+        (s) => s.code === seat.code && s.status === "available",
+      )
+    )
+      return;
+    setSelectedSeats((prev) =>
+      prev.includes(seat.code)
+        ? prev.filter((code) => code !== seat.code)
+        : prev.length < searchParams.passengers
+          ? [...prev, seat.code]
+          : prev,
+    );
   };
 
   const handleRemoveSeat = (code: string) => {
     setSelectedSeats(selectedSeats.filter((c) => c !== code));
   };
 
+  const handleProceedToPassenger = async () => {
+    if (
+      !selectedTrip ||
+      selectedSeats.length !== searchParams.passengers ||
+      holdPending.current
+    )
+      return;
+    if (!marketplaceApiEnabled) {
+      setCurrentStep("passenger-info");
+      return;
+    }
+    holdPending.current = true;
+    setBookingBusy(true);
+    setBookingError(null);
+    try {
+      const hold = await holdSeats(selectedTrip.id, selectedSeats);
+      setSeatHold(hold);
+      bookingKey.current = Array.from(
+        crypto.getRandomValues(new Uint8Array(16)),
+        (b) => b.toString(16).padStart(2, "0"),
+      ).join("");
+      setCurrentStep("passenger-info");
+    } catch (e) {
+      setBookingError((e as Error).message);
+      const fresh = await searchMarketplace(searchParams).catch(() => ({
+        items: [],
+      }));
+      setAvailableTrips(fresh.items);
+      const updated = fresh.items.find((t) => t.id === selectedTrip.id);
+      if (updated) setSelectedTrip(updated);
+      setSelectedSeats([]);
+    } finally {
+      holdPending.current = false;
+      setBookingBusy(false);
+    }
+  };
+
   // Handle Passenger Form Submission
   const handlePassengerSubmit = (info: PassengerInfo) => {
-    if (!selectedTrip || selectedSeats.length !== searchParams.passengers || !info.agreedTerms) return;
+    if (
+      !selectedTrip ||
+      selectedSeats.length !== searchParams.passengers ||
+      !info.agreedTerms
+    )
+      return;
     paymentCommitted.current = false;
     setPassengerInfo(info);
-    setCurrentStep('payment');
+    setCurrentStep("payment");
   };
 
   // Handle Payment Simulation
-  const handlePaymentSuccess = (paymentMethod: 'vietqr' | 'momo' | 'vnpay' | 'credit_card') => {
-    if (!selectedTrip || !passengerInfo || paymentCommitted.current || selectedSeats.length !== searchParams.passengers) return;
+  const handlePaymentSuccess = async (
+    paymentMethod: "vietqr" | "momo" | "vnpay" | "credit_card",
+  ) => {
+    if (
+      !selectedTrip ||
+      !passengerInfo ||
+      paymentCommitted.current ||
+      selectedSeats.length !== searchParams.passengers
+    )
+      return;
     paymentCommitted.current = true;
 
+    if (marketplaceApiEnabled) {
+      if (!seatHold) {
+        paymentCommitted.current = false;
+        setBookingError("Vui lòng giữ ghế lại.");
+        setCurrentStep("seat-select");
+        return;
+      }
+      setBookingBusy(true);
+      try {
+        const booking = await reserveBooking(
+          selectedTrip,
+          selectedSeats,
+          passengerInfo,
+          seatHold.id,
+          bookingKey.current,
+        );
+        setCompletedBooking(booking);
+        setSeatHold(null);
+        setCurrentStep("success");
+      } catch (e) {
+        paymentCommitted.current = false;
+        setBookingError((e as Error).message);
+        setCurrentStep("seat-select");
+        setSelectedSeats([]);
+      } finally {
+        setBookingBusy(false);
+      }
+      return;
+    }
     const totalAmount = selectedSeats.reduce((sum, code) => {
       const s = selectedTrip.seats.find((item) => item.code === code);
       return sum + (s ? s.price : selectedTrip.price);
@@ -228,266 +418,353 @@ export const App: React.FC = () => {
       passenger: passengerInfo,
       totalAmount,
       paymentMethod,
-      paymentStatus: 'completed',
+      paymentStatus: "completed",
       createdAt: new Date().toISOString(),
     };
 
     try {
       bookingService.saveBooking(newBooking);
       setCompletedBooking(newBooking);
-      setCurrentStep('success');
+      setCurrentStep("success");
     } catch (error) {
       paymentCommitted.current = false;
-      setBookingError(error instanceof Error ? error.message : 'Không thể xác nhận vé. Vui lòng chọn lại chỗ.');
-      const refreshed = bookingService.searchTrips(searchParams).find(trip=>trip.id===selectedTrip.id);
+      setBookingError(
+        error instanceof Error
+          ? error.message
+          : "Không thể xác nhận vé. Vui lòng chọn lại chỗ.",
+      );
+      const refreshed = bookingService
+        .searchTrips(searchParams)
+        .find((trip) => trip.id === selectedTrip.id);
       if (refreshed) setSelectedTrip(refreshed);
       setSelectedSeats([]);
-      setCurrentStep('seat-select');
+      setCurrentStep("seat-select");
     }
   };
 
   return (
     <MotionConfig reducedMotion="user">
       <div className="min-h-screen flex flex-col bg-[#F7F4EC] text-[#102744]">
-      {/* 01: Mandatory Real Bus Running Preloader with real asset synchronization */}
-      {!loaderExitComplete && (
-        <BusPreloader
-          isReady={criticalAssetsReady}
-          onExitComplete={handleLoaderExitComplete}
-          maxTimeoutMs={3500}
-        />
-      )}
+        {/* 01: Mandatory Real Bus Running Preloader with real asset synchronization */}
+        {!loaderExitComplete && (
+          <BusPreloader
+            isReady={criticalAssetsReady}
+            onExitComplete={handleLoaderExitComplete}
+            maxTimeoutMs={3500}
+          />
+        )}
 
-      {/* Main Web Application (seamlessly ready as preloader starts exit) */}
-      <div
-        className={`flex-1 flex flex-col transition-opacity duration-300 ${
-          criticalAssetsReady || loaderExitComplete ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
-        {/* Site Header */}
-        <SiteHeader
-          currentTab={currentStep}
-          variant={currentStep === 'home' ? 'default' : 'compact'}
-          onNavigate={(tab) => {
-            if (tab === 'home') {
-              paymentCommitted.current = true;
-              setCurrentStep('home');
-            } else if (tab === 'search') handleSearch(searchParams);
-            else if (tab === 'routes') {
-              setCurrentStep('home');
-              setTimeout(() => {
-                document.getElementById('routes-section')?.scrollIntoView({
-                  behavior: shouldReduceMotion ? 'auto' : 'smooth',
-                });
-              }, 100);
-            } else if (tab === 'experience') {
-              setCurrentStep('home');
-              setTimeout(() => {
-                document.getElementById('experience-section')?.scrollIntoView({
-                  behavior: shouldReduceMotion ? 'auto' : 'smooth',
-                });
-              }, 100);
-            }
-          }}
-          onOpenLookup={(phone) => {
-            setLookupPhone(phone);
-            setCurrentStep('lookup');
-          }}
-        />
-
-        {bookingError && <div role="alert" className="mx-auto my-3 flex max-w-xl items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <span>{bookingError}</span><button type="button" className="min-h-11 shrink-0 font-bold" onClick={()=>setBookingError(null)}>Đóng</button>
-        </div>}
-        {/* View Router Switcher */}
-        <main className="flex-1">
-          <Suspense fallback={<div className="min-h-screen bg-[#F7F4EC]" />}>
-            <AnimatePresence mode="wait">
-            {/* Step: Home Page */}
-            {currentStep === 'home' && (
-              <motion.div
-                key="home"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
-              >
-                <DanavaGoHero
-                  introReady={heroIntroReady}
-                  initialParams={searchParams}
-                  onSearch={handleSearch}
-                  isSearching={false}
-                />
-                <FeaturedRoutes
-                  onSelectRoute={(from, to) => {
-                    handleSearch({
-                      from,
-                      to,
-                      date: searchParams.date,
-                      passengers: searchParams.passengers,
+        {/* Main Web Application (seamlessly ready as preloader starts exit) */}
+        <div
+          className={`flex-1 flex flex-col transition-opacity duration-300 ${
+            criticalAssetsReady || loaderExitComplete
+              ? "opacity-100"
+              : "opacity-0"
+          }`}
+        >
+          {/* Site Header */}
+          <SiteHeader
+            currentTab={currentStep}
+            variant={currentStep === "home" ? "default" : "compact"}
+            onNavigate={(tab) => {
+              if (tab === "home") {
+                paymentCommitted.current = true;
+                setCurrentStep("home");
+              } else if (tab === "search") handleSearch(searchParams);
+              else if (tab === "routes") {
+                setCurrentStep("home");
+                setTimeout(() => {
+                  document.getElementById("routes-section")?.scrollIntoView({
+                    behavior: shouldReduceMotion ? "auto" : "smooth",
+                  });
+                }, 100);
+              } else if (tab === "experience") {
+                setCurrentStep("home");
+                setTimeout(() => {
+                  document
+                    .getElementById("experience-section")
+                    ?.scrollIntoView({
+                      behavior: shouldReduceMotion ? "auto" : "smooth",
                     });
-                  }}
-                  onPreviewRoute={(from, to) => {
-                    setSearchParams((prev) => ({
-                      ...prev,
-                      from,
-                      to,
-                    }));
-                  }}
-                />
-                <VehicleExperience />
-                <BookingSteps />
-                <BenefitsSection onOpenLookup={() => setCurrentStep('lookup')} />
-                <FaqSection />
-              </motion.div>
-            )}
+                }, 100);
+              }
+            }}
+            onOpenLookup={(phone) => {
+              setLookupPhone(phone);
+              setCurrentStep("lookup");
+            }}
+          />
 
-            {/* Step: Trip Search Results */}
-            {currentStep === 'search' && (
-              <motion.div
-                key="search"
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
+          {bookingError && (
+            <div
+              role="alert"
+              className="mx-auto my-3 flex max-w-xl items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            >
+              <span>{bookingError}</span>
+              <button
+                type="button"
+                className="min-h-11 shrink-0 font-bold"
+                onClick={() => setBookingError(null)}
               >
-                <TripResultsView
-                  searchParams={searchParams}
-                  allTrips={availableTrips}
-                  onSelectTrip={handleSelectTrip}
-                  onModifySearch={() => {
-                    setCurrentStep('home');
-                  }}
-                  onUpdateSearch={handleSearch}
-                />
-              </motion.div>
-            )}
+                Đóng
+              </button>
+            </div>
+          )}
+          {/* View Router Switcher */}
+          <main className="flex-1">
+            <Suspense fallback={<div className="min-h-screen bg-[#F7F4EC]" />}>
+              <AnimatePresence mode="wait">
+                {/* Step: Home Page */}
+                {currentStep === "home" && (
+                  <motion.div
+                    key="home"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
+                  >
+                    <DanavaGoHero
+                      introReady={heroIntroReady}
+                      initialParams={searchParams}
+                      onSearch={handleSearch}
+                      isSearching={false}
+                    />
+                    <FeaturedRoutes
+                      onSelectRoute={(from, to) => {
+                        handleSearch({
+                          from,
+                          to,
+                          date: searchParams.date,
+                          passengers: searchParams.passengers,
+                        });
+                      }}
+                      onPreviewRoute={(from, to) => {
+                        setSearchParams((prev) => ({
+                          ...prev,
+                          from,
+                          to,
+                        }));
+                      }}
+                    />
+                    <VehicleExperience />
+                    <BookingSteps />
+                    <OperatorDirectory />
+                  <BenefitsSection
+                      onOpenLookup={() => setCurrentStep("lookup")}
+                    />
+                    <FaqSection />
+                  </motion.div>
+                )}
 
-            {/* Step: Seat Selection */}
-            {currentStep === 'seat-select' && selectedTrip && (
-              <motion.div
-                key="seat-select"
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
-              >
-                <SeatSelectionModal
-                  trip={selectedTrip}
-                  dateStr={searchParams.date}
-                  passengersCount={searchParams.passengers}
-                  selectedSeats={selectedSeats}
-                  onToggleSeat={handleToggleSeat}
-                  onRemoveSeatCode={handleRemoveSeat}
-                  onBack={() => setCurrentStep('search')}
-                  onProceedToPassenger={() => setCurrentStep('passenger-info')}
-                />
-              </motion.div>
-            )}
+                {/* Step: Trip Search Results */}
+                {currentStep === "search" && (
+                  <motion.div
+                    key="search"
+                    initial={
+                      shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }
+                    }
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={
+                      shouldReduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, y: -8 }
+                    }
+                    transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
+                  >
+                    {marketplaceApiEnabled &&
+                      (marketplaceLoading || marketplaceError) && (
+                        <div
+                          role={marketplaceError ? "alert" : "status"}
+                          className="mx-auto max-w-6xl my-4 px-5 py-3 rounded-xl bg-white border border-[#e5e3dc]"
+                        >
+                          {marketplaceLoading
+                            ? "Đang tải lịch chạy từ nhà xe…"
+                            : marketplaceError}
+                        </div>
+                      )}
+                    <TripResultsView
+                      searchParams={searchParams}
+                      allTrips={availableTrips}
+                      onSelectTrip={handleSelectTrip}
+                      onModifySearch={() => {
+                        setCurrentStep("home");
+                      }}
+                      onUpdateSearch={handleSearch}
+                    />
+                  </motion.div>
+                )}
 
-            {/* Step: Passenger Info */}
-            {currentStep === 'passenger-info' && selectedTrip && (
-              <motion.div
-                key="passenger-info"
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
-              >
-                <PassengerForm
-                  trip={selectedTrip}
-                  dateStr={searchParams.date}
-                  selectedSeats={selectedSeats}
-                  initialPassenger={passengerInfo || undefined}
-                  onBack={(draft) => {
-                    if (draft) setPassengerInfo(draft);
-                    setCurrentStep('seat-select');
-                  }}
-                  onSubmit={handlePassengerSubmit}
-                />
-              </motion.div>
-            )}
+                {/* Step: Seat Selection */}
+                {currentStep === "seat-select" && selectedTrip && (
+                  <motion.div
+                    key="seat-select"
+                    initial={
+                      shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }
+                    }
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={
+                      shouldReduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, y: -8 }
+                    }
+                    transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
+                  >
+                    <SeatSelectionModal
+                      trip={selectedTrip}
+                      dateStr={searchParams.date}
+                      passengersCount={searchParams.passengers}
+                      selectedSeats={selectedSeats}
+                      onToggleSeat={handleToggleSeat}
+                      onRemoveSeatCode={handleRemoveSeat}
+                      onBack={() => setCurrentStep("search")}
+                      onProceedToPassenger={handleProceedToPassenger}
+                    />
+                  </motion.div>
+                )}
 
-            {/* Step: Demo Payment */}
-            {currentStep === 'payment' && selectedTrip && passengerInfo && (
-              <motion.div
-                key="payment"
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
-              >
-                <DemoPayment
-                  trip={selectedTrip}
-                  dateStr={searchParams.date}
-                  selectedSeats={selectedSeats}
-                  passenger={passengerInfo}
-                  onBack={() => setCurrentStep('passenger-info')}
-                  onPaymentSuccess={handlePaymentSuccess}
-                />
-              </motion.div>
-            )}
+                {/* Step: Passenger Info */}
+                {currentStep === "passenger-info" && selectedTrip && (
+                  <motion.div
+                    key="passenger-info"
+                    initial={
+                      shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }
+                    }
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={
+                      shouldReduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, y: -8 }
+                    }
+                    transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
+                  >
+                    <PassengerForm
+                      trip={selectedTrip}
+                      dateStr={searchParams.date}
+                      selectedSeats={selectedSeats}
+                      initialPassenger={passengerInfo || undefined}
+                      onBack={(draft) => {
+                        if (draft) setPassengerInfo(draft);
+                        setCurrentStep("seat-select");
+                      }}
+                      onSubmit={handlePassengerSubmit}
+                    />
+                  </motion.div>
+                )}
 
-            {/* Step: Booking Success Boarding Ticket */}
-            {currentStep === 'success' && completedBooking && (
-              <motion.div
-                key="success"
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: shouldReduceMotion ? 0.04 : 0.3 }}
-              >
-                <BoardingTicket
-                  booking={completedBooking}
-                  onNavigateHome={() => setCurrentStep('home')}
-                  onOpenLookup={() => setCurrentStep('lookup')}
-                />
-              </motion.div>
-            )}
+                {/* Step: Demo Payment */}
+                {currentStep === "payment" && selectedTrip && passengerInfo && (
+                  <motion.div
+                    key="payment"
+                    initial={
+                      shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }
+                    }
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={
+                      shouldReduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, y: -8 }
+                    }
+                    transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
+                  >
+                    {marketplaceApiEnabled ? (
+                      <ApiReservation
+                        trip={selectedTrip}
+                        seats={selectedSeats}
+                        expires={seatHold?.expires || 0}
+                        busy={bookingBusy}
+                        onBack={() => setCurrentStep("passenger-info")}
+                        onConfirm={() => handlePaymentSuccess("vietqr")}
+                      />
+                    ) : (
+                      <DemoPayment
+                        trip={selectedTrip}
+                        dateStr={searchParams.date}
+                        selectedSeats={selectedSeats}
+                        passenger={passengerInfo}
+                        onBack={() => setCurrentStep("passenger-info")}
+                        onPaymentSuccess={handlePaymentSuccess}
+                      />
+                    )}
+                  </motion.div>
+                )}
 
-            {/* Step: Ticket Lookup */}
-            {currentStep === 'lookup' && (
-              <motion.div
-                key="lookup"
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
-              >
-                <TicketLookupView
-                  initialBookingCode={completedBooking?.id}
-                  initialPhone={lookupPhone}
-                  onBack={() => {
-                    setLookupPhone(undefined);
-                    setCurrentStep('home');
-                  }}
-                  onNavigateHome={() => {
-                    setLookupPhone(undefined);
-                    setCurrentStep('home');
-                  }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Suspense>
-      </main>
+                {/* Step: Booking Success Boarding Ticket */}
+                {currentStep === "success" && completedBooking && (
+                  <motion.div
+                    key="success"
+                    initial={
+                      shouldReduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, scale: 0.98 }
+                    }
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: shouldReduceMotion ? 0.04 : 0.3 }}
+                  >
+                    <BoardingTicket
+                      booking={completedBooking}
+                      onNavigateHome={() => setCurrentStep("home")}
+                      onOpenLookup={() => setCurrentStep("lookup")}
+                    />
+                  </motion.div>
+                )}
 
-        {/* Site Footer */}
-        <SiteFooter
-          onSelectRoute={(from, to) => {
-            handleSearch({
-              from,
-              to,
-              date: searchParams.date,
-              passengers: searchParams.passengers,
-            });
-          }}
-          onOpenLookup={() => {
-            setLookupPhone(undefined);
-            setCurrentStep('lookup');
-          }}
-        />
+                {/* Step: Ticket Lookup */}
+                {currentStep === "lookup" && (
+                  <motion.div
+                    key="lookup"
+                    initial={
+                      shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }
+                    }
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={
+                      shouldReduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, y: -8 }
+                    }
+                    transition={{ duration: shouldReduceMotion ? 0.04 : 0.25 }}
+                  >
+                    <TicketLookupView
+                      initialBookingCode={
+                        completedBooking?.id ||
+                        new URLSearchParams(window.location.search).get(
+                          "code",
+                        ) ||
+                        undefined
+                      }
+                      initialPhone={lookupPhone}
+                      onBack={() => {
+                        setLookupPhone(undefined);
+                        setCurrentStep("home");
+                      }}
+                      onNavigateHome={() => {
+                        setLookupPhone(undefined);
+                        setCurrentStep("home");
+                      }}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Suspense>
+          </main>
+
+          {/* Site Footer */}
+          <SiteFooter
+            onSelectRoute={(from, to) => {
+              handleSearch({
+                from,
+                to,
+                date: searchParams.date,
+                passengers: searchParams.passengers,
+              });
+            }}
+            onOpenLookup={() => {
+              setLookupPhone(undefined);
+              setCurrentStep("lookup");
+            }}
+          />
+        </div>
       </div>
-    </div>
     </MotionConfig>
   );
 };

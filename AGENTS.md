@@ -69,3 +69,21 @@ For danavago.com hosting updates, read [docs/CPANEL_UPDATE.md](docs/CPANEL_UPDAT
 It records the confirmed GitHub remote, Node PATH, separate source/public directories,
 fail-fast update commands, backup and /app rewrite checks. Creating documentation
 does not authorize deployment; follow the user's current scope.
+
+
+## Laravel / operator apps
+
+Read `docs/LARAVEL_PORTALS.md` before API, hosting or multi-domain changes.
+PHP Laravel backend lives in `backend/`; React frontend and hero animations stay.
+`/manage` and `/admin` use StudioApp; `/app` is the common live booking app,
+`/app/{slug}` is a local preview of a tenant app, `/nha-xe/{slug}` is its profile.
+PortalService resolves only active verified domains to the correct tenant.
+Never trust a client tenant ID to override a tenant-app hostname. Keep sessions
+host-only and require CSRF for public booking writes as well as management.
+Run `npm run test:server`, `npm run test:php`, build/lint and relevant browser QA.
+Backend PHP needs 8.3+, Composer 2; production document root is `backend/public`.
+Use `npm run build:hosting`, never replace Laravel .htaccess with SPA rewrites.
+Do not commit .env, vendor, local runtime, SQLite files, session files or uploads.
+Do not deploy or change DNS without the user's authorization and credentials.
+No migration of real Node data/passwords is implicit; preserve the old DB until
+an explicit data migration and reconciliation have been completed.

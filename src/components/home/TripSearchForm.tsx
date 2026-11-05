@@ -1,9 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowLeftRight, Calendar, MapPin, Users, ArrowRight } from 'lucide-react';
-import { POPULAR_CITIES } from '../../data/mockData';
-import type { SearchParams } from '../../types';
-import { getVietnamTodayDateStr, isValidBookingDate, formatVietnamDate } from '../../utils/dateUtils';
+import React, { useState, useEffect, useRef } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  ArrowLeftRight,
+  Calendar,
+  MapPin,
+  Users,
+  ArrowRight,
+} from "lucide-react";
+import { POPULAR_CITIES } from "../../data/mockData";
+import { api, marketplaceApiEnabled } from "../../services/platformApi";
+import type { SearchParams } from "../../types";
+import {
+  getVietnamTodayDateStr,
+  isValidBookingDate,
+  formatVietnamDate,
+} from "../../utils/dateUtils";
 
 interface TripSearchFormProps {
   initialParams?: Partial<SearchParams>;
@@ -11,7 +22,7 @@ interface TripSearchFormProps {
   onRouteChange?: (from: string, to: string) => void;
   isLoading?: boolean;
   compact?: boolean;
-  variant?: 'standard' | 'horizontal-bar' | 'compact';
+  variant?: "standard" | "horizontal-bar" | "compact";
 }
 
 export const TripSearchForm: React.FC<TripSearchFormProps> = ({
@@ -20,15 +31,30 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
   onRouteChange,
   isLoading = false,
   compact = false,
-  variant = 'standard',
+  variant = "standard",
 }) => {
   const shouldReduceMotion = useReducedMotion();
+  const [apiCities, setApiCities] = useState<string[]>([]);
+  useEffect(() => {
+    if (!marketplaceApiEnabled) return;
+    const c = new AbortController();
+    api<{ items: string[] }>("/public/cities", { signal: c.signal })
+      .then((r) => setApiCities(r.items))
+      .catch(() => {});
+    return () => c.abort();
+  }, []);
+  const cities = [
+    ...POPULAR_CITIES,
+    ...apiCities
+      .filter((name) => !POPULAR_CITIES.some((c) => c.name === name))
+      .map((name) => ({ id: name, name, province: name })),
+  ];
   const todayStr = getVietnamTodayDateStr();
 
   // Atomic route state for from & to (ensures atomic update when swapping)
   const [{ from, to }, setRoute] = useState(() => ({
-    from: initialParams?.from || 'Đà Nẵng',
-    to: initialParams?.to || 'Hội An',
+    from: initialParams?.from || "Đà Nẵng",
+    to: initialParams?.to || "Hội An",
   }));
 
   const [date, setDate] = useState(() => {
@@ -38,7 +64,9 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
     return todayStr;
   });
   const [passengers, setPassengers] = useState(
-    initialParams?.passengers ? Math.min(5, Math.max(1, initialParams.passengers)) : 1
+    initialParams?.passengers
+      ? Math.min(5, Math.max(1, initialParams.passengers))
+      : 1,
   );
 
   const [swapCount, setSwapCount] = useState(0);
@@ -67,10 +95,17 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         to: initialParams.to || to,
       });
     }
-    if (initialParams.date && isValidBookingDate(initialParams.date) && initialParams.date !== prevParams?.date) {
+    if (
+      initialParams.date &&
+      isValidBookingDate(initialParams.date) &&
+      initialParams.date !== prevParams?.date
+    ) {
       setDate(initialParams.date);
     }
-    if (initialParams.passengers && initialParams.passengers !== prevParams?.passengers) {
+    if (
+      initialParams.passengers &&
+      initialParams.passengers !== prevParams?.passengers
+    ) {
       setPassengers(Math.min(5, Math.max(1, initialParams.passengers)));
     }
   }
@@ -88,33 +123,39 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node;
-      if (fromContainerRef.current && !fromContainerRef.current.contains(target)) {
+      if (
+        fromContainerRef.current &&
+        !fromContainerRef.current.contains(target)
+      ) {
         setFromOpen(false);
       }
       if (toContainerRef.current && !toContainerRef.current.contains(target)) {
         setToOpen(false);
       }
-      if (passengersContainerRef.current && !passengersContainerRef.current.contains(target)) {
+      if (
+        passengersContainerRef.current &&
+        !passengersContainerRef.current.contains(target)
+      ) {
         setPassengersOpen(false);
       }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setFromOpen(false);
         setToOpen(false);
         setPassengersOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
@@ -172,28 +213,31 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!from.trim() || !to.trim()) {
-      setErrorMsg('Vui lòng chọn điểm đi và điểm đến');
+      setErrorMsg("Vui lòng chọn điểm đi và điểm đến");
       return;
     }
     if (from.trim().toLowerCase() === to.trim().toLowerCase()) {
-      setErrorMsg('Điểm đi và điểm đến không được trùng nhau');
+      setErrorMsg("Điểm đi và điểm đến không được trùng nhau");
       return;
     }
     if (!date) {
-      setErrorMsg('Vui lòng chọn ngày khởi hành');
+      setErrorMsg("Vui lòng chọn ngày khởi hành");
       return;
     }
     if (!isValidBookingDate(date)) {
-      setErrorMsg('Ngày khởi hành không hợp lệ hoặc ở trong quá khứ');
+      setErrorMsg("Ngày khởi hành không hợp lệ hoặc ở trong quá khứ");
       return;
     }
 
-    const safePassengers = Math.min(5, Math.max(1, Math.round(Number(passengers)) || 1));
+    const safePassengers = Math.min(
+      5,
+      Math.max(1, Math.round(Number(passengers)) || 1),
+    );
     setErrorMsg(null);
     onSearch({ from, to, date, passengers: safePassengers });
   };
 
-  const isHorizontalBar = variant === 'horizontal-bar';
+  const isHorizontalBar = variant === "horizontal-bar";
 
   return (
     <form
@@ -201,10 +245,10 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
       onSubmit={handleSubmit}
       className={`bg-[#FFFEFA] border border-[#E5E3DC]/90 shadow-[0_22px_50px_-10px_rgba(16,39,68,0.18),0_10px_24px_-6px_rgba(43,66,148,0.1)] transition-all relative z-30 ${
         isHorizontalBar
-          ? 'w-full max-w-full rounded-[24px] p-2 sm:p-2.5 lg:p-3'
+          ? "w-full max-w-full rounded-[24px] p-2 sm:p-2.5 lg:p-3"
           : compact
-          ? 'max-w-4xl mx-auto rounded-2xl p-5 sm:p-6'
-          : 'w-full max-w-[620px] rounded-2xl p-5 sm:p-6'
+            ? "max-w-4xl mx-auto rounded-2xl p-5 sm:p-6"
+            : "w-full max-w-[620px] rounded-2xl p-5 sm:p-6"
       }`}
       aria-label="Form tìm kiếm chuyến xe"
     >
@@ -230,14 +274,18 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         data-search-grid
         className={
           isHorizontalBar
-            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.3fr_auto_1.3fr_auto_1.15fr_auto_1.05fr_auto] items-center gap-1.5 sm:gap-2'
-            : 'flex flex-col gap-3.5'
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.3fr_auto_1.3fr_auto_1.15fr_auto_1.05fr_auto] items-center gap-1.5 sm:gap-2"
+            : "flex flex-col gap-3.5"
         }
       >
         {/* ========================================================
             FIELD 1: NƠI ĐI
             ======================================================== */}
-        <div data-search-field="from" ref={fromContainerRef} className="relative min-w-0">
+        <div
+          data-search-field="from"
+          ref={fromContainerRef}
+          className="relative min-w-0"
+        >
           <button
             id="search-from"
             type="button"
@@ -250,7 +298,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               setPassengersOpen(false);
             }}
             className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus:bg-[#FFFEFA] focus-visible:ring-2 focus-visible:ring-[#2B4294] text-left transition-all cursor-pointer ${
-              !isHorizontalBar ? 'border border-[#E5E3DC] bg-[#F7F4EC]/60' : ''
+              !isHorizontalBar ? "border border-[#E5E3DC] bg-[#F7F4EC]/60" : ""
             }`}
           >
             <span className="block text-[11px] font-semibold text-[#718096] uppercase tracking-wider mb-0.5">
@@ -261,9 +309,16 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               <div className="relative overflow-hidden min-w-0 flex-1">
                 <motion.span
                   key={`${from}-${swapCount}`}
-                  initial={shouldReduceMotion ? false : { opacity: 0.25, y: isSwapping ? -5 : 0 }}
+                  initial={
+                    shouldReduceMotion
+                      ? false
+                      : { opacity: 0.25, y: isSwapping ? -5 : 0 }
+                  }
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: 'easeOut' }}
+                  transition={{
+                    duration: shouldReduceMotion ? 0 : 0.18,
+                    ease: "easeOut",
+                  }}
                   className="font-bold text-[15px] sm:text-[16px] text-[#2B4294] truncate block"
                 >
                   {from}
@@ -283,7 +338,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               <div className="px-3.5 py-1 text-[11px] font-bold text-[#647084] uppercase bg-[#F7F4EC]">
                 Địa điểm phổ biến
               </div>
-              {POPULAR_CITIES.map((c) => (
+              {cities.map((c) => (
                 <button
                   key={c.id}
                   type="button"
@@ -291,11 +346,15 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
                   aria-selected={from === c.name}
                   onClick={() => handleSelectFrom(c.name)}
                   className={`w-full text-left px-3.5 py-2.5 text-xs font-medium hover:bg-[#EBF4FC] transition-colors flex justify-between items-center cursor-pointer ${
-                    from === c.name ? 'text-[#2B4294] font-bold bg-[#EBF4FC]' : 'text-[#2B4294]'
+                    from === c.name
+                      ? "text-[#2B4294] font-bold bg-[#EBF4FC]"
+                      : "text-[#2B4294]"
                   }`}
                 >
                   <span className="font-semibold text-sm">{c.name}</span>
-                  <span className="text-[11px] text-[#647084]">{c.province}</span>
+                  <span className="text-[11px] text-[#647084]">
+                    {c.province}
+                  </span>
                 </button>
               ))}
             </div>
@@ -305,7 +364,10 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         {/* ========================================================
             FIELD 2: NÚT ĐẢO CHIỀU (SWAP)
             ======================================================== */}
-        <div data-search-field="swap" className="flex justify-center items-center shrink-0 px-0.5">
+        <div
+          data-search-field="swap"
+          className="flex justify-center items-center shrink-0 px-0.5"
+        >
           <button
             type="button"
             onClick={handleSwap}
@@ -316,7 +378,10 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
             <motion.span
               className="inline-flex items-center justify-center"
               animate={{ rotate: shouldReduceMotion ? 0 : swapCount * 180 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.28, ease: [0.4, 0, 0.2, 1] }}
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.28,
+                ease: [0.4, 0, 0.2, 1],
+              }}
             >
               <ArrowLeftRight className="w-3.5 h-3.5" />
             </motion.span>
@@ -326,7 +391,11 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         {/* ========================================================
             FIELD 3: NƠI ĐẾN
             ======================================================== */}
-        <div data-search-field="to" ref={toContainerRef} className="relative min-w-0">
+        <div
+          data-search-field="to"
+          ref={toContainerRef}
+          className="relative min-w-0"
+        >
           <button
             id="search-to"
             type="button"
@@ -339,7 +408,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               setPassengersOpen(false);
             }}
             className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus:bg-[#FFFEFA] focus-visible:ring-2 focus-visible:ring-[#2B4294] text-left transition-all cursor-pointer ${
-              !isHorizontalBar ? 'border border-[#E5E3DC] bg-[#F7F4EC]/60' : ''
+              !isHorizontalBar ? "border border-[#E5E3DC] bg-[#F7F4EC]/60" : ""
             }`}
           >
             <span className="block text-[11px] font-semibold text-[#718096] uppercase tracking-wider mb-0.5">
@@ -350,9 +419,16 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               <div className="relative overflow-hidden min-w-0 flex-1">
                 <motion.span
                   key={`${to}-${swapCount}`}
-                  initial={shouldReduceMotion ? false : { opacity: 0.25, y: isSwapping ? 5 : 0 }}
+                  initial={
+                    shouldReduceMotion
+                      ? false
+                      : { opacity: 0.25, y: isSwapping ? 5 : 0 }
+                  }
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: 'easeOut' }}
+                  transition={{
+                    duration: shouldReduceMotion ? 0 : 0.18,
+                    ease: "easeOut",
+                  }}
                   className="font-bold text-[15px] sm:text-[16px] text-[#2B4294] truncate block"
                 >
                   {to}
@@ -372,7 +448,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               <div className="px-3.5 py-1 text-[11px] font-bold text-[#647084] uppercase bg-[#F7F4EC]">
                 Địa điểm phổ biến
               </div>
-              {POPULAR_CITIES.map((c) => (
+              {cities.map((c) => (
                 <button
                   key={c.id}
                   type="button"
@@ -380,11 +456,15 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
                   aria-selected={to === c.name}
                   onClick={() => handleSelectTo(c.name)}
                   className={`w-full text-left px-3.5 py-2.5 text-xs font-medium hover:bg-[#FEF7E6] transition-colors flex justify-between items-center cursor-pointer ${
-                    to === c.name ? 'text-[#2B4294] font-bold bg-[#FEF7E6]' : 'text-[#2B4294]'
+                    to === c.name
+                      ? "text-[#2B4294] font-bold bg-[#FEF7E6]"
+                      : "text-[#2B4294]"
                   }`}
                 >
                   <span className="font-semibold text-sm">{c.name}</span>
-                  <span className="text-[11px] text-[#647084]">{c.province}</span>
+                  <span className="text-[11px] text-[#647084]">
+                    {c.province}
+                  </span>
                 </button>
               ))}
             </div>
@@ -393,7 +473,10 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
 
         {/* Dotted Divider 1 */}
         {isHorizontalBar && (
-          <div className="hidden lg:block w-[1px] h-9 border-r border-dashed border-[#D8D4C8] mx-0.5 self-center" aria-hidden="true" />
+          <div
+            className="hidden lg:block w-[1px] h-9 border-r border-dashed border-[#D8D4C8] mx-0.5 self-center"
+            aria-hidden="true"
+          />
         )}
 
         {/* ========================================================
@@ -402,7 +485,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
         <div data-search-field="date" className="relative min-w-0">
           <div
             className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus-within:bg-[#FFFEFA] focus-within:ring-2 focus-within:ring-[#2B4294] cursor-pointer transition-all ${
-              !isHorizontalBar ? 'border border-[#E5E3DC] bg-[#F7F4EC]/60' : ''
+              !isHorizontalBar ? "border border-[#E5E3DC] bg-[#F7F4EC]/60" : ""
             }`}
           >
             <span className="block text-[11px] font-semibold text-[#718096] uppercase tracking-wider mb-0.5">
@@ -411,7 +494,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
             <div className="flex items-center gap-2 overflow-hidden min-w-0">
               <Calendar className="w-4 h-4 text-[#2B4294] shrink-0 pointer-events-none" />
               <span className="font-bold text-[15px] sm:text-[16px] text-[#2B4294] select-none whitespace-nowrap">
-                {formatVietnamDate(date) || 'Chọn ngày'}
+                {formatVietnamDate(date) || "Chọn ngày"}
               </span>
             </div>
             <input
@@ -431,13 +514,20 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
 
         {/* Dotted Divider 2 */}
         {isHorizontalBar && (
-          <div className="hidden lg:block w-[1px] h-9 border-r border-dashed border-[#D8D4C8] mx-0.5 self-center" aria-hidden="true" />
+          <div
+            className="hidden lg:block w-[1px] h-9 border-r border-dashed border-[#D8D4C8] mx-0.5 self-center"
+            aria-hidden="true"
+          />
         )}
 
         {/* ========================================================
             FIELD 5: SỐ HÀNH KHÁCH
             ======================================================== */}
-        <div data-search-field="passengers" ref={passengersContainerRef} className="relative min-w-0">
+        <div
+          data-search-field="passengers"
+          ref={passengersContainerRef}
+          className="relative min-w-0"
+        >
           <button
             id="search-passengers"
             type="button"
@@ -450,7 +540,7 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
               setToOpen(false);
             }}
             className={`w-full h-[64px] sm:h-[70px] flex flex-col justify-center px-3.5 sm:px-4 rounded-xl hover:bg-[#F7F4EC]/70 focus:bg-[#FFFEFA] focus-visible:ring-2 focus-visible:ring-[#2B4294] text-left transition-all cursor-pointer ${
-              !isHorizontalBar ? 'border border-[#E5E3DC] bg-[#F7F4EC]/60' : ''
+              !isHorizontalBar ? "border border-[#E5E3DC] bg-[#F7F4EC]/60" : ""
             }`}
           >
             <span className="block text-[11px] font-semibold text-[#718096] uppercase tracking-wider mb-0.5">
@@ -483,11 +573,15 @@ export const TripSearchForm: React.FC<TripSearchFormProps> = ({
                     setErrorMsg(null);
                   }}
                   className={`w-full text-left px-4 py-2.5 text-xs font-medium hover:bg-[#EBF4FC] transition-colors flex items-center justify-between cursor-pointer ${
-                    passengers === num ? 'text-[#2B4294] font-bold bg-[#EBF4FC]' : 'text-[#2B4294]'
+                    passengers === num
+                      ? "text-[#2B4294] font-bold bg-[#EBF4FC]"
+                      : "text-[#2B4294]"
                   }`}
                 >
                   <span className="font-semibold text-sm">{num} người</span>
-                  {passengers === num && <span className="text-[#2B4294] font-bold">✓</span>}
+                  {passengers === num && (
+                    <span className="text-[#2B4294] font-bold">✓</span>
+                  )}
                 </button>
               ))}
             </div>

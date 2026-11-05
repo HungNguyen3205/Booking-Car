@@ -1,3 +1,4 @@
+import { marketplaceApiEnabled } from '../../services/platformApi';
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import type { SearchParams, Trip } from '../../types';
@@ -312,7 +313,7 @@ export const TripResultsView: React.FC<TripResultsViewProps> = ({
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E0F2F1]/80 text-[#004D40] border border-[#80CBC4]/60 text-[11px] font-medium">
           <Info className="w-3.5 h-3.5 text-[#00897B] shrink-0" />
           <span>
-            <strong>Bản trải nghiệm:</strong> Lịch trình và thanh toán mô phỏng.
+            {marketplaceApiEnabled ? <><strong>Lịch trình nhà xe:</strong> Dữ liệu qua API · Thanh toán theo hướng dẫn nhà xe.</> : <><strong>Bản trải nghiệm:</strong> Lịch trình và thanh toán mô phỏng.</>}
           </span>
         </div>
       </div>

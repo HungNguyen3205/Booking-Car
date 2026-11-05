@@ -1,3 +1,4 @@
+import { marketplaceApiEnabled } from '../../services/platformApi';
 import { normalizeVietnamPhone } from '../../utils/phoneUtils';
 import React, { useState, useMemo } from 'react';
 import type { Trip, PassengerInfo } from '../../types';
@@ -575,12 +576,12 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
 
                   <div className="flex justify-between text-[#647084]">
                     <span>Bảo hiểm hành khách:</span>
-                    <span className="text-emerald-700 font-semibold">Đã bao gồm</span>
+                    <span className="text-emerald-700 font-semibold">{marketplaceApiEnabled?'Theo chính sách nhà xe':'Đã bao gồm'}</span>
                   </div>
 
                   <div className="flex justify-between text-[#647084]">
                     <span>Thuế GTGT (VAT):</span>
-                    <span className="text-emerald-700 font-semibold">Đã bao gồm</span>
+                    <span className="text-emerald-700 font-semibold">{marketplaceApiEnabled?'Theo chính sách nhà xe':'Đã bao gồm'}</span>
                   </div>
 
                   <div className="flex justify-between items-baseline pt-3 border-t border-dashed border-[#CBD5E1]">
@@ -616,7 +617,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
 
                   <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[10.5px] text-[#647084]">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Mô phỏng thanh toán an toàn • Chưa trừ tiền tài khoản</span>
+                    <span>{marketplaceApiEnabled?'Đặt chỗ qua hệ thống • Chưa trừ tiền tài khoản':'Mô phỏng thanh toán an toàn • Chưa trừ tiền tài khoản'}</span>
                   </div>
                 </div>
               </div>
