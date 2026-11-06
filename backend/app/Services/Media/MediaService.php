@@ -242,14 +242,14 @@ class MediaService
 
             if ($asset->collection === MediaAsset::COLLECTION_HANDOVERS) {
                 return $user->hasAnyPermission([
-                    PermissionMatrix::PERM_HANDOVERS_MANAGE,
+                    PermissionMatrix::PERM_TRIPS_MANAGE,
                     PermissionMatrix::PERM_BOOKINGS_VIEW,
                     PermissionMatrix::PERM_BOOKINGS_MANAGE,
                 ]);
             }
 
             return $user->hasAnyPermission([
-                PermissionMatrix::PERM_CARS_MANAGE,
+                PermissionMatrix::PERM_VEHICLES_MANAGE,
                 PermissionMatrix::PERM_SETTINGS_MANAGE,
             ]);
         }

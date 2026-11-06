@@ -3,155 +3,126 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AuditLog;
-use App\Models\Route;
-use App\Models\RouteStop;
+use App\Services\OperatorService;
+use App\Services\StudioBridge;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
+/** Studio "Tuyến & điểm đón" on live route records (used by trips and public search). */
 class RouteController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(OperatorService $ops, private StudioBridge $bridge)
     {
-        $query = Route::with(['partner:id,name,slug', 'stops']);
-
-        if ($request->filled('partner_id')) {
-            $query->where('partner_id', $request->partner_id);
-        }
-
-        if ($request->filled('search')) {
-            $s = trim($request->search);
-            $query->where(function ($q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                    ->orWhere('from_city', 'like', "%{$s}%")
-                    ->orWhere('to_city', 'like', "%{$s}%");
-            });
-        }
-
-        $routes = $query->orderBy('name', 'asc')->get();
-
-        return response()->json([
-            'status' => 1,
-            'data' => $routes,
-        ]);
+        parent::__construct($ops);
     }
 
-    public function show($id)
+    private function rows(Request $r)
     {
-        $route = Route::with(['partner', 'stops'])->findOrFail($id);
-
-        return response()->json([
-            'status' => 1,
-            'data' => $route,
-        ]);
+        return $this->bridge->scoped(DB::table('records')->where('kind', 'routes'), $this->bridge->scope($r))->orderByDesc('created_at')->get()
+            ->map(fn ($row) => $this->ops->record($row));
     }
 
-    public function store(Request $request)
+    public function index(Request $r)
     {
-        $validated = $request->validate([
-            'partner_id' => 'required|exists:partners,id',
-            'name' => 'required|string|max:150',
-            'from_city' => 'required|string|max:80',
-            'to_city' => 'required|string|max:80',
-            'distance_km' => 'nullable|numeric|min:1',
-            'duration_minutes' => 'required|numeric|min:10',
-            'base_price' => 'required|numeric|min:0',
-            'status' => 'nullable|string|in:active,inactive',
-            'stops' => 'nullable|array',
-            'stops.*.name' => 'required|string',
-            'stops.*.address' => 'nullable|string',
-            'stops.*.stop_type' => 'required|string|in:pickup,dropoff,both',
-            'stops.*.time_offset_minutes' => 'nullable|numeric',
-            'stops.*.extra_fee' => 'nullable|numeric',
-        ]);
+        $items = $this->rows($r)->map(fn ($x) => $this->bridge->route($x));
+        if ($r->filled('status')) {
+            $items = $items->where('status', $r->query('status'));
+        }
 
-        $route = Route::create([
-            'partner_id' => $validated['partner_id'],
-            'name' => $validated['name'],
-            'from_city' => $validated['from_city'],
-            'to_city' => $validated['to_city'],
-            'distance_km' => (int) ($validated['distance_km'] ?? 100),
-            'duration_minutes' => (int) $validated['duration_minutes'],
-            'base_price' => (int) $validated['base_price'],
-            'status' => $validated['status'] ?? 'active',
-        ]);
+        return response()->json(['status' => 1, 'data' => $items->values()]);
+    }
 
-        if (!empty($validated['stops'])) {
-            foreach ($validated['stops'] as $index => $stop) {
-                RouteStop::create([
-                    'route_id' => $route->id,
-                    'name' => $stop['name'],
-                    'address' => $stop['address'] ?? null,
-                    'stop_type' => $stop['stop_type'] ?? 'pickup',
-                    'time_offset_minutes' => (int) ($stop['time_offset_minutes'] ?? 0),
-                    'extra_fee' => (int) ($stop['extra_fee'] ?? 0),
-                    'sort_order' => $index,
-                ]);
+    public function show(Request $r, string $id)
+    {
+        $route = $this->rows($r)->firstWhere('id', $id);
+        abort_unless($route, 404, 'Không tìm thấy tuyến');
+
+        return response()->json(['status' => 1, 'data' => $this->bridge->route($route)]);
+    }
+
+    /** Studio stops (pickup/dropoff/both) -> live pickups/dropoffs; defaults to the two terminals. */
+    private function payload(array $b, ?array $old = null): array
+    {
+        $from = $b['from_city'] ?? $old['from'];
+        $to = $b['to_city'] ?? $old['to'];
+        $duration = (int) ($b['duration_minutes'] ?? $old['durationMinutes']);
+        $pickups = $old['pickups'] ?? [];
+        $dropoffs = $old['dropoffs'] ?? [];
+        if (array_key_exists('stops', $b) && is_array($b['stops'])) {
+            $pickups = $dropoffs = [];
+            foreach (array_values($b['stops']) as $i => $s) {
+                if (! trim($s['name'] ?? '')) {
+                    continue;
+                }
+                $stop = ['id' => $s['id'] ?? 'stop-'.($i + 1), 'name' => trim($s['name']), 'address' => trim($s['address'] ?? '') ?: trim($s['name']),
+                    'offset' => max(0, min($duration, (int) ($s['time_offset_minutes'] ?? 0)))];
+                $type = $s['stop_type'] ?? 'pickup';
+                if (in_array($type, ['pickup', 'both'], true)) {
+                    $pickups[] = $stop + ['id' => $stop['id']];
+                }
+                if (in_array($type, ['dropoff', 'both'], true)) {
+                    $dropoffs[] = ['id' => $stop['id'].($type === 'both' ? '-drop' : '')] + $stop;
+                }
             }
         }
-
-        AuditLog::create([
-            'action' => 'route.created',
-            'target_type' => 'Route',
-            'target_id' => $route->id,
-            'target_label' => $route->name,
-            'new_values' => $route->toArray(),
-        ]);
-
-        return response()->json([
-            'status' => 1,
-            'message' => 'Tạo tuyến đường thành công!',
-            'data' => $route->load('stops'),
-        ]);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $route = Route::findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:150',
-            'from_city' => 'sometimes|string|max:80',
-            'to_city' => 'sometimes|string|max:80',
-            'distance_km' => 'nullable|numeric|min:1',
-            'duration_minutes' => 'sometimes|numeric|min:10',
-            'base_price' => 'sometimes|numeric|min:0',
-            'status' => 'sometimes|string|in:active,inactive',
-            'stops' => 'nullable|array',
-        ]);
-
-        $route->update($validated);
-
-        if ($request->has('stops')) {
-            RouteStop::where('route_id', $route->id)->delete();
-            foreach ($request->input('stops', []) as $index => $stop) {
-                RouteStop::create([
-                    'route_id' => $route->id,
-                    'name' => $stop['name'],
-                    'address' => $stop['address'] ?? null,
-                    'stop_type' => $stop['stop_type'] ?? 'pickup',
-                    'time_offset_minutes' => (int) ($stop['time_offset_minutes'] ?? 0),
-                    'extra_fee' => (int) ($stop['extra_fee'] ?? 0),
-                    'sort_order' => $index,
-                ]);
-            }
+        if (! $pickups) {
+            $pickups = [['id' => 'pickup-start', 'name' => 'Bến '.$from, 'address' => $from, 'offset' => 0]];
+        }
+        if (! $dropoffs) {
+            $dropoffs = [['id' => 'dropoff-end', 'name' => 'Bến '.$to, 'address' => $to, 'offset' => $duration]];
         }
 
-        return response()->json([
-            'status' => 1,
-            'message' => 'Cập nhật tuyến đường thành công!',
-            'data' => $route->load('stops'),
-        ]);
+        return [
+            'name' => $b['name'] ?? $old['name'] ?? trim($from.' → '.$to), 'from' => $from, 'to' => $to, 'durationMinutes' => $duration,
+            'basePrice' => (int) ($b['base_price'] ?? $old['basePrice'] ?? 0), 'distanceKm' => (int) ($b['distance_km'] ?? $old['distanceKm'] ?? 0),
+            'active' => ($b['status'] ?? (($old['active'] ?? true) ? 'active' : 'inactive')) === 'active',
+            'pickups' => $pickups, 'dropoffs' => $dropoffs,
+        ];
     }
 
-    public function destroy($id)
+    private function rules(bool $partial): array
     {
-        $route = Route::findOrFail($id);
-        $route->update(['status' => 'inactive']);
+        $req = $partial ? 'sometimes' : 'required';
 
-        return response()->json([
-            'status' => 1,
-            'message' => 'Đã dừng khai thác tuyến đường!',
-        ]);
+        return [
+            'name' => "$req|string|max:150", 'from_city' => "$req|string|max:80", 'to_city' => "$req|string|max:80",
+            'distance_km' => 'nullable|integer|min:0|max:5000', 'duration_minutes' => "$req|integer|min:10|max:2880",
+            'base_price' => 'nullable|integer|min:0|max:100000000', 'status' => 'nullable|string|in:active,inactive',
+            'stops' => 'nullable|array|max:30', 'stops.*.name' => 'nullable|string|max:150', 'stops.*.address' => 'nullable|string|max:300',
+            'stops.*.stop_type' => 'nullable|string|in:pickup,dropoff,both', 'stops.*.time_offset_minutes' => 'nullable|integer|min:0',
+        ];
+    }
+
+    public function store(Request $r)
+    {
+        $u = $this->bridge->user($r);
+        $b = $r->validate($this->rules(false));
+        $tid = $this->bridge->writeTenant($r);
+        $route = $this->ops->saveRecord($tid, 'routes', $this->payload($b), $u);
+
+        return response()->json(['status' => 1, 'message' => 'Đã lưu tuyến đường', 'data' => $this->bridge->route($route)]);
+    }
+
+    public function update(Request $r, string $id)
+    {
+        $u = $this->bridge->user($r);
+        $old = $this->rows($r)->firstWhere('id', $id);
+        abort_unless($old, 404, 'Không tìm thấy tuyến');
+        $b = $r->validate($this->rules(true));
+        $route = $this->ops->saveRecord($old['tenantId'], 'routes', $this->payload($b, $old), $u, $id);
+
+        return response()->json(['status' => 1, 'message' => 'Đã cập nhật tuyến', 'data' => $this->bridge->route($route)]);
+    }
+
+    public function destroy(Request $r, string $id)
+    {
+        $u = $this->bridge->user($r);
+        $old = $this->rows($r)->firstWhere('id', $id);
+        abort_unless($old, 404, 'Không tìm thấy tuyến');
+        abort_if(DB::table('trips')->where('route_id', $id)->exists(), 409, 'Tuyến đã có chuyến chạy, không thể xoá. Hãy chuyển sang "Ngừng hoạt động".');
+        DB::table('records')->where(['id' => $id, 'tenant_id' => $old['tenantId']])->delete();
+        $this->ops->audit($u, $old['tenantId'], 'routes.delete', $id);
+
+        return response()->json(['status' => 1, 'message' => 'Đã xoá tuyến']);
     }
 }
-

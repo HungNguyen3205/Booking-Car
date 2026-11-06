@@ -11,6 +11,9 @@ export interface OperatorUser {
   role: string;
   active: boolean;
   driverId?: string;
+  /** Customer accounts: login phone and the forced first-login password change. */
+  phone?: string | null;
+  mustChangePassword?: boolean;
 }
 export interface SessionResponse {
   user: OperatorUser | null;
@@ -112,10 +115,14 @@ export const reserveBooking = (
   passenger: PassengerInfo,
   holdId: string,
   key: string,
+  promoCode?: string,
+  paymentMethod: "cash" | "bank_transfer" = "cash",
 ) =>
   api<Booking>("/public/bookings", {
     method: "POST",
-    body: { tripId: trip.id, seats, passenger, holdId },
+    // promoCode is optional; the server checks it against the operator's promotions.
+    // Online payment does not exist yet: the customer pays at the counter or by transfer.
+    body: { tripId: trip.id, seats, passenger, holdId, paymentMethod, ...(promoCode ? { promoCode } : {}) },
     headers: { "X-Booking-Token": bookingToken(), "Idempotency-Key": key },
   });
 export const lookupRemoteBooking = (code: string, phone: string) =>
@@ -141,3 +148,23 @@ export async function downloadReport(
   a.click();
   URL.revokeObjectURL(href);
 }
+
+/* Customer accounts (login = phone, created at checkout). */
+export interface CustomerNotification {
+  id: string;
+  bookingId: string | null;
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+}
+export const customerLogin = (phone: string, password: string) =>
+  api<SessionResponse>("/auth/login", { method: "POST", body: { phone, password } });
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  api<SessionResponse>("/auth/password", { method: "PATCH", body: { currentPassword, newPassword } });
+export const logoutSession = () => api<SessionResponse>("/auth/logout", { method: "POST" });
+export const customerBookings = () => api<{ items: Booking[] }>("/customer/bookings");
+export const customerNotifications = () =>
+  api<{ items: CustomerNotification[]; unread: number }>("/customer/notifications");
+export const readCustomerNotifications = () =>
+  api<{ ok: boolean }>("/customer/notifications/read", { method: "POST" });

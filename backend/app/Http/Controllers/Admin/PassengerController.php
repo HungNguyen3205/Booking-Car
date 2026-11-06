@@ -3,93 +3,83 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\CustomerNote;
-use App\Models\TicketBooking;
+use App\Services\OperatorService;
+use App\Services\StudioBridge;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/** Studio "Hành khách": customers derived from live bookings, notes kept per operator. */
 class PassengerController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(OperatorService $ops, private StudioBridge $bridge)
     {
-        $search = trim($request->input('search', ''));
+        parent::__construct($ops);
+    }
 
-        $query = TicketBooking::query()
-            ->select(
-                'customer_phone',
-                DB::raw('MAX(customer_name) as customer_name'),
-                DB::raw('MAX(customer_email) as customer_email'),
-                DB::raw('COUNT(id) as total_bookings'),
-                DB::raw('SUM(seat_count) as total_tickets'),
-                DB::raw('SUM(final_amount) as total_spent'),
-                DB::raw('MAX(created_at) as last_booking_at')
-            )
+    private function grouped(Request $r)
+    {
+        return $this->bridge->bookings($this->bridge->bookingRows($this->bridge->scope($r)))
+            ->filter(fn ($b) => $b['customer_phone'] !== '')
             ->groupBy('customer_phone');
+    }
 
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('customer_phone', 'like', "%{$search}%")
-                    ->orWhere('customer_name', 'like', "%{$search}%")
-                    ->orWhere('customer_email', 'like', "%{$search}%");
-            });
+    public function index(Request $r)
+    {
+        $items = $this->grouped($r)->map(function ($list, $phone) {
+            $live = $list->where('booking_status', '!=', 'cancelled');
+
+            return [
+                'customer_phone' => $phone, 'customer_name' => $list->first()['customer_name'], 'customer_email' => $list->firstWhere('customer_email', '!=', '')['customer_email'] ?? '',
+                'total_bookings' => $list->count(), 'total_tickets' => $live->sum('seat_count'), 'total_spent' => $live->sum('paid_amount'),
+                'last_booking_at' => $list->max('created_at'),
+                'last_trip' => $list->sortByDesc('trip.depart_time')->first()['trip']['route']['name'] ?? '',
+                'trips_taken' => $list->where('booking_status', 'checked_in')->count(),
+            ];
+        })->values();
+        if ($r->filled('search')) {
+            $s = mb_strtolower(trim($r->query('search')));
+            $digits = preg_replace('/\D+/', '', $s);
+            $items = $items->filter(fn ($p) => str_contains(mb_strtolower($p['customer_name']), $s) || str_contains(mb_strtolower($p['customer_email']), $s)
+                || ($digits !== '' && str_contains($p['customer_phone'], $digits)));
         }
 
-        $passengers = $query->orderBy('last_booking_at', 'desc')->paginate($request->input('per_page', 20));
-
-        return response()->json([
-            'status' => 1,
-            'data' => $passengers,
-        ]);
+        return response()->json(['status' => 1, 'data' => $this->bridge->page($items->sortByDesc('last_booking_at')->values(), $r)]);
     }
 
-    public function show($phone)
+    public function show(Request $r, string $phone)
     {
-        $bookings = TicketBooking::where('customer_phone', $phone)
-            ->with(['partner:id,name,slug', 'trip.route'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $phone = $this->ops->phone($phone);
+        $list = $this->grouped($r)->get($phone, collect());
+        abort_if($list->isEmpty(), 404, 'Không tìm thấy hành khách');
+        $scope = $this->bridge->scope($r);
+        $notes = DB::table('customer_notes')->where('customer_phone', $phone)
+            ->when($scope !== null, fn ($q) => $q->whereIn('partner_id', $scope))
+            ->orderByDesc('created_at')->get();
+        $live = $list->where('booking_status', '!=', 'cancelled');
 
-        $notes = CustomerNote::where('customer_phone', $phone)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $passenger = [
-            'phone' => $phone,
-            'name' => $bookings->first() ? $bookings->first()->customer_name : 'Hành khách',
-            'email' => $bookings->first() ? $bookings->first()->customer_email : null,
-            'total_bookings' => $bookings->count(),
-            'total_tickets' => $bookings->sum('seat_count'),
-            'total_spent' => $bookings->where('payment_status', 'paid')->sum('final_amount'),
-            'bookings' => $bookings,
-            'notes' => $notes,
-        ];
-
-        return response()->json([
-            'status' => 1,
-            'data' => $passenger,
-        ]);
+        return response()->json(['status' => 1, 'data' => [
+            'phone' => $phone, 'name' => $list->first()['customer_name'], 'email' => $list->firstWhere('customer_email', '!=', '')['customer_email'] ?? null,
+            'total_bookings' => $list->count(), 'total_tickets' => $live->sum('seat_count'), 'total_spent' => $live->sum('paid_amount'),
+            'bookings' => $list->values(), 'notes' => $notes,
+        ]]);
     }
 
-    public function addNote(Request $request, $phone)
+    public function addNote(Request $r, string $phone)
     {
-        $validated = $request->validate([
-            'note' => 'required|string',
-            'customer_name' => 'nullable|string',
-            'admin_name' => 'nullable|string',
+        $u = $this->bridge->user($r);
+        $b = $r->validate(['note' => 'required|string|max:1000', 'customer_name' => 'nullable|string|max:150']);
+        $tid = $this->bridge->writeTenant($r, $this->bridge->isPlatform($u) ? ($r->input('partner_id') ?: $this->ownerOf($r, $phone)) : null);
+        $id = DB::table('customer_notes')->insertGetId([
+            'customer_phone' => $this->ops->phone($phone), 'customer_name' => $b['customer_name'] ?? null, 'note' => $b['note'],
+            'admin_name' => $u->name, 'partner_id' => $tid, 'created_at' => now(), 'updated_at' => now(),
         ]);
 
-        $note = CustomerNote::create([
-            'customer_phone' => $phone,
-            'customer_name' => $validated['customer_name'] ?? null,
-            'note' => $validated['note'],
-            'admin_name' => $validated['admin_name'] ?? 'Admin',
-        ]);
+        return response()->json(['status' => 1, 'message' => 'Đã thêm ghi chú chăm sóc khách', 'data' => DB::table('customer_notes')->find($id)]);
+    }
 
-        return response()->json([
-            'status' => 1,
-            'message' => 'Thêm ghi chú chăm sóc hành khách thành công!',
-            'data' => $note,
-        ]);
+    /** Operator of the customer's most recent booking (platform notes default to it). */
+    private function ownerOf(Request $r, string $phone): ?string
+    {
+        return $this->grouped($r)->get($this->ops->phone($phone), collect())->sortByDesc('created_at')->first()['partner_id'] ?? null;
     }
 }
-

@@ -13,7 +13,8 @@ class AuthController extends Controller
 {
     private function view(User $u): array
     {
-        return ['id' => $u->id, 'tenantId' => $u->tenant_id, 'name' => $u->name, 'email' => $u->email, 'role' => $u->role, 'active' => $u->active, 'driverId' => $u->driver_id];
+        return ['id' => $u->id, 'tenantId' => $u->tenant_id, 'name' => $u->name, 'email' => $u->role === 'customer' ? '' : $u->email, 'role' => $u->role, 'active' => $u->active, 'driverId' => $u->driver_id,
+            'phone' => $u->phone, 'mustChangePassword' => (bool) $u->must_change_password];
     }
 
     private function signed(Request $r, User $u): array
@@ -54,10 +55,13 @@ class AuthController extends Controller
 
     public function login(Request $r)
     {
+        if ($r->filled('phone')) {
+            return $this->customerLogin($r);
+        }
         $b = $r->validate(['email' => 'required|email', 'password' => 'required|string|max:200']);
         $key = 'login:'.hash('sha256', strtolower($b['email']).$r->ip());
         abort_if(RateLimiter::tooManyAttempts($key, 8), 429, 'Thử đăng nhập quá nhiều lần. Chờ 15 phút.');
-        $u = User::where('email', strtolower($b['email']))->where('active', true)->first();
+        $u = User::where('email', strtolower($b['email']))->where('active', true)->where('role', '!=', 'customer')->first();
         if (! $u || ! Hash::check($b['password'], $u->password)) {
             RateLimiter::hit($key, 900);
             abort(401, 'Email hoặc mật khẩu chưa đúng');
@@ -68,9 +72,33 @@ class AuthController extends Controller
         return $this->signed($r, $u);
     }
 
+    /**
+     * Customer sign-in by phone. The temporary password is shared by design, so
+     * attempts are limited per phone (any IP) as well as per phone + IP.
+     */
+    private function customerLogin(Request $r)
+    {
+        $b = $r->validate(['phone' => 'required|string|max:20', 'password' => 'required|string|max:200']);
+        $phone = $this->ops->phone($b['phone']);
+        $keys = ['clogin:'.hash('sha256', $phone.$r->ip()) => 6, 'clogin-phone:'.hash('sha256', $phone) => 20];
+        foreach ($keys as $key => $max) {
+            abort_if(RateLimiter::tooManyAttempts($key, $max), 429, 'Thử đăng nhập quá nhiều lần. Chờ 15 phút.');
+        }
+        $u = User::where('phone', $phone)->where('role', 'customer')->where('active', true)->first();
+        if (! $u || ! Hash::check($b['password'], $u->password)) {
+            foreach (array_keys($keys) as $key) {
+                RateLimiter::hit($key, 900);
+            }
+            abort(401, 'Số điện thoại hoặc mật khẩu chưa đúng');
+        }
+        RateLimiter::clear(array_key_first($keys));
+
+        return $this->signed($r, $u);
+    }
+
     public function logout(Request $r)
     {
-        $this->user($r);
+        $this->user($r, true);
         Auth::logout();
         $r->session()->invalidate();
         $r->session()->regenerateToken();
@@ -80,14 +108,18 @@ class AuthController extends Controller
 
     public function password(Request $r)
     {
-        $u = $this->user($r);
-        $b = $r->validate(['currentPassword' => 'required|string|max:200', 'newPassword' => 'required|string|min:12|max:200']);
+        $u = $this->user($r, true);
+        $customer = $u->role === 'customer';
+        $b = $r->validate(['currentPassword' => 'required|string|max:200', 'newPassword' => 'required|string|max:200|min:'.($customer ? 8 : 12)]);
+        abort_if($customer && in_array($b['newPassword'], [\App\Services\CustomerAccounts::TEMP_PASSWORD, '12345678', '123456789', '00000000', '11111111', '87654321', $u->phone], true), 422, 'Mật khẩu quá dễ đoán, hãy chọn mật khẩu khác');
+        abort_if($b['newPassword'] === $b['currentPassword'], 422, 'Mật khẩu mới phải khác mật khẩu hiện tại');
         $key = 'password:'.$u->id;
         abort_if(RateLimiter::tooManyAttempts($key, 8), 429, 'Thao tác quá nhiều lần');
         if (! Hash::check($b['currentPassword'], $u->password)) {
             RateLimiter::hit($key, 900);
             abort(401, 'Mật khẩu hiện tại chưa đúng');
         }$u->password = Hash::make($b['newPassword']);
+        $u->must_change_password = false;
         $u->save();
         $this->ops->audit($u, $u->tenant_id, 'account.password', $u->id);
         RateLimiter::clear($key);

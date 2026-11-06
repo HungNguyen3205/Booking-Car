@@ -31,6 +31,13 @@ import {
   PanelLeftOpen,
   Bot,
   Sparkles,
+  Eye,
+  EyeOff,
+  ScanLine,
+  Landmark,
+  BarChart3,
+  CalendarCheck,
+  Megaphone,
 } from "lucide-react";
 import { api, loadSession } from "../../services/platformApi";
 import type { OperatorUser } from "../../services/platformApi";
@@ -38,7 +45,9 @@ import { roleLabels, formatDate } from "./studioConfig";
 import type { Item } from "./studioConfig";
 import "./studio.css";
 import "./studio-navy.css";
+import "./studio-login.css";
 import "./views/views.css";
+import "./studio-polish.css";
 
 // DANAVA Go Admin Modular Views
 import OverviewView from "./views/OverviewView";
@@ -56,6 +65,11 @@ import PromotionsView from "./views/PromotionsView";
 import StaffView from "./views/StaffView";
 import SettingsView from "./views/SettingsView";
 import HelpModal from "./views/HelpModal";
+import CheckinView from "./views/modules/CheckinView";
+import CashbookView from "./views/modules/CashbookView";
+import CompareView from "./views/modules/CompareView";
+import WorkforceView from "./views/modules/WorkforceView";
+import MarketingView from "./views/modules/MarketingView";
 
 const adminSidebarSections = [
   {
@@ -69,6 +83,7 @@ const adminSidebarSections = [
     items: [
       { id: "bookings", name: "Đơn vé", icon: Ticket },
       { id: "trips", name: "Chuyến chạy", icon: CalendarDays },
+      { id: "checkin", name: "Soát vé lên xe", icon: ScanLine },
       { id: "routes", name: "Tuyến & điểm đón", icon: Route },
       { id: "vehicles", name: "Xe & sơ đồ ghế", icon: Bus },
       { id: "passengers", name: "Hành khách", icon: Users },
@@ -85,19 +100,61 @@ const adminSidebarSections = [
     group: "TÀI CHÍNH",
     items: [
       { id: "payments", name: "Thanh toán", icon: Wallet },
-      { id: "reconciliations", name: "Đối soát & công nợ", icon: Handshake },
+      { id: "cashbook", name: "Sổ quỹ & công nợ", icon: Landmark },
+      { id: "reconciliations", name: "Đối soát nhà xe", icon: Handshake },
       { id: "reports", name: "Báo cáo", icon: ChartNoAxesCombined },
+      { id: "compare", name: "So sánh nhà xe", icon: BarChart3 },
+    ],
+  },
+  {
+    group: "NHÂN SỰ",
+    items: [
+      { id: "staff", name: "Nhân sự & phân quyền", icon: UserRound },
+      { id: "workforce", name: "Chấm công & lương", icon: CalendarCheck },
+    ],
+  },
+  {
+    group: "MARKETING",
+    items: [
+      { id: "promotions", name: "Ưu đãi & nội dung", icon: Tag },
+      { id: "marketing", name: "Chiến dịch & đánh giá", icon: Megaphone },
     ],
   },
   {
     group: "HỆ THỐNG",
     items: [
-      { id: "promotions", name: "Ưu đãi & nội dung", icon: Tag },
-      { id: "staff", name: "Nhân sự & phân quyền", icon: UserRound },
       { id: "settings", name: "Cài đặt", icon: Settings2 },
     ],
   },
 ];
+
+/**
+ * Page -> roles allowed besides platform. Mirrors backend StudioBridge::AREAS so the
+ * menu only shows what the account can actually use (the server enforces it anyway).
+ */
+const PAGE_ROLES: Record<string, string[]> = {
+  overview: ["owner", "manager", "dispatcher", "sales", "accountant"],
+  bookings: ["owner", "manager", "dispatcher", "sales"],
+  trips: ["owner", "manager", "dispatcher", "driver"],
+  checkin: ["owner", "manager", "dispatcher", "sales", "driver"],
+  routes: ["owner", "manager", "dispatcher"],
+  vehicles: ["owner", "manager", "dispatcher"],
+  passengers: ["owner", "manager", "sales"],
+  partners: ["owner", "manager"],
+  app_domains: [],
+  payments: ["owner", "manager", "accountant"],
+  cashbook: ["owner", "manager", "accountant"],
+  reconciliations: ["owner", "manager", "accountant"],
+  reports: ["owner", "manager", "accountant"],
+  compare: ["owner", "manager", "accountant"],
+  staff: ["owner", "manager"],
+  workforce: ["owner", "manager"],
+  promotions: ["owner", "manager"],
+  marketing: ["owner", "manager"],
+  settings: [],
+};
+const canSee = (role: string | undefined, page: string) =>
+  role === "platform" || (PAGE_ROLES[page] ?? []).includes(role ?? "");
 
 const nav = adminSidebarSections.flatMap((s) => s.items.map((i) => ({ ...i, roles: ["all"] })));
 
@@ -171,16 +228,58 @@ function Login({
 }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="ds-login">
-      <section className="ds-login-story">
-        <span className="ds-kicker">HỆ THỐNG VẬN HÀNH</span>
-        <h1>DANAVA GO Studio</h1>
-        <p>Bảng điều khiển quản trị mạng lưới xe khách liên tỉnh cao cấp.</p>
+    <div className="dsl">
+      <div className="dsl-scene" aria-hidden="true" />
+      <section className="dsl-story">
+        <img className="dsl-logo" src="/assets/danava-logo.png" alt="DANAVA GO" />
+        <span className="dsl-kicker">
+          <Sparkles size={13} aria-hidden="true" />
+          DANAVA GO Studio
+        </span>
+        <h1>
+          <span>Điều phối mọi chuyến xe</span>
+          <span>
+            từ <em>một bảng điều khiển.</em>
+          </span>
+        </h1>
+        <p>Chuyến, ghế, vé và doanh thu của nhà xe trên DANAVA GO, cập nhật theo thời gian thực.</p>
+        <ol className="dsl-route" aria-label="Luồng vận hành">
+          {[
+            [Bus, "Đội xe"],
+            [CalendarDays, "Lịch chuyến"],
+            [Ticket, "Ghế & vé"],
+            [ChartNoAxesCombined, "Doanh thu"],
+          ].map(([Icon, label], i) => {
+            const I = Icon as typeof Bus;
+            return (
+              <li key={label as string} style={{ ["--i" as string]: i }}>
+                <span className="dsl-stop"><I size={17} aria-hidden="true" /></span>
+                <span>{label as string}</span>
+              </li>
+            );
+          })}
+          <span className="dsl-route-bus" aria-hidden="true"><Bus size={15} /></span>
+        </ol>
       </section>
-      <section className="ds-login-card">
-        <h2>{setup ? "Khởi tạo Quản trị viên" : "Đăng nhập hệ thống"}</h2>
+
+      <section className="dsl-pass" aria-labelledby="dsl-title">
+        <header className="dsl-pass-head">
+          <div>
+            <small>Vé vào cổng</small>
+            <strong>STUDIO</strong>
+          </div>
+          <span className="dsl-pass-line" aria-hidden="true"><Bus size={16} /></span>
+          <div className="dsl-pass-dest">
+            <small>Điểm đến</small>
+            <strong>BẢNG ĐIỀU KHIỂN</strong>
+          </div>
+        </header>
+        <div className="dsl-perforation" aria-hidden="true" />
+        <div className="dsl-pass-body">
+        <h2 id="dsl-title">{setup ? "Khởi tạo Quản trị viên" : "Đăng nhập hệ thống"}</h2>
         <p>
           {setup
             ? "Tạo tài khoản quản trị đầu tiên để bắt đầu vận hành hệ thống."
@@ -209,8 +308,14 @@ function Login({
         >
           {setup && (
             <label>
+              <span>Mã thiết lập (DANAVA_SETUP_TOKEN trên server)</span>
+              <input name="setupToken" type="password" required autoFocus autoComplete="off" />
+            </label>
+          )}
+          {setup && (
+            <label>
               <span>Họ và tên</span>
-              <input name="name" required autoFocus autoComplete="name" />
+              <input name="name" required autoComplete="name" />
             </label>
           )}
           <label>
@@ -219,25 +324,40 @@ function Login({
           </label>
           <label>
             <span>Mật khẩu{setup ? " (tối thiểu 12 ký tự)" : ""}</span>
-            <input
-              name="password"
-              type="password"
-              required
-              minLength={setup ? 12 : 1}
-              autoComplete={setup ? "new-password" : "current-password"}
-            />
+            <span className="dsl-password">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={setup ? 12 : 1}
+                autoComplete={setup ? "new-password" : "current-password"}
+              />
+              <button
+                type="button"
+                className="dsl-eye"
+                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
+            </span>
           </label>
           {error && (
-            <p className="ds-error" role="alert">
+            <p className="dsl-error" role="alert">
               {error}
             </p>
           )}
-          <button className="ds-primary" disabled={busy}>
-            {busy ? "Đang xử lý…" : setup ? "Tạo quản trị viên" : "Đăng nhập"}
-            <ArrowRight size={17} />
+          <button className="dsl-submit" disabled={busy}>
+            <span>{busy ? "Đang xử lý…" : setup ? "Tạo quản trị viên" : "Đăng nhập"}</span>
+            <ArrowRight size={18} aria-hidden="true" />
           </button>
         </form>
-        <a href="/">← Về trang đặt vé</a>
+        <footer className="dsl-pass-foot">
+          <a href="/">← Về trang đặt vé</a>
+          <span><ShieldCheck size={14} aria-hidden="true" /> Phiên bảo mật trên tên miền này</span>
+        </footer>
+        </div>
       </section>
     </div>
   );
@@ -285,17 +405,11 @@ export default function StudioApp() {
         setTenants([t]);
       }
       setError("");
-    } catch {
-      // Standalone demo fallback when backend is offline
-      setUser({
-        id: "usr_admin_demo",
-        tenantId: null,
-        name: "Quản trị viên Hệ thống",
-        email: "admin@danavago.vn",
-        role: "platform",
-        active: true,
-      });
-      setError("");
+    } catch (e) {
+      // Never invent a signed-in admin when the backend is unreachable:
+      // show the login screen with a retry banner instead.
+      setUser(null);
+      setError(`Không kết nối được máy chủ Studio: ${(e as Error)?.message || "lỗi mạng"}`);
     } finally {
       setSessionReady(true);
     }
@@ -305,6 +419,25 @@ export default function StudioApp() {
     document.title = "DriveAdmin · Quản trị DANAVA Go";
     init();
   }, [init]);
+  // Escape closes the top-most view dialog (their backdrops close on click).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const backdrops = document.querySelectorAll<HTMLElement>(".ds-main .ds-modal-backdrop");
+      backdrops[backdrops.length - 1]?.click();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Land on the first page this role may open (e.g. drivers go straight to boarding).
+  const visibleSections = adminSidebarSections
+    .map((sec) => ({ ...sec, items: sec.items.filter((i) => canSee(user?.role, i.id)) }))
+    .filter((sec) => sec.items.length > 0);
+  const firstPage = visibleSections[0]?.items[0]?.id ?? "overview";
+  useEffect(() => {
+    if (user && !canSee(user.role, page)) setPage(firstPage);
+  }, [user, page, firstPage]);
 
   const navigate = (id: string) => {
     if (id === page) setRevision((v) => v + 1);
@@ -423,7 +556,7 @@ export default function StudioApp() {
         </div>
 
         <nav aria-label="Quản trị DriveAdmin">
-          {adminSidebarSections.map((sec) => (
+          {visibleSections.map((sec) => (
             <details
               key={sec.group}
               className="ds-nav-group"
@@ -630,11 +763,17 @@ export default function StudioApp() {
           {page === "promotions" && <PromotionsView />}
           {page === "staff" && <StaffView />}
           {page === "settings" && <SettingsView />}
+          {page === "checkin" && <CheckinView />}
+          {page === "cashbook" && <CashbookView />}
+          {page === "compare" && <CompareView />}
+          {page === "workforce" && <WorkforceView />}
+          {page === "marketing" && <MarketingView />}
         </div>
       </main>
 
-      {/* Floating AI Assistant Button (Bottom Right - Exact Match Image 1) */}
+      {/* AI assistant hidden until it answers from real data (its replies were canned figures). */}
       <button
+        hidden
         className="ds-floating-ai-btn"
         title="Trợ lý AI DANAVA Go"
         onClick={() => setAiModalOpen(true)}

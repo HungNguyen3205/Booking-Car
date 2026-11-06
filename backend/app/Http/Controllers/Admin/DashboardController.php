@@ -3,214 +3,96 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\BusTrip;
-use App\Models\Partner;
-use App\Models\TicketBooking;
-use App\Models\BookingTransaction;
-use Carbon\Carbon;
+use App\Services\OperatorService;
+use App\Services\StudioBridge;
+use Carbon\CarbonImmutable as C;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/** Studio "Tổng quan" from live bookings, trips, vehicles and the ledger. */
 class DashboardController extends Controller
 {
-    public function getStatistics(Request $request)
+    public function __construct(OperatorService $ops, private StudioBridge $bridge)
     {
-        $partnerId = $request->query('partner_id');
-        $range = $request->query('range', 'day'); // day, week, month
+        parent::__construct($ops);
+    }
 
-        $bookingsQuery = TicketBooking::query();
-        $tripsQuery = BusTrip::query();
+    public function getStatistics(Request $r)
+    {
+        $scope = $this->bridge->scope($r);
+        $tz = StudioBridge::TZ;
+        $now = C::now($tz);
+        $today = $now->toDateString();
+        $range = $r->query('range', 'day');
 
-        if ($partnerId) {
-            $bookingsQuery->where('partner_id', $partnerId);
-            $tripsQuery->where('partner_id', $partnerId);
-        }
+        $rows = $this->bridge->bookingRows($scope);
+        $bookings = $this->bridge->bookings($rows);
+        $live = $bookings->where('booking_status', '!=', 'cancelled');
+        $localDay = fn (?string $s) => $s ? substr($s, 0, 10) : null;
 
-        // Today metrics
-        $today = Carbon::today('Asia/Ho_Chi_Minh');
-        $todayStr = $today->toDateString();
+        // Money actually collected, bucketed by the day it was collected.
+        $ledger = $this->bridge->scoped(DB::table('ledger'), $scope)->whereIn('kind', ['collection', 'refund'])->get(['kind', 'amount', 'created_at'])
+            ->map(fn ($l) => ['day' => $localDay($this->bridge->local($l->created_at)), 'amount' => $l->kind === 'refund' ? -(int) $l->amount : (int) $l->amount]);
+        $revenueBetween = fn (string $a, string $z) => (int) $ledger->filter(fn ($l) => $l['day'] >= $a && $l['day'] <= $z)->sum('amount');
 
-        $todayTripsCount = (clone $tripsQuery)
-            ->whereDate('depart_time', $todayStr)
-            ->count();
+        $tripsToday = $this->bridge->scoped(DB::table('trips'), $scope)->whereBetween('depart_at', $this->bridge->utcBounds($today, $today))
+            ->whereNotIn('status', ['cancelled', 'draft'])->get(['id', 'data']);
+        $capacityToday = $tripsToday->sum(fn ($t) => (int) ($this->ops->data($t)['vehicle']['capacity'] ?? 0));
+        $seatsToday = $tripsToday->isEmpty() ? 0 : (int) DB::table('inventory')->whereIn('trip_id', $tripsToday->pluck('id'))->whereNotNull('booking_id')->count();
+        $soldToday = $live->filter(fn ($b) => $localDay($b['created_at']) === $today);
 
-        $todayBookings = (clone $bookingsQuery)
-            ->whereDate('created_at', $todayStr);
+        $vehicles = $this->bridge->scoped(DB::table('records')->where('kind', 'vehicles'), $scope)->get()->map(fn ($v) => $this->ops->data($v));
 
-        $todayTicketsSold = (clone $todayBookings)
-            ->where('booking_status', '!=', 'cancelled')
-            ->sum('seat_count') ?: 0;
+        $months = collect(range(5, 0))->map(function ($i) use ($now, $revenueBetween) {
+            $m = $now->subMonthsNoOverflow($i);
 
-        $todayRevenue = (clone $todayBookings)
-            ->where('payment_status', 'paid')
-            ->sum('final_amount') ?: 0;
+            return ['label' => $m->format('m/Y'), 'date' => $m->startOfMonth()->toDateString(), 'value' => $revenueBetween($m->startOfMonth()->toDateString(), $m->endOfMonth()->toDateString())];
+        })->values();
+        $chart = match ($range) {
+            'week' => collect(range(7, 0))->map(function ($i) use ($now, $revenueBetween) {
+                $w = $now->subWeeks($i)->startOfWeek();
 
-        // Total metrics
-        $totalRevenue = (clone $bookingsQuery)
-            ->where('payment_status', 'paid')
-            ->sum('final_amount') ?: 0;
+                return ['label' => 'Tuần '.$w->format('W/y'), 'date' => $w->toDateString(), 'value' => $revenueBetween($w->toDateString(), $w->endOfWeek()->toDateString())];
+            })->values(),
+            'month' => $months->map(fn ($m) => ['label' => 'Tháng '.$m['label']] + $m)->values(),
+            default => collect(range(6, 0))->map(function ($i) use ($now, $revenueBetween) {
+                $d = $now->subDays($i)->toDateString();
 
-        $totalTicketsSold = (clone $bookingsQuery)
-            ->where('booking_status', '!=', 'cancelled')
-            ->sum('seat_count') ?: 0;
+                return ['label' => substr($d, 8, 2).'/'.substr($d, 5, 2), 'date' => $d, 'value' => $revenueBetween($d, $d)];
+            })->values(),
+        };
 
-        // Occupancy rate for today
-        $todayTrips = (clone $tripsQuery)
-            ->whereDate('depart_time', $todayStr)
-            ->with('vehicle')
-            ->get();
+        $customers = $live->pluck('customer_phone')->filter()->unique();
+        $weekAgo = $now->subWeek()->format('Y-m-d H:i:s');
+        $firstSeen = $bookings->groupBy('customer_phone')->map(fn ($g) => $g->min('created_at'));
 
-        $totalAvailableCapacity = 0;
-        foreach ($todayTrips as $t) {
-            $totalAvailableCapacity += $t->vehicle ? $t->vehicle->capacity : 20;
-        }
+        $operators = $live->groupBy('partner_id')->map(fn ($g, $id) => [
+            'id' => $id, 'name' => $g->first()['partner']['name'], 'slug' => $g->first()['partner']['slug'],
+            'trips_count' => $g->pluck('trip_id')->unique()->count(), 'tickets_sold' => $g->sum('seat_count'),
+            'revenue' => $g->sum('paid_amount'), 'commission_rate' => round(((int) ($this->bridge->tenant($id)['commissionBps'] ?? 0)) / 100, 2),
+        ])->sortByDesc('revenue')->values();
 
-        $occupancyRate = $totalAvailableCapacity > 0
-            ? round(($todayTicketsSold / $totalAvailableCapacity) * 100, 1)
-            : 78.5;
-
-        // Booking status breakdown (Image 1 distribution)
-        $pendingBookingsCount = (clone $bookingsQuery)->where('booking_status', 'pending')->count();
-        $confirmedBookingsCount = (clone $bookingsQuery)->where('booking_status', 'confirmed')->count();
-        $completedBookingsCount = (clone $bookingsQuery)->where('booking_status', 'completed')->count();
-        $cancelledBookingsCount = (clone $bookingsQuery)->where('booking_status', 'cancelled')->count();
-        $totalBookingsCount = (clone $bookingsQuery)->count();
-
-        // Vehicle metrics (Image 1 stats)
-        $vehiclesTotal = \App\Models\BusVehicle::count();
-        $vehiclesActive = \App\Models\BusVehicle::where('status', 'active')->count();
-        $vehiclesMaintenance = \App\Models\BusVehicle::where('status', 'maintenance')->count();
-
-        // Customer metrics (Image 1 stats)
-        $totalCustomers = \App\Models\Passenger::count();
-        $newCustomersWeek = \App\Models\Passenger::where('created_at', '>=', Carbon::now('Asia/Ho_Chi_Minh')->subWeek())->count();
-
-        // 6-Month Revenue Chart (Image 1: 12/2025 to 05/2026)
-        $sixMonthChart = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $m = Carbon::now('Asia/Ho_Chi_Minh')->subMonths($i);
-            $startOfMonth = (clone $m)->startOfMonth();
-            $endOfMonth = (clone $m)->endOfMonth();
-            $rev = (clone $bookingsQuery)
-                ->where('payment_status', 'paid')
-                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-                ->sum('final_amount') ?: 0;
-
-            $sixMonthChart[] = [
-                'label' => $m->format('m/Y'),
-                'date' => $startOfMonth->format('Y-m-d'),
-                'value' => (int) $rev,
-            ];
-        }
-
-        // Revenue Chart (Day / Week / Month based on range query)
-        $chartData = [];
-        if ($range === 'week') {
-            for ($i = 7; $i >= 0; $i--) {
-                $startOfWeek = Carbon::now('Asia/Ho_Chi_Minh')->subWeeks($i)->startOfWeek();
-                $endOfWeek = (clone $startOfWeek)->endOfWeek();
-                $rev = (clone $bookingsQuery)
-                    ->where('payment_status', 'paid')
-                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
-                    ->sum('final_amount') ?: 0;
-
-                $chartData[] = [
-                    'label' => 'Tuần ' . $startOfWeek->format('W/y'),
-                    'date' => $startOfWeek->format('Y-m-d'),
-                    'value' => (int) $rev,
-                ];
-            }
-        } elseif ($range === 'month') {
-            for ($i = 5; $i >= 0; $i--) {
-                $m = Carbon::now('Asia/Ho_Chi_Minh')->subMonths($i);
-                $startOfMonth = (clone $m)->startOfMonth();
-                $endOfMonth = (clone $m)->endOfMonth();
-                $rev = (clone $bookingsQuery)
-                    ->where('payment_status', 'paid')
-                    ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-                    ->sum('final_amount') ?: 0;
-
-                $chartData[] = [
-                    'label' => 'Tháng ' . $m->format('m/Y'),
-                    'date' => $startOfMonth->format('Y-m-d'),
-                    'value' => (int) $rev,
-                ];
-            }
-        } else {
-            for ($i = 6; $i >= 0; $i--) {
-                $d = Carbon::today('Asia/Ho_Chi_Minh')->subDays($i);
-                $dStr = $d->toDateString();
-                $rev = (clone $bookingsQuery)
-                    ->where('payment_status', 'paid')
-                    ->whereDate('created_at', $dStr)
-                    ->sum('final_amount') ?: 0;
-
-                $chartData[] = [
-                    'label' => $d->format('d/m'),
-                    'date' => $dStr,
-                    'value' => (int) $rev,
-                ];
-            }
-        }
-
-        // Operator Performance Ranking
-        $partners = Partner::where('status', 'active')->get();
-        $operatorPerformance = [];
-        foreach ($partners as $p) {
-            $pRevenue = TicketBooking::where('partner_id', $p->id)
-                ->where('payment_status', 'paid')
-                ->sum('final_amount') ?: 0;
-
-            $pTickets = TicketBooking::where('partner_id', $p->id)
-                ->where('booking_status', '!=', 'cancelled')
-                ->sum('seat_count') ?: 0;
-
-            $pTrips = BusTrip::where('partner_id', $p->id)->count();
-
-            $operatorPerformance[] = [
-                'id' => $p->id,
-                'name' => $p->name,
-                'slug' => $p->slug,
-                'trips_count' => $pTrips,
-                'tickets_sold' => $pTickets,
-                'revenue' => (int) $pRevenue,
-                'commission_rate' => $p->commission_rate,
-            ];
-        }
-
-        usort($operatorPerformance, fn($a, $b) => $b['revenue'] <=> $a['revenue']);
-
-        // Recent Bookings
-        $recentBookings = (clone $bookingsQuery)
-            ->with(['partner:id,name,slug', 'trip.route'])
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
-
-        return response()->json([
-            'status' => 1,
-            'data' => [
-                'total_revenue' => (int) $totalRevenue,
-                'today_revenue' => (int) $todayRevenue,
-                'total_tickets_sold' => (int) $totalTicketsSold,
-                'today_tickets_sold' => (int) $todayTicketsSold,
-                'today_trips_count' => (int) $todayTripsCount,
-                'occupancy_rate' => $occupancyRate,
-                'total_bookings_count' => (int) $totalBookingsCount,
-                'pending_bookings_count' => (int) $pendingBookingsCount,
-                'confirmed_bookings_count' => (int) $confirmedBookingsCount,
-                'completed_bookings_count' => (int) $completedBookingsCount,
-                'cancelled_bookings_count' => (int) $cancelledBookingsCount,
-                'vehicles_total' => (int) $vehiclesTotal,
-                'vehicles_active' => (int) $vehiclesActive,
-                'vehicles_maintenance' => (int) $vehiclesMaintenance,
-                'total_customers' => (int) $totalCustomers,
-                'new_customers_week' => (int) $newCustomersWeek,
-                'revenue_chart' => $chartData,
-                'six_month_chart' => $sixMonthChart,
-                'operator_performance' => $operatorPerformance,
-                'recent_bookings' => $recentBookings,
-            ],
-        ]);
+        return response()->json(['status' => 1, 'data' => [
+            'total_revenue' => (int) $ledger->sum('amount'),
+            'today_revenue' => $revenueBetween($today, $today),
+            'total_tickets_sold' => (int) $live->sum('seat_count'),
+            'today_tickets_sold' => (int) $soldToday->sum('seat_count'),
+            'today_trips_count' => $tripsToday->count(),
+            'occupancy_rate' => $capacityToday > 0 ? round($seatsToday / $capacityToday * 100, 1) : 0,
+            'total_bookings_count' => $bookings->count(),
+            'pending_bookings_count' => $live->whereIn('payment_status', ['unpaid', 'partially_paid'])->count(),
+            'confirmed_bookings_count' => $live->where('booking_status', 'confirmed')->count(),
+            'completed_bookings_count' => $live->where('booking_status', 'checked_in')->count(),
+            'cancelled_bookings_count' => $bookings->where('booking_status', 'cancelled')->count(),
+            'vehicles_total' => $vehicles->count(),
+            'vehicles_active' => $vehicles->where('maintenance', false)->count(),
+            'vehicles_maintenance' => $vehicles->where('maintenance', true)->count(),
+            'total_customers' => $customers->count(),
+            'new_customers_week' => $firstSeen->filter(fn ($d) => $d >= $weekAgo)->count(),
+            'revenue_chart' => $chart,
+            'six_month_chart' => $months,
+            'operator_performance' => $operators,
+            'recent_bookings' => $bookings->take(10)->values(),
+        ]]);
     }
 }

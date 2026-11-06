@@ -1,0 +1,215 @@
+/* Studio / Admin login — "boarding pass" over the DANAVA GO journey scene.
+   Same navy / orange / cream language as the homepage hero. */
+.dsl {
+  --dsl-navy: #102744;
+  --dsl-navy-2: #1b3a63;
+  --dsl-orange: #ed6d24;
+  --dsl-cream: #f7f4ec;
+  --dsl-muted: #5b6b80;
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 460px);
+  align-items: center;
+  gap: clamp(32px, 6vw, 96px);
+  padding: clamp(28px, 5vh, 64px) max(28px, calc((100vw - 1240px) / 2));
+  color: var(--dsl-navy);
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  overflow: hidden;
+  background: var(--dsl-cream);
+}
+.dsl-scene {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(100deg, rgba(247, 244, 236, .97) 0%, rgba(247, 244, 236, .86) 34%, rgba(247, 244, 236, .25) 62%, rgba(16, 39, 68, .28) 100%),
+    linear-gradient(180deg, rgba(247, 244, 236, .55) 0%, rgba(247, 244, 236, 0) 40%, rgba(16, 39, 68, .25) 100%),
+    url("/assets/images/scenes/journey_landscape.webp") center 62% / cover;
+  animation: dsl-drift 28s ease-in-out infinite alternate;
+}
+@keyframes dsl-drift { from { transform: scale(1.04) translateX(0); } to { transform: scale(1.04) translateX(-1.5%); } }
+
+/* Story column */
+.dsl-story { max-width: 600px; animation: dsl-rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+.dsl-logo { height: 46px; width: auto; display: block; margin-bottom: clamp(28px, 7vh, 64px); }
+.dsl-kicker {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(237, 109, 36, .1); border: 1px solid rgba(237, 109, 36, .28);
+  color: #c4541a; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+}
+.dsl-story h1 {
+  margin: 18px 0 16px;
+  font-family: 'UTM Eremitage', 'Montserrat', 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: clamp(32px, 3.15vw, 50px); font-weight: 800; line-height: 1.12; letter-spacing: -.035em;
+  color: var(--dsl-navy);
+  text-shadow: 0 0 24px rgba(247, 244, 236, .8);
+}
+.dsl-story h1 span { display: block; }
+.dsl-story h1 em { font-style: normal; color: var(--dsl-orange); }
+.dsl-story > p { margin: 0; max-width: 470px; font-size: 16px; line-height: 1.65; color: #34465e; }
+
+/* Animated operations route: a small bus rides the dashed line. */
+.dsl-route {
+  position: relative; list-style: none; margin: clamp(28px, 6vh, 52px) 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(4, 1fr); max-width: 520px;
+}
+.dsl-route::before {
+  content: ""; position: absolute; left: 21px; right: calc(25% - 21px); top: 21px; height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(16, 39, 68, .35) 0 8px, transparent 8px 15px);
+}
+.dsl-route li {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 9px;
+  font-size: 13px; font-weight: 600; color: var(--dsl-navy);
+  animation: dsl-rise .6s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(.25s + var(--i) * .08s);
+}
+.dsl-stop {
+  width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center;
+  background: #fff; color: var(--dsl-navy-2);
+  box-shadow: 0 6px 18px rgba(16, 39, 68, .12), inset 0 0 0 1px rgba(16, 39, 68, .08);
+}
+.dsl-route li:last-of-type .dsl-stop { background: var(--dsl-navy); color: #fff; }
+.dsl-route-bus {
+  position: absolute; top: 9px; left: 21px; width: 26px; height: 26px; margin-left: -13px;
+  display: grid; place-items: center; border-radius: 50%;
+  background: linear-gradient(135deg, #ffa64a, #f2730e); color: #fff;
+  box-shadow: 0 6px 14px rgba(242, 115, 14, .4);
+  animation: dsl-ride 6s cubic-bezier(.6, 0, .4, 1) infinite;
+}
+@keyframes dsl-ride {
+  0%, 8% { left: 21px; opacity: 0; }
+  12% { opacity: 1; }
+  30%, 36% { left: calc(25% + 21px); }
+  56%, 62% { left: calc(50% + 21px); }
+  84%, 92% { left: calc(75% + 21px); opacity: 1; }
+  100% { left: calc(75% + 21px); opacity: 0; }
+}
+
+/* Boarding-pass card */
+.dsl-pass {
+  position: relative;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 30px 70px rgba(16, 39, 68, .28), 0 2px 0 rgba(255, 255, 255, .6) inset;
+  animation: dsl-pass-in .8s cubic-bezier(.2, .8, .2, 1) .1s both;
+}
+.dsl-pass-head {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px;
+  padding: 22px 28px 20px;
+  border-radius: 24px 24px 0 0;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(237, 109, 36, .35), transparent 55%),
+    linear-gradient(135deg, var(--dsl-navy) 0%, var(--dsl-navy-2) 100%);
+  color: #fff;
+}
+.dsl-pass-head small { display: block; font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #a9bbd3; margin-bottom: 4px; }
+.dsl-pass-head strong { display: block; font-size: 22px; font-weight: 800; letter-spacing: .04em; }
+.dsl-pass-dest { text-align: right; }
+.dsl-pass-dest strong { font-size: 14px; letter-spacing: .06em; line-height: 1.6; }
+.dsl-pass-line {
+  position: relative; height: 26px; display: grid; place-items: center; color: #ffb36b;
+}
+.dsl-pass-line::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dotted rgba(255, 255, 255, .4);
+}
+.dsl-pass-line svg { position: relative; background: var(--dsl-navy-2); padding: 0 6px; box-sizing: content-box; }
+.dsl-perforation {
+  position: relative; height: 0; margin: 0 22px;
+  border-top: 2px dashed #dfe5ee;
+}
+.dsl-perforation::before, .dsl-perforation::after {
+  content: ""; position: absolute; top: -12px; width: 22px; height: 22px; border-radius: 50%;
+  background: #e9e3d6;
+  box-shadow: inset 0 3px 6px rgba(16, 39, 68, .28);
+}
+.dsl-perforation::before { left: -34px; }
+.dsl-perforation::after { right: -34px; }
+.dsl-pass-body { padding: 26px 28px 22px; }
+.dsl-pass-body h2 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.02em; color: var(--dsl-navy); }
+.dsl-pass-body > p { margin: 8px 0 22px; font-size: 14px; color: var(--dsl-muted); }
+.dsl form { display: grid; gap: 16px; }
+.ds-root .dsl form label { display: grid; gap: 7px; margin: 0; }
+.ds-root .dsl form label > span:first-child { margin: 0; font-size: 13px; font-weight: 600; color: #2a3b52; }
+.ds-root .dsl form input:not([type=checkbox]) { margin: 0; height: 50px; font-size: 15px !important; }
+.ds-root .dsl form input:hover { border-color: #c5cfdc !important; }
+.dsl form input {
+  width: 100%; box-sizing: border-box; height: 50px; padding: 0 16px;
+  border: 1.5px solid #dde3ec; border-radius: 14px; background: #f8fafc;
+  font: inherit; font-size: 15px; color: var(--dsl-navy);
+  transition: border-color .18s, box-shadow .18s, background .18s;
+}
+.dsl form input:hover { border-color: #c5cfdc; }
+.dsl form input:focus { outline: none; border-color: var(--dsl-orange); background: #fff; box-shadow: 0 0 0 4px rgba(237, 109, 36, .14); }
+.dsl-password { position: relative; display: block; }
+.dsl-password input { padding-right: 50px; }
+.ds-root .dsl .dsl-eye, .dsl-eye {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 38px; height: 38px; border: 0; border-radius: 10px; background: transparent;
+  color: #6b7a90; display: grid; place-items: center; cursor: pointer;
+}
+.dsl-eye:hover { background: #eef2f7; color: var(--dsl-navy); }
+.dsl-eye:focus-visible { outline: 2px solid var(--dsl-orange); outline-offset: 1px; }
+.dsl-error {
+  margin: 0; padding: 10px 14px; border-radius: 12px;
+  background: #fef2f2; border: 1px solid #fecaca; color: #b42318; font-size: 13px;
+}
+.ds-root .dsl .dsl-submit, .dsl-submit {
+  margin-top: 6px; height: 54px; width: 100%; border: 0; border-radius: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+  background: linear-gradient(135deg, #ffa64a 0%, #f2730e 100%); color: #fff;
+  font: inherit; font-size: 16px; font-weight: 700;
+  box-shadow: 0 10px 24px rgba(242, 115, 14, .35);
+  transition: transform .18s, box-shadow .18s, filter .18s;
+}
+.dsl-submit svg { transition: transform .2s; }
+.dsl-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(242, 115, 14, .45); }
+.dsl-submit:hover:not(:disabled) svg { transform: translateX(4px); }
+.dsl-submit:focus-visible { outline: 3px solid rgba(16, 39, 68, .45); outline-offset: 3px; }
+.ds-root .dsl .dsl-submit:disabled { cursor: progress; filter: saturate(.6); opacity: .8; }
+.dsl-pass-foot {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid #eef2f7; font-size: 12.5px;
+}
+.dsl-pass-foot a { color: var(--dsl-navy-2); font-weight: 600; text-decoration: none; }
+.dsl-pass-foot a:hover { color: var(--dsl-orange); }
+.dsl-pass-foot span { display: inline-flex; align-items: center; gap: 6px; color: #6b7a90; }
+.dsl-pass-foot span svg { color: #16a34a; }
+
+@keyframes dsl-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes dsl-pass-in { from { opacity: 0; transform: translateY(24px) rotate(1.5deg); } to { opacity: 1; transform: none; } }
+
+/* Tablet & phone: scene on top, pass below. */
+@media (max-width: 960px) {
+  .dsl { grid-template-columns: 1fr; gap: 28px; padding: 24px 20px 32px; align-content: start; }
+  .dsl-scene {
+    background:
+      linear-gradient(180deg, rgba(247, 244, 236, .94) 0%, rgba(247, 244, 236, .7) 40%, rgba(247, 244, 236, .15) 70%, rgba(16, 39, 68, .35) 100%),
+      url("/assets/images/scenes/journey_landscape.webp") center 70% / cover;
+  }
+  .dsl-story { max-width: none; }
+  .dsl-logo { height: 38px; margin-bottom: 22px; }
+  .dsl-story h1 { font-size: clamp(24px, 6.5vw, 40px); margin: 14px 0 10px; }
+  .dsl-story > p { font-size: 14.5px; }
+  .dsl-route { margin-top: 22px; }
+  .dsl-pass { width: 100%; max-width: 520px; justify-self: center; }
+}
+@media (max-width: 480px) {
+  .dsl-route li { font-size: 11.5px; }
+  .dsl-stop { width: 38px; height: 38px; border-radius: 12px; }
+  .dsl-route::before { left: 18px; right: calc(25% - 18px); top: 18px; }
+  .dsl-route-bus { top: 6px; }
+  .dsl-pass-head { padding: 18px 20px 16px; gap: 10px; }
+  .dsl-pass-head strong { font-size: 18px; }
+  .dsl-pass-dest strong { font-size: 12px; }
+  .dsl-perforation { margin: 0 16px; }
+  .dsl-perforation::before { left: -27px; }
+  .dsl-perforation::after { right: -27px; }
+  .dsl-pass-body { padding: 22px 20px 18px; }
+  .dsl-pass-body h2 { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dsl-scene, .dsl-story, .dsl-route li, .dsl-pass, .dsl-route-bus { animation: none; }
+  .dsl-route-bus { left: calc(75% + 21px); }
+}

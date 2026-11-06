@@ -209,8 +209,8 @@ async function choose(p, field, city) {
     await scene(departure).getByRole('button',{name:'Tìm chuyến',exact:true}).click();
     check('Valid search starts departure before leaving the homepage',await scene(departure).getAttribute('data-search-transition')==='departing' && (await departure.evaluate(()=>history.state?.danavaSearch?.step))!=='search');
     await departure.evaluate(()=>{const form=document.querySelector('#hero-search form');form.requestSubmit();form.requestSubmit()});
-    await departure.waitForFunction(()=>{const el=document.querySelector('[data-search-curtain]');return el && el.dataset.searchCurtain==='approaching' && new DOMMatrix(getComputedStyle(el.firstElementChild).transform).a>1.3});
-    check('Search vehicle grows in a viewport overlay before navigation', true);
+    await departure.waitForFunction(()=>{const el=document.querySelector('[data-search-curtain]');const bus=el?.querySelector('[data-search-vehicle]');if(!el||!bus||el.dataset.searchCurtain!=='approaching')return false;const m=new DOMMatrix(getComputedStyle(bus).transform);return m.e>40&&m.a<=1.05});
+    check('Search vehicle drives right toward the destination without upscaling', true);
     await departure.getByRole('heading',{name:/Chọn chuyến phù hợp/}).waitFor();
     check('Search keeps the address clean',new URL(departure.url()).search==='');
     check('Departure performs exactly one search navigation',await departure.evaluate(()=>window.searchWrites)===1);

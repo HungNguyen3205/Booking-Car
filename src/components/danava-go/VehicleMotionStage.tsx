@@ -147,7 +147,7 @@ export const VehicleMotionStage: React.FC<VehicleMotionStageProps> = ({ selected
   }, [selectedVehicle, introReady]);
 
   const settle = useCallback(() => setIntroDone(true), []);
-  return <svg className="journey-vehicle-layer" viewBox="0 0 1600 1000" preserveAspectRatio={mobile ? 'xMidYMax meet' : 'xMidYMid slice'} aria-hidden="true" data-testid="journey-vehicle-layer">
+  return <svg className="journey-vehicle-layer" viewBox="0 0 1600 1000" preserveAspectRatio={mobile ? 'xMidYMax slice' : 'xMidYMid slice'} aria-hidden="true" data-testid="journey-vehicle-layer">
     <g id="layer-vehicle" data-testid="layer-vehicle">
       <AnimatePresence mode="wait">
         {shown && !broken && <DrivingVehicle key={shown} category={shown} mobile={mobile}

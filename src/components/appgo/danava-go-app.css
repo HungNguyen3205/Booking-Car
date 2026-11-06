@@ -1,0 +1,3317 @@
+/* DANAVA Go Mobile App Styles (/appgo) */
+
+:root {
+  --go-primary: #2563eb;
+  --go-primary-dark: #1d4ed8;
+  --go-primary-light: #eff6ff;
+  --go-primary-glow: rgba(37, 99, 235, 0.18);
+  --go-navy-header: #0a192f;
+  --go-bg: #f4f7fb;
+  --go-card-bg: #ffffff;
+  --go-text-dark: #0f172a;
+  --go-text-muted: #64748b;
+  --go-text-light: #94a3b8;
+  --go-border: #e2e8f0;
+  --go-border-light: #f1f5f9;
+  --go-success: #16a34a;
+  --go-warning: #f59e0b;
+}
+
+.go-app-wrapper {
+  background-color: #0f172a;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .go-app-wrapper {
+    padding: 24px 0;
+  }
+}
+
+.go-app-container {
+  width: 100%;
+  max-width: 440px;
+  min-height: 100vh;
+  background-color: var(--go-bg);
+  color: var(--go-text-dark);
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  padding-bottom: 74px; /* Space for fixed bottom bar */
+}
+
+@media (min-width: 640px) {
+  .go-app-container {
+    border-radius: 36px;
+    min-height: 890px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* iOS Status Bar */
+.go-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.go-status-bar.text-white {
+  color: #ffffff;
+}
+
+.go-status-bar.text-dark {
+  color: #0f172a;
+}
+
+.go-logo-text {
+  font-size: 23px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #ffffff;
+}
+
+.go-logo-text .go-brand-go {
+  color: #38bdf8;
+  font-style: italic;
+  position: relative;
+}
+
+.go-logo-text .go-brand-go::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: #38bdf8;
+  border-radius: 999px;
+}
+
+/* Hero Header on Home - Redesigned Native Layered UI */
+.go-home-hero {
+  position: relative;
+  width: 100%;
+  min-height: 295px;
+  overflow: hidden;
+  background-color: #0c1a2f;
+  padding: 12px 16px 36px;
+  box-sizing: border-box;
+}
+
+.go-home-hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% center;
+  z-index: 1;
+}
+
+.go-home-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    linear-gradient(90deg, rgba(8, 22, 45, 0.88) 0%, rgba(8, 22, 45, 0.55) 52%, rgba(8, 22, 45, 0.1) 100%),
+    linear-gradient(180deg, rgba(8, 22, 45, 0.7) 0%, rgba(8, 22, 45, 0.15) 50%, rgba(8, 22, 45, 0.8) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Status Bar on Home Hero */
+.go-home-status-bar {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 10px;
+  color: #ffffff;
+}
+
+.go-status-time {
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.go-status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.go-cellular-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 10px;
+}
+
+.go-cellular-bars .bar {
+  width: 2.5px;
+  background: #ffffff;
+  border-radius: 0.5px;
+}
+
+.go-cellular-bars .b1 { height: 3.5px; }
+.go-cellular-bars .b2 { height: 5.5px; }
+.go-cellular-bars .b3 { height: 7.5px; }
+.go-cellular-bars .b4 { height: 10px; }
+
+.go-battery-pill {
+  width: 20px;
+  height: 10.5px;
+  border: 1.5px solid #ffffff;
+  border-radius: 3px;
+  padding: 1px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.go-battery-pill::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 2.5px;
+  width: 1.5px;
+  height: 4px;
+  background: #ffffff;
+  border-radius: 0 1px 1px 0;
+}
+
+.go-battery-level {
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 1px;
+}
+
+/* Header Top Bar */
+.go-home-header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.go-home-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.go-brand-danava {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.go-brand-go {
+  font-size: 21px;
+  font-weight: 800;
+  font-style: italic;
+  color: #38bdf8;
+  position: relative;
+}
+
+.go-brand-go::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: #38bdf8;
+  border-radius: 999px;
+}
+
+.go-home-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.go-header-btn-bell {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.go-bell-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  border: 1.5px solid #0f172a;
+}
+
+.go-header-avatar-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.go-header-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Heading & Subtitle */
+.go-home-heading-wrap {
+  position: relative;
+  z-index: 3;
+  margin-top: 14px;
+}
+
+.go-home-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.go-home-subtitle {
+  margin: 5px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.35;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* 3 Badges */
+.go-home-badges {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding-bottom: 8px;
+}
+
+.go-hero-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffff;
+}
+
+.go-badge-icon {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.go-badge-text {
+  font-size: 10.5px;
+  line-height: 1.25;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Floating Search Card */
+.go-search-card {
+  position: relative;
+  z-index: 20;
+  margin: -24px 16px 0;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 16px 18px 20px;
+  box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.1), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(241, 245, 249, 0.9);
+}
+
+/* Trip Type Segmented Toggle (Một chiều / Khứ hồi) - Zalo Mini App Style */
+.go-trip-type-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: #f1f5f9;
+  border-radius: 16px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+
+.go-trip-type-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 0;
+  border-radius: 12px;
+  border: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #475569;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.go-trip-type-btn.active {
+  background-color: var(--go-primary);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28);
+}
+
+.go-location-field {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 0;
+  cursor: pointer;
+  width: 100%;
+}
+
+.go-field-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #eff6ff;
+  color: var(--go-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.go-field-text {
+  flex: 1;
+  text-align: left;
+}
+
+.go-field-label {
+  font-size: 11.5px;
+  color: var(--go-text-muted);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.go-field-value {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--go-text-dark);
+  line-height: 1.25;
+}
+
+.go-swap-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.go-swap-btn:hover {
+  background-color: #e2e8f0;
+  transform: rotate(180deg);
+}
+
+.go-search-divider {
+  height: 1px;
+  background-color: #f1f5f9;
+  margin: 6px 0 6px 56px;
+}
+
+.go-date-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.go-chip-active {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+}
+
+.go-chip-inactive {
+  background-color: #f1f5f9;
+  color: #475569;
+  font-weight: 500;
+  font-size: 12px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+}
+
+.go-btn-primary {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 20px;
+  background-color: var(--go-primary);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 6px 18px -3px rgba(37, 99, 235, 0.35);
+  transition: all 0.2s ease;
+}
+
+.go-btn-primary:hover {
+  background-color: var(--go-primary-dark);
+}
+
+/* Sections on Home */
+.go-section {
+  padding: 22px 16px 4px;
+}
+
+.go-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.go-section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--go-text-dark);
+  letter-spacing: -0.02em;
+}
+
+.go-section-link {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--go-primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+}
+
+/* Destination Cards */
+.go-dest-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.go-dest-card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px -3px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  background-color: #cbd5e1;
+  height: 104px;
+}
+
+.go-dest-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.go-dest-card:hover img {
+  transform: scale(1.03);
+}
+
+.go-dest-overlay {
+  position: absolute;
+  inset: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.62) 0%, rgba(15, 23, 42, 0.15) 50%, rgba(15, 23, 42, 0.45) 100%);
+  color: #ffffff;
+}
+
+.go-dest-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.go-dest-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.go-dest-desc {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.go-dest-arrow {
+  align-self: flex-end;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Promo Banner */
+.go-promo-banner {
+  margin: 14px 16px 20px;
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  border: 1px solid rgba(191, 219, 254, 0.6);
+  border-radius: 20px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 16px -4px rgba(37, 99, 235, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.go-promo-ticket-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.go-promo-ticket-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: var(--go-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28);
+}
+
+.go-promo-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+
+.go-promo-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 2px;
+}
+
+.go-promo-highlight {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--go-text-dark);
+  line-height: 1.25;
+}
+
+.go-promo-sub {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+  margin-bottom: 8px;
+}
+
+.go-promo-btn {
+  background: #ffffff;
+  color: var(--go-primary);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 0;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.go-promo-art {
+  width: 90px;
+  height: 90px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.go-promo-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ================= SCREEN 2: TICKETS (VÉ CỦA TÔI) ================= */
+.go-tickets-header {
+  background: linear-gradient(180deg, #09192f 0%, #0d2242 100%);
+  color: #ffffff;
+  padding: 44px 20px 22px;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  position: relative;
+}
+
+.go-tickets-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 18px 0 0;
+  letter-spacing: -0.02em;
+}
+
+.go-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 4px;
+}
+
+.go-filter-pill-active {
+  background-color: var(--go-primary);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 7px 18px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+
+.go-filter-pill-inactive {
+  background-color: #ffffff;
+  color: #475569;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 18px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+}
+
+/* Ticket Card */
+.go-ticket-card {
+  margin: 12px 16px 18px;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.go-ticket-banner-wrap {
+  position: relative;
+  width: 100%;
+  height: 130px;
+  overflow: hidden;
+}
+
+.go-ticket-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 65%;
+  display: block;
+}
+
+.go-ticket-banner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(8, 22, 45, 0.75) 0%, rgba(8, 22, 45, 0.2) 55%, rgba(8, 22, 45, 0.6) 100%);
+  color: #ffffff;
+}
+
+.go-ticket-brand-logo {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.go-ticket-brand-logo em {
+  font-style: italic;
+  color: #38bdf8;
+  font-weight: 800;
+}
+
+.go-ticket-brand-slogan {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+  margin-top: 2px;
+}
+
+.go-ticket-paid-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: #16a34a;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.4);
+}
+
+.go-ticket-body {
+  padding: 18px 16px 16px;
+}
+
+.go-ticket-route {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.go-ticket-origin,
+.go-ticket-dest {
+  flex: 1;
+}
+
+.go-ticket-origin h4,
+.go-ticket-dest h4 {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--go-text-dark);
+  margin: 0 0 3px;
+  line-height: 1.2;
+}
+
+.go-ticket-origin p,
+.go-ticket-dest p {
+  font-size: 11px;
+  color: var(--go-text-muted);
+  margin: 0;
+}
+
+.go-ticket-dest {
+  text-align: right;
+}
+
+.go-route-arrow-wrap {
+  width: 36px;
+  display: flex;
+  justify-content: center;
+  color: var(--go-primary);
+}
+
+.go-ticket-divider {
+  height: 1px;
+  background-color: #f1f5f9;
+  margin: 12px 0;
+}
+
+.go-ticket-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.go-info-cell {
+  text-align: left;
+}
+
+.go-info-cell.align-center {
+  text-align: center;
+}
+
+.go-info-cell.align-right {
+  text-align: right;
+}
+
+.go-cell-label {
+  font-size: 10px;
+  color: var(--go-text-muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 3px;
+}
+
+.go-info-cell.align-right .go-cell-label {
+  justify-content: flex-end;
+}
+
+.go-cell-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--go-text-dark);
+  line-height: 1.25;
+}
+
+.go-cell-val.highlight-blue {
+  color: var(--go-primary);
+  font-size: 16px;
+}
+
+.go-cell-sub {
+  font-size: 10px;
+  color: var(--go-text-muted);
+  margin-top: 1px;
+}
+
+.go-btn-ticket-primary {
+  width: 100%;
+  padding: 12px 18px;
+  background-color: var(--go-primary);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 14px;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.go-ticket-sub-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.go-btn-ticket-sub {
+  padding: 10px 14px;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.go-btn-ticket-sub:hover {
+  background-color: #f1f5f9;
+}
+
+.go-alert-notice {
+  margin-top: 14px;
+  background-color: #eff6ff;
+  border: 1px solid rgba(191, 219, 254, 0.7);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.go-alert-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1e40af;
+  margin: 0;
+}
+
+.go-alert-sub {
+  font-size: 10.5px;
+  color: #3b82f6;
+  margin: 1px 0 0;
+}
+
+/* Rebook Section */
+.go-rebook-card {
+  margin: 10px 16px 20px;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+}
+
+.go-rebook-thumb {
+  width: 64px;
+  height: 54px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: #e2e8f0;
+}
+
+.go-rebook-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.go-rebook-info {
+  flex: 1;
+}
+
+.go-rebook-route {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--go-text-dark);
+  margin: 0 0 2px;
+}
+
+.go-rebook-date {
+  font-size: 11px;
+  color: var(--go-text-muted);
+  margin: 0 0 2px;
+}
+
+.go-rebook-type {
+  font-size: 11px;
+  color: var(--go-text-muted);
+  margin: 0;
+}
+
+.go-btn-rebook {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--go-primary);
+  background: #ffffff;
+  color: var(--go-primary);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Fixed Bottom Navigation Bar */
+.go-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  height: 68px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 50;
+  padding: 0 10px 4px;
+  box-shadow: 0 -4px 18px rgba(15, 23, 42, 0.06);
+}
+
+@media (min-width: 640px) {
+  .go-bottom-bar {
+    border-bottom-left-radius: 36px;
+    border-bottom-right-radius: 36px;
+  }
+}
+
+.go-tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+  padding: 6px 0;
+}
+
+.go-tab-item.active {
+  color: var(--go-primary);
+}
+
+.go-tab-label {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Modal and Sheets */
+.go-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.go-bottom-sheet {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  padding: 20px 20px 32px;
+  box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.25s ease-out;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.go-sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  margin: 0 auto 16px;
+}
+
+/* =========================================================================
+   SCREEN 3: DANH SÁCH CHUYẾN XE (TRIPS LIST - Exact match to user mockup)
+   ========================================================================= */
+.go-trips-screen {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  padding-bottom: 30px;
+}
+
+.go-trips-header-box {
+  background-color: #ffffff;
+  padding: 44px 16px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.go-trips-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 10px;
+}
+
+.go-trips-back-btn {
+  background: transparent;
+  border: 0;
+  color: #0f172a;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.go-trips-back-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.go-trips-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.go-trips-logo-danava {
+  font-size: 21px;
+  font-weight: 800;
+  color: #1e3a8a;
+  letter-spacing: -0.02em;
+}
+
+.go-trips-logo-go {
+  font-size: 22px;
+  font-weight: 800;
+  font-style: italic;
+  color: #2563eb;
+  position: relative;
+}
+
+.go-trips-logo-go::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: #2563eb;
+  border-radius: 999px;
+}
+
+/* Route & Passengers Summary */
+.go-trips-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 12px;
+}
+
+.go-trips-route-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.go-trips-route-sub {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  margin: 3px 0 0;
+}
+
+.go-trips-edit-btn {
+  background: transparent;
+  border: 0;
+  color: #2563eb;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.go-trips-edit-btn:hover {
+  background-color: #eff6ff;
+}
+
+/* Date Strip 3-Column Grid */
+.go-trips-dates-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.go-trips-date-pill {
+  padding: 9px 4px 8px;
+  text-align: center;
+  border-radius: 14px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.go-trips-date-pill.active {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32);
+}
+
+.go-trips-date-pill .pill-day {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.go-trips-date-pill.active .pill-day {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.go-trips-date-pill .pill-date {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 2px 0 1px;
+}
+
+.go-trips-date-pill.active .pill-date {
+  color: #ffffff;
+}
+
+.go-trips-date-pill .pill-price {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.go-trips-date-pill.active .pill-price {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* Filter Chips Bar */
+.go-trips-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.go-trips-filters-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.go-trips-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+}
+
+.go-trips-filter-chip:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.go-trips-filter-chip.filter-btn {
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+/* Section Header */
+.go-trips-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px 10px;
+}
+
+.go-trips-section-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.015em;
+}
+
+.go-trips-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+/* Trip Card */
+.go-trip-card {
+  margin: 0 16px 14px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.06);
+  padding: 14px 14px 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.go-trip-top-section {
+  display: flex;
+  gap: 10px;
+}
+
+.go-trip-bus-thumb {
+  width: 104px;
+  height: 86px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: #e2e8f0;
+}
+
+.go-trip-bus-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.go-trip-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.go-trip-operator-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.go-trip-operator-name {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.go-trip-bus-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #475569;
+  background-color: #f1f5f9;
+  padding: 2.5px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.go-trip-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: #f59e0b;
+  margin: 1px 0 6px;
+}
+
+.go-trip-rating-score {
+  font-weight: 700;
+}
+
+.go-trip-review-count {
+  color: #64748b;
+  font-weight: 400;
+}
+
+/* Timeline Layout */
+.go-trip-timeline-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.go-timeline-station {
+  display: flex;
+  flex-direction: column;
+}
+
+.go-timeline-time {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  display: flex;
+  align-items: baseline;
+}
+
+.go-timeline-city {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+  margin-top: 2px;
+}
+
+.go-timeline-hub {
+  font-size: 10px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.go-timeline-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.go-timeline-arrow {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.go-timeline-dur {
+  font-size: 10px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.go-badge-next-day {
+  color: #2563eb;
+  font-size: 10.5px;
+  font-weight: 700;
+  margin-left: 3px;
+}
+
+/* Amenities & Policy */
+.go-trip-amenities-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 8px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 10px;
+}
+
+.go-trip-amenities-list {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.go-trip-amenity-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.go-trip-policy-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #2563eb;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Price & Button Action */
+.go-trip-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid #f8fafc;
+}
+
+.go-trip-price-val {
+  font-size: 19px;
+  font-weight: 800;
+  color: #2563eb;
+  letter-spacing: -0.02em;
+}
+
+.go-trip-price-unit {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.go-trip-choose-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 8.5px 20px;
+  border-radius: 12px;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.go-trip-choose-btn:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.38);
+}
+
+/* =========================================================================
+   SCREEN 5: THANH TOÁN (PAYMENT SCREEN - Exact match to user mockup)
+   ========================================================================= */
+.go-payment-screen {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  padding-bottom: 96px;
+}
+
+.go-payment-header-box {
+  background-color: #ffffff;
+  padding: 44px 16px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.go-payment-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+}
+
+.go-payment-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.go-payment-back-btn {
+  background: transparent;
+  border: 0;
+  color: #0f172a;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.go-payment-back-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.go-payment-page-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* Stepper Progress 1 - 2 - 3 */
+.go-payment-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 0 2px;
+}
+
+.go-step-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.go-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.go-step-item.active .go-step-num {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.go-step-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.go-step-item.active .go-step-label {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.go-step-line {
+  width: 32px;
+  height: 1px;
+  background-color: #cbd5e1;
+}
+
+/* Countdown Notice Banner */
+.go-payment-countdown-banner {
+  margin: 14px 16px 12px;
+  background-color: #eff6ff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(191, 219, 254, 0.7);
+}
+
+.go-countdown-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1e3a8a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.go-countdown-time {
+  color: #2563eb;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.go-countdown-right {
+  font-size: 11px;
+  color: #475569;
+  text-align: right;
+  max-width: 170px;
+  line-height: 1.35;
+}
+
+/* Trip Summary Box */
+.go-payment-trip-card {
+  margin: 0 16px 14px;
+  background-color: #ffffff;
+  border-radius: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.go-payment-trip-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.go-payment-bus-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #e0f2fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.go-payment-trip-route {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.go-payment-trip-schedule {
+  font-size: 12px;
+  color: #64748b;
+  margin: 3px 0 2px;
+}
+
+.go-payment-trip-seat {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* Form Container Card */
+.go-payment-card {
+  margin: 0 16px 14px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  padding: 16px;
+}
+
+.go-payment-card-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 14px;
+}
+
+.go-form-group {
+  margin-bottom: 12px;
+}
+
+.go-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.go-form-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.go-form-input {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.go-form-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.go-form-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* Payment Method Options */
+.go-payment-method-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.go-payment-method-row:last-child {
+  margin-bottom: 0;
+}
+
+.go-payment-method-row.selected {
+  border: 1.5px solid #2563eb;
+  background-color: #f0f7ff;
+}
+
+.go-method-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.go-radio-outer {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.go-payment-method-row.selected .go-radio-outer {
+  border-color: #2563eb;
+}
+
+.go-radio-inner {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #2563eb;
+}
+
+.go-method-icon-wrap {
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e3a8a;
+}
+
+.go-method-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.go-method-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.go-method-desc {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+button.go-payment-method-row {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.go-payment-method-row:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+
+.go-method-note {
+  margin: 4px 2px 14px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.go-method-arrow {
+  color: #94a3b8;
+}
+
+/* Terms Checkbox */
+.go-payment-terms {
+  padding: 4px 18px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.go-terms-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid #94a3b8;
+  cursor: pointer;
+  margin-top: 2px;
+  accent-color: #2563eb;
+}
+
+.go-terms-label {
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.go-terms-link {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Fixed Bottom Floating Bar */
+.go-payment-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  background-color: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  padding: 12px 16px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 60;
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+}
+
+.go-total-lbl {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.go-total-val {
+  font-size: 21px;
+  font-weight: 800;
+  color: #2563eb;
+  letter-spacing: -0.02em;
+}
+
+.go-pay-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 700;
+  padding: 12px 28px;
+  border-radius: 14px;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.go-pay-submit-btn:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
+}
+
+/* ==========================================================================
+   SCREEN 4: CHỌN CHỖ (SEAT SELECTION - Exact match to user mockup)
+   ========================================================================== */
+.go-seats-screen {
+  background-color: #f8fafc;
+  min-height: 100%;
+  padding-bottom: 140px;
+  box-sizing: border-box;
+}
+
+.go-seats-header-box {
+  background-color: #ffffff;
+  padding: 44px 16px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.go-seats-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.go-seats-back-btn {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: #0f172a;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.15s;
+}
+
+.go-seats-back-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.go-seats-title-wrap {
+  text-align: center;
+  flex: 1;
+}
+
+.go-seats-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.go-seats-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+/* Stepper: (✓) Chuyến ── (2) Chỗ ── (3) Thanh toán */
+.go-seats-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.go-seats-step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.go-seats-step-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.go-seats-step-circle.done {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.go-seats-step-circle.active {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.go-seats-step-circle.pending {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+}
+
+.go-seats-step-line {
+  width: 44px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.go-seats-step-line.done {
+  background-color: #2563eb;
+}
+
+.go-seats-step-line.pending {
+  background-color: #e2e8f0;
+}
+
+.go-seats-step-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.go-seats-step-label.pending {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Floor Toggle: Tầng dưới | Tầng trên */
+.go-seats-floor-wrap {
+  padding: 14px 16px 0;
+}
+
+.go-seats-floor-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: #f1f5f9;
+  border-radius: 24px;
+  padding: 3px;
+}
+
+.go-seats-floor-btn {
+  border: 0;
+  border-radius: 20px;
+  padding: 9px 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: transparent;
+  color: #0f172a;
+}
+
+.go-seats-floor-btn.active {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* Legend: Trống / Đã đặt / Đang chọn */
+.go-seats-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 14px 16px 10px;
+}
+
+.go-seats-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.go-seats-legend-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.go-seats-legend-swatch.empty {
+  border: 1.5px solid #cbd5e1;
+  background-color: #ffffff;
+}
+
+.go-seats-legend-swatch.booked {
+  background-color: #94a3b8;
+}
+
+.go-seats-legend-swatch.selected {
+  background-color: #2563eb;
+}
+
+/* ==========================================================================
+   VIP SLEEPER BUS OVERHEAD CHASSIS (CENTRAL STAGE)
+   ========================================================================== */
+.go-bus-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin: 6px 16px 16px;
+}
+
+.go-bus-shell {
+  width: 100%;
+  max-width: 334px;
+  background: linear-gradient(180deg, #f8fafc 0%, #edf2f7 50%, #e2e8f0 100%);
+  border-radius: 52px 52px 34px 34px;
+  border: 2px solid #cbd5e1;
+  box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.12),
+              0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+  position: relative;
+  overflow: visible;
+  padding-bottom: 10px;
+}
+
+/* Side Aerodynamic Mirrors */
+.go-bus-mirror-left,
+.go-bus-mirror-right {
+  position: absolute;
+  top: 46px;
+  width: 12px;
+  height: 34px;
+  background: linear-gradient(180deg, #334155, #0f172a);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+}
+
+.go-bus-mirror-left {
+  left: -8px;
+  transform: rotate(-8deg);
+  border-left: 2px solid #64748b;
+}
+
+.go-bus-mirror-right {
+  right: -8px;
+  transform: rotate(8deg);
+  border-right: 2px solid #64748b;
+}
+
+/* Windshield Glass & Front Cockpit */
+.go-bus-windshield {
+  height: 72px;
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 20%, #0f172a 90%);
+  border-radius: 48px 48px 0 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 14px 8px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3) inset;
+}
+
+/* Glass Reflection Highlights */
+.go-bus-windshield::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 15%;
+  width: 70%;
+  height: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 0 0 40px 40px;
+  pointer-events: none;
+}
+
+/* Cockpit: Driver seat & "TÀI XẾ" console */
+.go-bus-cockpit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(6px);
+  border-radius: 12px;
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+  z-index: 2;
+}
+
+.go-cockpit-driver-seat {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.go-steering-wheel {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2.5px solid #94a3b8;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.go-steering-wheel::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background-color: #64748b;
+  border-radius: 50%;
+}
+
+.go-cockpit-seat-cushion {
+  width: 22px;
+  height: 18px;
+  background: linear-gradient(180deg, #475569, #334155);
+  border-radius: 6px;
+  border: 1px solid #64748b;
+}
+
+.go-cockpit-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  text-transform: uppercase;
+  background: #1e293b;
+  padding: 4px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Bus Cabin Interior Floor */
+.go-bus-interior {
+  position: relative;
+  background: #0f172a;
+  margin: 0 8px;
+  padding: 8px 6px 10px;
+  border-radius: 0 0 26px 26px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25) inset;
+}
+
+/* Center Aisle Runner Carpet */
+.go-bus-aisle-runner {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  background: linear-gradient(180deg, #1e293b, #0f172a);
+  border-left: 1px dashed rgba(255, 255, 255, 0.08);
+  border-right: 1px dashed rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Cabins Grid: 2 columns */
+.go-cabins-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 22px;
+  row-gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Luxury Capsule Pod */
+.go-cabin-pod {
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  cursor: pointer;
+  padding: 0 6px;
+  box-sizing: border-box;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+/* Left pods: Pillow on Left (window), Label in Center, LED on Right (aisle) */
+.go-cabin-pod.left-side {
+  flex-direction: row;
+}
+
+/* Right pods: LED on Left (aisle), Label in Center, Pillow on Right (window) */
+.go-cabin-pod.right-side {
+  flex-direction: row;
+}
+
+/* Pillow / Headrest */
+.go-cabin-pillow {
+  width: 16px;
+  height: 34px;
+  border-radius: 5px;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Code Label */
+.go-cabin-code {
+  flex: 1;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+/* Ambient Blue LED Entry */
+.go-cabin-led {
+  width: 3px;
+  height: 22px;
+  border-radius: 2px;
+  background-color: #38bdf8;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+  flex-shrink: 0;
+}
+
+/* Pod State: Available */
+.go-cabin-pod.available:hover {
+  transform: translateY(-1px);
+  border-color: #93c5fd;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15);
+}
+
+/* Pod State: Booked (A02, A06, etc.) */
+.go-cabin-pod.booked {
+  background-color: #94a3b8;
+  border-color: #64748b;
+  cursor: not-allowed;
+}
+
+.go-cabin-pod.booked .go-cabin-pillow {
+  background-color: #64748b;
+  border-color: #475569;
+}
+
+.go-cabin-pod.booked .go-cabin-code {
+  color: #ffffff;
+}
+
+.go-cabin-pod.booked .go-cabin-led {
+  background-color: #64748b;
+  box-shadow: none;
+}
+
+/* Pod State: Selected (A03) */
+.go-cabin-pod.selected {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: #1d4ed8;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
+  transform: scale(1.02);
+}
+
+.go-cabin-pod.selected .go-cabin-pillow {
+  background-color: #1e40af;
+  border-color: #1d4ed8;
+}
+
+.go-cabin-pod.selected .go-cabin-code {
+  color: #ffffff;
+}
+
+.go-cabin-pod.selected .go-cabin-led {
+  background-color: #93c5fd;
+  box-shadow: 0 0 8px rgba(147, 197, 253, 0.9);
+}
+
+/* ==========================================================================
+   PICKUP & DROPOFF CARDS
+   ========================================================================== */
+.go-station-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 16px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.go-station-card:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.go-station-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.go-station-icon-wrap.blue {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.go-station-icon-wrap.slate {
+  background-color: #f1f5f9;
+  color: #334155;
+}
+
+.go-station-text {
+  flex: 1;
+}
+
+.go-station-label {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #64748b;
+  display: block;
+}
+
+.go-station-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+  display: block;
+  margin-top: 1px;
+}
+
+.go-station-arrow {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   BOTTOM FLOATING ACTION BAR FOR SEAT SELECTION
+   ========================================================================== */
+.go-seats-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  background-color: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  padding: 14px 16px 20px;
+  z-index: 60;
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+}
+
+.go-seats-bottom-row-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.go-seats-bottom-meta {
+  flex: 1;
+}
+
+.go-seats-bottom-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.go-seats-bottom-title .code {
+  color: #0f172a;
+}
+
+.go-seats-bottom-route {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.go-seats-bottom-time {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+.go-seats-bottom-price {
+  font-size: 22px;
+  font-weight: 900;
+  color: #2563eb;
+  letter-spacing: -0.02em;
+  text-align: right;
+}
+
+.go-seats-submit-btn {
+  width: 100%;
+  height: 48px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-size: 15.5px;
+  font-weight: 700;
+  border-radius: 14px;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.go-seats-submit-btn:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+}
+
+/* ==========================================================================
+   SCREEN 6: VÉ ĐIỆN TỬ / ĐẶT VÉ THÀNH CÔNG (E-TICKET - Exact match to user mockup)
+   ========================================================================== */
+.go-eticket-screen {
+  background-color: #f8fafc;
+  min-height: 100%;
+  padding-bottom: 110px;
+  box-sizing: border-box;
+}
+
+.go-eticket-header-box {
+  background-color: #0a192f;
+  padding: 44px 16px 24px;
+  color: #ffffff;
+}
+
+.go-eticket-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.go-eticket-back-btn,
+.go-eticket-share-btn {
+  background: none;
+  border: 0;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.15s;
+}
+
+.go-eticket-back-btn:hover,
+.go-eticket-share-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.go-eticket-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Success Banner */
+.go-eticket-success-card {
+  background-color: #ffffff;
+  margin: -12px 16px 14px;
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+  border: 1px solid #f1f5f9;
+  position: relative;
+  z-index: 10;
+}
+
+.go-eticket-success-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
+}
+
+.go-eticket-success-text {
+  flex: 1;
+}
+
+.go-eticket-success-title {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: #15803d;
+  margin: 0;
+}
+
+.go-eticket-success-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+/* The Boarding Pass / Perforated Ticket Card */
+.go-ticket-pass {
+  background-color: #ffffff;
+  border-radius: 20px;
+  margin: 0 16px 14px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.go-ticket-banner {
+  height: 92px;
+  background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.go-ticket-banner-brand {
+  position: relative;
+  z-index: 2;
+}
+
+.go-ticket-banner-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.go-ticket-banner-logo .danava {
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.go-ticket-banner-logo .go {
+  font-size: 20px;
+  font-weight: 900;
+  color: #38bdf8;
+  font-style: italic;
+}
+
+.go-ticket-banner-slogan {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #93c5fd;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.go-ticket-bus-img {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 55%;
+  object-fit: cover;
+  mask-image: linear-gradient(to right, transparent 0%, black 35%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 35%);
+}
+
+/* Route Row: Đà Nẵng 22:00 ──🚌──> Đà Lạt 10:00 */
+.go-ticket-route-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 18px 16px;
+}
+
+.go-ticket-station {
+  display: flex;
+  flex-direction: column;
+}
+
+.go-ticket-station.right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.go-ticket-city {
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.go-ticket-time {
+  font-size: 26px;
+  font-weight: 900;
+  color: #2563eb;
+  letter-spacing: -0.02em;
+  margin: 2px 0;
+}
+
+.go-ticket-date {
+  font-size: 12.5px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.go-ticket-plus-day {
+  background-color: #e0f2fe;
+  color: #0284c7;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.go-ticket-bus-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  padding: 0 12px;
+}
+
+.go-ticket-arrow-line {
+  position: relative;
+  width: 100%;
+  height: 1.5px;
+  background-color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.go-ticket-arrow-line::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: -3px;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid #94a3b8;
+}
+
+.go-ticket-bus-bubble {
+  background-color: #ffffff;
+  padding: 0 5px;
+  color: #0f172a;
+}
+
+/* Details Grid: 2 columns x 3 rows */
+.go-ticket-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+  padding: 16px 18px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.go-ticket-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.go-ticket-detail-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.go-ticket-detail-icon.green {
+  background-color: #ecfdf5;
+  color: #16a34a;
+}
+
+.go-ticket-detail-lbl {
+  font-size: 11px;
+  color: #64748b;
+  display: block;
+}
+
+.go-ticket-detail-val {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #0f172a;
+  display: block;
+  margin-top: 1px;
+}
+
+.go-ticket-detail-val.blue {
+  color: #2563eb;
+}
+
+.go-ticket-detail-val.green {
+  color: #16a34a;
+}
+
+/* Tear Line / Perforated notches */
+.go-ticket-tear-line {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.go-ticket-tear-left,
+.go-ticket-tear-right {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #f8fafc;
+  z-index: 2;
+  border: 1px solid #e2e8f0;
+}
+
+.go-ticket-tear-left {
+  left: -12px;
+}
+
+.go-ticket-tear-right {
+  right: -12px;
+}
+
+.go-ticket-dashed {
+  width: 100%;
+  border-top: 1.5px dashed #cbd5e1;
+}
+
+/* QR Code Section */
+.go-ticket-qr-box {
+  padding: 18px 18px 22px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.go-ticket-qr-frame {
+  padding: 10px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  display: inline-block;
+}
+
+.go-ticket-qr-caption {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-top: 8px;
+}
+
+/* Pickup Station Card */
+.go-eticket-pickup-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  margin: 0 16px 14px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.go-eticket-station-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.go-eticket-pin-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.go-eticket-station-info {
+  flex: 1;
+}
+
+.go-eticket-station-lbl {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #64748b;
+  display: block;
+}
+
+.go-eticket-station-name {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0f172a;
+  display: block;
+  margin-top: 1px;
+}
+
+.go-eticket-station-addr {
+  font-size: 12px;
+  color: #64748b;
+  margin: 3px 0 0;
+}
+
+.go-eticket-station-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: #475569;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #f1f5f9;
+}
+
+/* Two Actions Row */
+.go-eticket-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.go-eticket-action-btn {
+  height: 42px;
+  border-radius: 12px;
+  border: 0;
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.go-eticket-action-btn:hover {
+  background-color: #dbeafe;
+}
+
+/* Bottom Floating Bar */
+.go-eticket-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  background-color: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  padding: 12px 16px 18px;
+  z-index: 60;
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+}
+
+.go-eticket-download-btn {
+  width: 100%;
+  height: 48px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-size: 15.5px;
+  font-weight: 700;
+  border-radius: 14px;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.go-eticket-download-btn:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+}
+
+
+/* Real operator/station names can be longer than the mock data. Items keep their
+   natural width (same look as the original) and only shrink with an ellipsis when
+   the card would otherwise overflow. */
+/* The original row already spills ~5px into the card padding; allow that much
+   before anything shrinks, so standard names render exactly as designed. */
+.go-trip-operator-row {
+  margin-right: -6px;
+}
+.go-trip-operator-name,
+.go-trip-timeline-row .go-timeline-station {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.go-trip-bus-badge {
+  flex: 0 0 auto;
+  max-width: 50%;
+}
+.go-trip-operator-name,
+.go-trip-bus-badge,
+.go-timeline-hub,
+.go-timeline-city {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===================================================================
+   Real-phone fit. Below 640px the app fills the device (no mock frame):
+   the device draws its own status bar, fixed bars respect the home
+   indicator, and long Vietnamese labels wrap instead of overflowing.
+   =================================================================== */
+.go-date-chips button,
+.go-step-label,
+.go-seats-step-label {
+  white-space: nowrap;
+}
+
+.go-ticket-details-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.go-ticket-detail-item > div:last-child {
+  min-width: 0;
+}
+
+.go-ticket-detail-val {
+  overflow-wrap: anywhere;
+}
+
+.go-bottom-bar,
+.go-payment-bottom-bar,
+.go-seats-bottom-bar,
+.go-eticket-bottom-bar {
+  padding-bottom: max(16px, calc(10px + env(safe-area-inset-bottom)));
+}
+
+.go-bottom-sheet {
+  padding-bottom: max(20px, calc(12px + env(safe-area-inset-bottom)));
+}
+
+@media (max-width: 639px) {
+  .go-app-container {
+    box-shadow: none;
+  }
+
+  /* Mock clock/battery only belongs to the framed desktop preview. */
+  .go-status-bar {
+    display: none;
+  }
+
+  .go-home-status-bar {
+    visibility: hidden;
+  }
+
+  .go-trip-operator-name {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.25;
+  }
+
+  .go-payment-stepper {
+    gap: 4px;
+  }
+
+  .go-step-line {
+    flex: 1 1 12px;
+    width: auto;
+    min-width: 8px;
+  }
+
+  /* Inputs at 16px stop iOS Safari from zooming the page on focus. */
+  .go-app-container input,
+  .go-app-container select,
+  .go-app-container textarea {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 374px) {
+  .go-step-label {
+    font-size: 12px;
+  }
+
+  .go-date-chips {
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .go-chip-active,
+  .go-chip-inactive {
+    padding: 5px 8px;
+    font-size: 11.5px;
+  }
+
+  .go-field-value {
+    font-size: 15px;
+  }
+}
+
+/* Seat-group prices above the deck (e.g. "Tầng dưới 450.000đ · Tầng trên 400.000đ"). */
+.go-seat-price-guide {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: -4px 16px 10px;
+}
+
+.go-seat-price-guide span {
+  font-size: 12px;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.go-seat-price-guide b {
+  color: #1d4ed8;
+  font-weight: 800;
+}

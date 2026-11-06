@@ -26,10 +26,22 @@ class PortalService
         return [...$public, 'nextDepartureDate' => $next ? $this->ops->data($next)['date'] : null, 'appEnabled' => (bool) ($t['appEnabled'] ?? false), 'appUrl' => ($custom || ($sub && config('portals.wildcard_ready'))) ? 'https://'.($custom ?: $sub) : '/app/'.$t['slug'], 'profileUrl' => 'https://'.config('portals.profile_host').'/nha-xe/'.$t['slug'], 'routes' => $routes, 'vehicles' => array_map(fn ($v) => array_intersect_key($v, array_flip(['id', 'name', 'category', 'capacity', 'floors', 'image', 'description', 'amenities'])), $vehicles)];
     }
 
+    /**
+     * Platform-owned hostnames. They never resolve to a tenant, even if a
+     * tenant_domains row claims them. Domain map: docs/LARAVEL_PORTALS.md.
+     */
+    public function platformHosts(): array
+    {
+        $m = config('portals.marketplace_host');
+        $p = config('portals.profile_host');
+
+        return [$m, 'www.'.$m, $p, 'www.'.$p, config('portals.platform_app_host'), config('portals.studio_host'), config('portals.admin_host'), 'localhost', '127.0.0.1', 'terminal.local'];
+    }
+
     public function tenantForHost(Request $r): ?string
     {
         $host = strtolower($r->getHost());
-        if (in_array($host, [config('portals.marketplace_host'), 'www.'.config('portals.marketplace_host'), config('portals.profile_host'), 'www.'.config('portals.profile_host'), config('portals.platform_app_host'), 'localhost', '127.0.0.1', 'terminal.local'])) {
+        if (in_array($host, $this->platformHosts())) {
             return null;
         }
         $domain = DB::table('tenant_domains')->where(['hostname' => $host, 'status' => 'active'])->first();
@@ -51,10 +63,15 @@ class PortalService
             return ['kind' => 'operator', 'operator' => $this->profile($this->ops->tenant($tid)['slug'])];
         }
         $host = strtolower($r->getHost());
-        $known = [config('portals.marketplace_host'), 'www.'.config('portals.marketplace_host'), config('portals.profile_host'), 'www.'.config('portals.profile_host'), config('portals.platform_app_host'), 'localhost', '127.0.0.1', 'terminal.local'];
-        abort_unless(in_array($host, $known), 404, 'Tên miền chưa được cấu hình hoặc xác minh');
+        abort_unless(in_array($host, $this->platformHosts()), 404, 'Tên miền chưa được cấu hình hoặc xác minh');
+        $kind = match ($host) {
+            config('portals.platform_app_host') => 'platform-app',
+            config('portals.studio_host') => 'studio',
+            config('portals.admin_host') => 'admin',
+            default => 'marketplace',
+        };
 
-        return ['kind' => $host === config('portals.platform_app_host') ? 'platform-app' : 'marketplace', 'operator' => null];
+        return ['kind' => $kind, 'operator' => null];
     }
 
     public function scopeTrip(Request $r, string $tripId): void
@@ -81,7 +98,7 @@ class PortalService
         $custom = strtolower(trim($b['customDomain'] ?? ''));
         if ($custom) {
             abort_unless(filter_var($custom, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) && str_contains($custom, '.') && ! filter_var($custom, FILTER_VALIDATE_IP) && ! preg_match('/\.(local|test|localhost|internal)$/', $custom), 422, 'Tên miền không hợp lệ');
-            abort_if(in_array($custom, [config('portals.profile_host'), config('portals.marketplace_host'), config('portals.platform_app_host')]) || str_ends_with($custom, '.'.config('portals.tenant_app_root')), 422, 'Dùng trường subdomain cho tên miền của nền tảng');
+            abort_if(in_array($custom, $this->platformHosts()) || str_ends_with($custom, '.'.config('portals.tenant_app_root')), 422, 'Dùng trường subdomain cho tên miền của nền tảng');
         }
         foreach (['logo', 'hero'] as $field) {
             if (! empty($b[$field])) {

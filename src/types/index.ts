@@ -32,6 +32,10 @@ export interface Seat {
   status: SeatStatus;
   price: number;
   type: 'seat' | 'sleeper' | 'cabin';
+  /** Seat-group name or operator note, e.g. "Tầng dưới", "VIP". */
+  note?: string;
+  /** Amount added to the trip fare for this seat (may be negative). */
+  surcharge?: number;
 }
 
 export interface Trip {
@@ -58,6 +62,8 @@ export interface Trip {
   departureStops: StopPoint[];
   dropoffStops: StopPoint[];
   seats: Seat[];
+  /** Seat-map grid from Studio; columns without seats are the aisle. */
+  seatGrid?: { cols: number; rows: number };
 }
 
 export interface SearchParams {
@@ -85,11 +91,13 @@ export interface Booking {
   selectedSeats: string[]; // ['A1', 'A2']
   passenger: PassengerInfo;
   totalAmount: number;
-  paymentMethod: 'vietqr' | 'momo' | 'vnpay' | 'credit_card' | 'cash' | 'transfer';
+  paymentMethod: 'vietqr' | 'momo' | 'vnpay' | 'credit_card' | 'cash' | 'transfer' | 'bank_transfer';
   paymentStatus: 'completed' | 'failed' | 'simulated' | 'unpaid' | 'paid' | 'refund_due' | 'refunded';
   tenantId?: string;
   status?: 'confirmed' | 'cancelled' | 'checked_in';
   createdAt: string;
+  /** Present on the online-booking response: the customer account for this phone. */
+  account?: { created: boolean; username: string; tempPassword?: string };
 }
 
 export type BookingStep = 

@@ -46,7 +46,7 @@ export interface TicketBookingItem {
   total_amount: number;
   discount_amount: number;
   final_amount: number;
-  payment_status: "unpaid" | "paid" | "partially_paid" | "refunded";
+  payment_status: "unpaid" | "paid" | "partially_paid" | "refund_due" | "refunded";
   booking_status: "pending" | "confirmed" | "checked_in" | "completed" | "cancelled";
   payment_method: string;
   payment_ref?: string;
@@ -61,6 +61,8 @@ export interface TicketBookingItem {
     vehicle?: { name: string; plate_number: string; category: string };
     driver?: { name: string; phone: string };
   };
+  pickup_stop_id?: string | null;
+  dropoff_stop_id?: string | null;
   pickup_stop?: { name: string; address?: string };
   dropoff_stop?: { name: string; address?: string };
 }
@@ -74,7 +76,7 @@ export interface BusTripItem {
   depart_time: string;
   arrive_time: string;
   base_price: number;
-  status: "scheduled" | "running" | "completed" | "cancelled";
+  status: "draft" | "pending" | "scheduled" | "running" | "completed" | "cancelled";
   booked_seats_count?: number;
   available_seats_count?: number;
   partner?: { id: string; name: string; slug: string };
@@ -111,7 +113,7 @@ export interface BusVehicleItem {
   seat_layout_id?: string;
   name: string;
   plate_number: string;
-  category: "limousine" | "sleeper" | "seating";
+  category: "limousine" | "sleeper" | "cabin" | "seating";
   capacity: number;
   floor_count: number;
   amenities?: string[];
@@ -120,6 +122,36 @@ export interface BusVehicleItem {
   status: "active" | "maintenance" | "inactive";
   partner?: { id: string; name: string; slug: string };
   seat_layout?: any;
+  seat_codes?: string[];
+  /** Live seat map customers book on (Studio seat-map editor). */
+  seat_map?: SeatMapData;
+}
+
+export interface SeatMapGroup {
+  id: string;
+  name: string;
+  /** Added to the trip fare (VND); may be negative. */
+  surcharge: number;
+}
+
+export interface SeatMapCell {
+  code: string;
+  floor: 1 | 2;
+  row: number;
+  col: number;
+  type: "seat" | "sleeper" | "cabin";
+  group: string | null;
+  note: string;
+  disabled: boolean;
+  /** Per-seat surcharge when the seat is not in a group. */
+  surcharge?: number;
+}
+
+export interface SeatMapData {
+  cols: number;
+  rows: number;
+  groups: SeatMapGroup[];
+  cells: SeatMapCell[];
 }
 
 export interface SeatLayoutItem {
@@ -232,7 +264,12 @@ export interface StaffItem {
   email: string;
   so_dien_thoai?: string;
   dia_chi?: string;
-  role: "admin" | "manager" | "dispatcher" | "operator_staff" | "accountant" | "owner";
+  role: "owner" | "manager" | "dispatcher" | "sales" | "accountant" | "driver" | "platform";
+  role_label?: string;
+  partner_id?: string | null;
+  partner_name?: string;
+  permission_group_id?: string | null;
+  all_permissions?: string[];
   tinh_trang: number;
   created_at: string;
 }

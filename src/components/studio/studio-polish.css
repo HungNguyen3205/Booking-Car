@@ -1,0 +1,272 @@
+/* ==========================================================================
+   STUDIO POLISH — loaded last. Fixes control nesting, filter layout and a
+   compact vertical menu. Selectors are scoped under .ds-root .ds-main so they
+   outrank the global `.ds-root input:not(.ds-sidebar input)` !important rule.
+   ========================================================================== */
+
+/* 1. Inputs that live inside a bordered wrapper: the wrapper is the field. */
+.ds-root .ds-main .ds-topbar-search-pill input,
+.ds-root .ds-main .ds-filter-date-wrap input,
+.ds-root .ds-main .ds-search-input input,
+.ds-root .ds-main .ds-filter-group select,
+.ds-root .ds-main .ds-filter-group input,
+.ds-root .ds-main [style*="border: 1px"] > input,
+.ds-root .ds-main [style*="border: 1px"] > select {
+  border: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  min-height: 0 !important;
+  height: auto;
+  padding: 6px 0 !important;
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.ds-root .ds-main .ds-filter-group select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0 center !important;
+  padding-right: 22px !important;
+}
+.ds-root .ds-main .ds-topbar-search-pill input:focus,
+.ds-root .ds-main .ds-filter-date-wrap input:focus,
+.ds-root .ds-main .ds-search-input input:focus,
+.ds-root .ds-main [style*="border: 1px"] > input:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+/* Wrappers get the focus ring instead. */
+.ds-root .ds-main [style*="border: 1px"]:has(> input:focus) {
+  border-color: var(--lt-orange) !important;
+  box-shadow: 0 0 0 3px rgba(242, 115, 14, 0.15);
+}
+.ds-root .ds-main .ds-topbar-search-pill { padding: 0 16px; height: 40px; gap: 0; }
+.ds-root .ds-main .ds-search-input,
+.ds-root .ds-main .ds-filter-group,
+.ds-root .ds-main .ds-filter-date-wrap { min-height: 42px; }
+.ds-root .ds-main .ds-filter-date-wrap input[type="date"] { padding: 0 !important; }
+
+/* Light dropdown options in the light theme (legacy rule painted them dark). */
+.ds-root .ds-main select option { background: #ffffff; color: #1a202c; }
+
+/* 2. Filter bars: controls sit in one wrapping row instead of 100%-wide stacks. */
+.ds-root .ds-main .ds-filter-bar select,
+.ds-root .ds-main .ds-filter-select {
+  width: auto !important;
+  flex: 0 1 auto;
+  max-width: 280px;
+}
+.ds-root .ds-main .ds-filter-bar > div,
+.ds-root .ds-main .ds-filter-bar > div > div { min-width: 0; }
+.ds-root .ds-main .ds-filter-bar .ds-search-input { flex: 1 1 240px; max-width: 360px; }
+
+/* 3. Tabs (Staff page and others) */
+.ds-root .ds-tabs-header {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: #edf2f7;
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+.ds-root .ds-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+}
+.ds-root .ds-tab-btn:hover { color: #1a202c; background: rgba(255, 255, 255, 0.6); }
+.ds-root .ds-tab-btn.active { background: #ffffff; color: var(--lt-orange); box-shadow: 0 2px 8px rgba(15, 17, 23, 0.08); }
+.ds-root .ds-header-actions { gap: 12px; flex-wrap: wrap; align-items: center; }
+
+/* Panels never push the page wider than the viewport; wide tables scroll inside. */
+.ds-root .ds-main .ds-panel { min-width: 0; }
+.ds-root .ds-main .ds-panel:has(table) { overflow-x: auto; }
+/* Table text: the legacy dark theme painted td #ced8db (unreadable on white). */
+.ds-root .ds-main td { color: #334155; border-bottom-color: #f1f5f9; }
+.ds-root .ds-main td small { color: #64748b; }
+.ds-root .ds-main tbody tr:hover { background: #f8fafc; }
+/* Amounts never break in the middle of a number. */
+.ds-root .ds-main td[style*="text-align: right"] { white-space: nowrap; }
+
+/* Dialogs: light header (legacy kept a dark #213540 strip with dark text). */
+.ds-root .ds-modal > header {
+  background: #ffffff;
+  border-bottom: 1px solid #eef2f7;
+  padding: 18px 22px;
+}
+.ds-root .ds-modal > header h2 { color: #102744; font-size: 18px; font-weight: 700; }
+.ds-root .ds-modal > header button {
+  width: 36px; height: 36px; border-radius: 10px; justify-content: center; color: #64748b;
+}
+.ds-root .ds-modal > header button:hover { background: #f1f5f9; color: #102744; }
+.ds-root .ds-modal-backdrop { background: rgba(15, 23, 42, 0.45); }
+/* The floating assistant button must not cover dialog actions. */
+.ds-root:has(.ds-modal-backdrop) .ds-floating-ai-btn { display: none; }
+
+/* Textareas still used the dark theme. */
+.ds-root .ds-main textarea {
+  background: #ffffff !important;
+  color: #1a202c !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  font-size: 13.5px;
+}
+.ds-root .ds-main textarea:focus {
+  border-color: var(--lt-orange) !important;
+  box-shadow: 0 0 0 3px rgba(242, 115, 14, 0.15) !important;
+  outline: none !important;
+}
+
+/* Selects in ad-hoc wrapping toolbars (e.g. Reports) size to content too. */
+.ds-root .ds-main [style*="flex-wrap: wrap"] > select {
+  width: auto !important;
+  flex: 0 1 auto;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+/* ==========================================================================
+   4. COMPACT VERTICAL MENU
+   240px column, 38px rows, single-line labels, quiet active state.
+   ========================================================================== */
+.ds-root .ds-sidebar {
+  width: 240px;
+  padding: 16px 12px 14px;
+  border-radius: 20px !important;
+}
+.ds-root .ds-main { margin-left: 272px; }
+.ds-root .ds-main.collapsed { margin-left: 104px; }
+
+.ds-root .ds-sidebar-header-row { padding: 2px 4px 12px; margin-bottom: 12px; }
+.ds-root .ds-sidebar .ds-wordmark { justify-content: flex-start; padding: 0 4px; }
+.ds-root .ds-brand-logo-img { width: auto; max-width: 150px; height: 58px; max-height: 58px; filter: none; }
+
+.ds-root .ds-sidebar .ds-workspace { padding: 8px 10px; margin-bottom: 8px; border-radius: 10px; }
+.ds-root .ds-sidebar .ds-workspace small { font-size: 9.5px; margin-bottom: 2px; }
+.ds-root .ds-sidebar .ds-workspace select,
+.ds-root .ds-sidebar .ds-workspace strong { font-size: 13px; min-height: 24px !important; padding: 0 !important; }
+
+.ds-root .ds-sidebar nav { gap: 2px; padding-right: 2px; margin-right: -4px; }
+.ds-root .ds-nav-group summary {
+  padding: 12px 10px 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  color: #6b7280 !important;
+}
+.ds-root .ds-nav-group summary svg { transition: transform 0.18s ease; opacity: 0.7; }
+.ds-root .ds-nav-group[open] summary svg { transform: rotate(90deg); }
+.ds-root .ds-nav-group-items { gap: 1px; padding-bottom: 4px; }
+
+.ds-root .ds-sidebar nav button {
+  height: 38px;
+  min-height: 38px;
+  padding: 0 10px;
+  gap: 10px;
+  font-size: 13.25px;
+  font-weight: 550;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.ds-root .ds-sidebar nav button > span:last-child { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ds-root .ds-nav-icon-badge { width: 26px; height: 26px; border-radius: 8px; color: #8b93a3; }
+.ds-root .ds-sidebar nav button:hover .ds-nav-icon-badge { color: #ffffff; }
+
+.ds-root .ds-sidebar nav button.active {
+  background: rgba(242, 115, 14, 0.12) !important;
+  border: 1px solid rgba(242, 115, 14, 0.22) !important;
+  box-shadow: none;
+  font-weight: 650 !important;
+}
+.ds-root .ds-sidebar nav button.active::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--lt-orange-grad);
+}
+.ds-root .ds-sidebar nav button.active .ds-nav-icon-badge {
+  background: var(--lt-orange-grad) !important;
+  box-shadow: 0 3px 8px rgba(242, 115, 14, 0.35);
+}
+
+.ds-root .ds-footer-nav { gap: 1px; padding-top: 8px; margin-top: 6px; }
+.ds-root .ds-footer-btn { height: 36px; padding: 0 10px; gap: 10px; font-size: 13px; border-radius: 10px; }
+.ds-root .ds-sidebar-bottom { margin-top: 6px; padding-top: 0; }
+.ds-root .ds-logout-action-btn { height: 38px; padding: 0 12px; font-size: 13.5px; border-radius: 10px; }
+
+/* Collapsed: icon rail */
+.ds-root .ds-sidebar.collapsed { width: 72px; padding: 16px 10px 14px; }
+.ds-root .ds-sidebar.collapsed .ds-wordmark { justify-content: center; padding: 0; }
+.ds-root .ds-sidebar.collapsed .ds-brand-logo-img { max-width: 44px; max-height: 40px; }
+.ds-root .ds-sidebar.collapsed nav button,
+.ds-root .ds-sidebar.collapsed .ds-footer-btn,
+.ds-root .ds-sidebar.collapsed .ds-logout-action-btn { justify-content: center; padding: 0; }
+.ds-root .ds-sidebar.collapsed nav button.active::before { left: -10px; }
+.ds-root .ds-sidebar.collapsed .ds-nav-group summary { justify-content: center; padding: 8px 0 2px; }
+.ds-root .ds-sidebar.collapsed .ds-nav-group summary::before {
+  content: ""; display: block; width: 18px; height: 1px; background: rgba(255, 255, 255, 0.12);
+}
+.ds-root .ds-sidebar.collapsed .ds-nav-group summary svg { display: none; }
+
+@media (max-width: 1440px) {
+  .ds-root .ds-sidebar { width: 236px; }
+  .ds-root .ds-main { margin-left: 268px; }
+}
+@media (max-width: 1024px) {
+  .ds-root .ds-sidebar { width: 264px; left: -300px; border-radius: 0 20px 20px 0 !important; }
+  .ds-root .ds-sidebar.open { left: 0 !important; }
+  .ds-root .ds-main, .ds-root .ds-main.collapsed { margin-left: 0 !important; }
+  .ds-root .ds-sidebar nav button { height: 42px; min-height: 42px; }
+  /* The drawer has no collapsed mode; hide its toggle. */
+  .ds-root .ds-footer-btn[title="Thu gọn menu"],
+  .ds-root .ds-footer-btn[title="Mở rộng menu"] { display: none; }
+  /* If collapsed was chosen on desktop, the drawer still shows full labels. */
+  .ds-root .ds-sidebar.collapsed { width: 264px; padding: 16px 12px 14px; }
+  .ds-root .ds-sidebar.collapsed .ds-workspace,
+  .ds-root .ds-sidebar.collapsed .ds-nav-group summary span { display: block !important; }
+  .ds-root .ds-sidebar.collapsed nav button span:not(.ds-nav-icon-badge),
+  .ds-root .ds-sidebar.collapsed .ds-footer-btn span,
+  .ds-root .ds-sidebar.collapsed .ds-logout-action-btn span { display: inline !important; }
+  .ds-root .ds-sidebar.collapsed nav button,
+  .ds-root .ds-sidebar.collapsed .ds-logout-action-btn { justify-content: flex-start; padding: 0 10px; }
+  .ds-root .ds-sidebar.collapsed .ds-nav-group summary { justify-content: space-between; padding: 12px 10px 4px; }
+  .ds-root .ds-sidebar.collapsed .ds-nav-group summary::before { display: none; }
+}
+
+/* 5. Phones: filters become full-width rows, toolbars wrap cleanly. */
+@media (max-width: 640px) {
+  .ds-root .ds-main .ds-filter-bar select,
+  .ds-root .ds-main .ds-filter-select,
+  .ds-root .ds-main .ds-filter-bar .ds-filter-date-wrap,
+  .ds-root .ds-main .ds-filter-bar .ds-search-input,
+  .ds-root .ds-main .ds-filter-bar .ds-filter-group {
+    flex: 1 1 100% !important;
+    max-width: none;
+    width: 100% !important;
+  }
+  .ds-root .ds-main .ds-filter-bar > div,
+  .ds-root .ds-main .ds-filter-bar > div > div { width: 100%; }
+  .ds-root .ds-main [style*="flex-wrap: wrap"] > select { flex: 1 1 100%; max-width: none; width: 100% !important; }
+  /* Two-column dialog forms stack on phones. */
+  .ds-root .ds-modal [style*="grid-template-columns: 1fr 1fr"],
+  .ds-root .ds-modal [style*="grid-template-columns: repeat(2"] { grid-template-columns: 1fr !important; }
+  .ds-root .ds-modal > form { padding: 16px !important; }
+  .ds-root .ds-modal-backdrop { padding: 12px; align-items: flex-end; }
+  .ds-root .ds-modal { max-height: 92dvh; }
+  .ds-root .ds-topbar-page-title { font-size: 20px !important; line-height: 1.2; }
+  .ds-root .ds-tabs-header { width: 100%; }
+  .ds-root .ds-tab-btn { flex: 1 1 auto; justify-content: center; }
+}

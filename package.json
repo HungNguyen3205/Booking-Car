@@ -12,10 +12,12 @@
     "test:hero": "node scripts/verify-journey.cjs --hero-only",
     "test:logic": "node scripts/verify-logic.cjs",
     "test:navigation": "node scripts/verify-search-navigation.cjs",
+    "test:surfaces": "node scripts/verify-surfaces.cjs",
     "test:audit": "node scripts/verify-audit.cjs",
     "dev:web": "vite",
     "start": "php -S 127.0.0.1:8787 -t backend/public backend/server.php",
     "test:server": "node --test backend/tests/api-contract.test.mjs",
+    "test:studio": "node --test backend/tests/studio-live.test.mjs",
     "test:php": "php backend/vendor/bin/phpunit -c backend/phpunit.xml",
     "build:hosting": "npm run build && node scripts/build-hosting.mjs"
   },

@@ -1,0 +1,85 @@
+/* Studio "Đơn vé": one line per value, horizontal scroll, sticky code + actions. */
+.bkv-scroll {
+  overflow-x: auto;
+}
+
+.bkv-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+
+.bkv-table th,
+.bkv-table td {
+  white-space: nowrap;
+  vertical-align: middle;
+  border-bottom: 1px solid #edf2f9;
+}
+
+.bkv-table td > strong,
+.bkv-table td > span {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bkv-table th:first-child,
+.bkv-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: inherit;
+}
+
+.bkv-table th:last-child,
+.bkv-table td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  box-shadow: -8px 0 12px -10px rgba(15, 23, 42, 0.25);
+}
+
+.bkv-table tbody tr {
+  background: #ffffff;
+}
+
+.bkv-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.bkv-table tbody td:first-child,
+.bkv-table tbody td:last-child {
+  background: inherit;
+}
+
+.bkv-table thead th:first-child,
+.bkv-table thead th:last-child {
+  z-index: 2;
+  background: #12232e;
+}
+
+/* Tighter cells so every column fits a 1280px+ screen without wrapping. */
+.ds-root .bkv-table th,
+.ds-root .bkv-table td {
+  padding: 12px 10px !important;
+}
+
+.ds-root .bkv-table th:first-child,
+.ds-root .bkv-table td:first-child {
+  padding-left: 16px !important;
+}
+
+.ds-root .bkv-table td strong {
+  font-size: 14px;
+}
+
+.ds-root .bkv-table td:first-child {
+  font-size: 12.5px;
+  letter-spacing: -0.01em;
+}
+
+.ds-root .bkv-table td:last-child > div {
+  gap: 4px !important;
+}

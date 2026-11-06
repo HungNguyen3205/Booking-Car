@@ -28,13 +28,14 @@ class PartnerDomainController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'partner_id' => 'required|exists:partners,id',
+            'partner_id' => 'required|exists:tenants,id',
             'domain' => 'nullable|string|max:150',
             'subdomain' => 'nullable|string|max:100',
             'app_slug' => 'required|string|max:80',
             'settings' => 'nullable|array',
         ]);
 
+        app(\App\Services\StudioBridge::class)->ensurePartnerRow($validated['partner_id']);
         $domain = PartnerDomain::create([
             'partner_id' => $validated['partner_id'],
             'domain' => $validated['domain'] ?? null,

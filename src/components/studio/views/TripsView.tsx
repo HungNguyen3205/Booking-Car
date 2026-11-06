@@ -55,7 +55,10 @@ export const TripsView: React.FC = () => {
       ]);
 
       if (resTrips.data?.data) setTrips(resTrips.data.data);
-      if (resPartners.data) setPartners(resPartners.data);
+      if (resPartners.data) {
+        setPartners(resPartners.data);
+        if (resPartners.data.length === 1) setNewTrip((f) => ({ ...f, partner_id: f.partner_id || resPartners.data[0].id }));
+      }
       if (resRoutes.data) setRoutes(resRoutes.data);
       if (resVehicles.data) setVehicles(resVehicles.data);
     } catch (e) {
@@ -165,6 +168,8 @@ export const TripsView: React.FC = () => {
               <option value="">Tất cả trạng thái</option>
               <option value="scheduled">Đang mở bán</option>
               <option value="running">Đang chạy</option>
+              <option value="pending">Chờ duyệt mở bán</option>
+              <option value="draft">Bản nháp</option>
               <option value="completed">Đã hoàn thành</option>
               <option value="cancelled">Đã hủy</option>
             </select>
@@ -267,8 +272,8 @@ export const TripsView: React.FC = () => {
                         {money(t.base_price)}
                       </td>
                       <td style={{ padding: "14px 16px", textAlign: "center" }}>
-                        <span className={`ds-badge ${t.status === "scheduled" ? "active" : t.status === "running" ? "paid" : t.status === "completed" ? "published" : "cancelled"}`}>
-                          {t.status === "scheduled" ? "Đang mở bán" : t.status === "running" ? "Đang chạy" : t.status === "completed" ? "Hoàn tất" : "Đã hủy"}
+                        <span className={`ds-badge ${({ scheduled: "active", running: "paid", completed: "published", draft: "unpaid", pending: "unpaid" } as Record<string, string>)[t.status] || "cancelled"}`}>
+                          {({ scheduled: "Đang mở bán", running: "Đang chạy", completed: "Hoàn tất", draft: "Bản nháp", pending: "Chờ duyệt mở bán", cancelled: "Đã hủy" } as Record<string, string>)[t.status] || t.status}
                         </span>
                       </td>
                       <td style={{ padding: "14px 16px", textAlign: "center" }}>
@@ -280,6 +285,15 @@ export const TripsView: React.FC = () => {
                           >
                             <FileText size={14} /> DS khách
                           </button>
+                          {(t.status === "draft" || t.status === "pending") && (
+                            <button
+                              onClick={() => handleUpdateStatus(t.id, "scheduled")}
+                              title={t.status === "pending" ? "Nền tảng duyệt để mở bán" : "Mở bán chuyến"}
+                              style={{ border: "1px solid #f2730e", background: "#fff4e9", color: "#c2410c", padding: "4px 8px", borderRadius: 6, cursor: "pointer" }}
+                            >
+                              {t.status === "pending" ? "Duyệt mở bán" : "Mở bán"}
+                            </button>
+                          )}
                           {t.status === "scheduled" && (
                             <button
                               onClick={() => handleUpdateStatus(t.id, "running")}

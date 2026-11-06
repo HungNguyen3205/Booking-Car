@@ -16,8 +16,12 @@ const env = {
   APP_KEY: "base64:" + randomBytes(32).toString("base64"),
   APP_DEBUG: "false",
   APP_URL: base,
-  DB_CONNECTION: "sqlite",
-  DB_DATABASE: join(dir, "db.sqlite"),
+  // Default: throwaway SQLite. API_TEST_DB=mysql runs the same contract on the
+  // MySQL/MariaDB given by DB_HOST/DB_PORT/DB_DATABASE/DB_USERNAME/DB_PASSWORD
+  // (the database is wiped with migrate:fresh, so never point it at real data).
+  ...(process.env.API_TEST_DB === "mysql"
+    ? { DB_CONNECTION: "mysql" }
+    : { DB_CONNECTION: "sqlite", DB_DATABASE: join(dir, "db.sqlite") }),
   SESSION_FILES: join(dir, "sessions"),
   CACHE_PATH: join(dir, "cache"),
   SESSION_SECURE_COOKIE: "false",
@@ -28,7 +32,7 @@ const env = {
 };
 mkdirSync(join(dir, "sessions"), { recursive: true });
 mkdirSync(join(dir, "cache"), { recursive: true });
-const migration = spawnSync(php, ["backend/artisan", "migrate", "--force"], {
+const migration = spawnSync(php, ["backend/artisan", process.env.API_TEST_DB === "mysql" ? "migrate:fresh" : "migrate", "--force"], {
   env,
   encoding: "utf8",
 });

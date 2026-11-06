@@ -110,19 +110,35 @@ final class OperatorService
         $d = ['name' => trim($b['name'])];
         $identifier = null;
         if ($kind === 'vehicles') {
+            $map = null;
+            if (! empty($b['seatMap'])) {
+                $map = $this->normalizeSeatMap($b['seatMap'], (string) ($b['category'] ?? 'sleeper'));
+                $b['capacity'] = count($map['cells']);
+                $b['floors'] = max(array_column($map['cells'], 'floor'));
+                $b['seatCodes'] = array_column($map['cells'], 'code');
+            }
             $this->validate($b, ['category' => 'required|in:sleeper,limousine,cabin', 'capacity' => 'required|integer|min:1|max:60', 'floors' => 'nullable|integer|min:1|max:2', 'plate' => 'required|string|max:30', 'inspectionDate' => 'nullable|date_format:Y-m-d', 'image' => 'nullable|string|max:500', 'amenities' => 'nullable|array|max:20', 'amenities.*' => 'string|max:80', 'seatCodes' => 'nullable|array', 'seatCodes.*' => 'required|string|regex:/^[A-Z0-9-]{1,8}$/|distinct']);
             $capacity = (int) $b['capacity'];
-            $floors = $b['category'] === 'limousine' ? 1 : (int) (($b['floors'] ?? 2) ?: 2);
+            $floors = $map ? (int) $b['floors'] : ($b['category'] === 'limousine' ? 1 : (int) (($b['floors'] ?? 2) ?: 2));
             $codes = $b['seatCodes'] ?? [];
             $this->need(! $codes || count($codes) === $capacity, 422, 'Mã ghế phải đủ số chỗ và duy nhất');
             $per = (int) ceil($capacity / $floors);
             $image = $b['image'] ?? '';
             $this->need(! $image || preg_match('~^/(assets/[\w/.-]+|uploads/[\w.-]+)$~', $image) || (filter_var($image, FILTER_VALIDATE_URL) && str_starts_with($image, 'https://')), 422, 'Ảnh phải là URL HTTPS hoặc ảnh đã tải lên');
             $d += ['category' => $b['category'], 'capacity' => $capacity, 'floors' => $floors, 'plate' => strtoupper(trim($b['plate'])), 'image' => $image, 'amenities' => $b['amenities'] ?? ['Điều hòa', 'USB'], 'description' => mb_substr($b['description'] ?? '', 0, 1500), 'seatCodes' => $codes ?: array_map(fn ($i) => ($i < $per ? 'A' : 'B').($i % $per + 1), range(0, $capacity - 1)), 'maintenance' => (bool) ($b['maintenance'] ?? false), 'inspectionDate' => $b['inspectionDate'] ?? ''];
+            if (! $map && $id) {
+                // Editing name/plate/etc. keeps a hand-made seat map while the seats stay the same.
+                $prev = $this->resource($tid, 'vehicles', $id)['seatMap'] ?? null;
+                $same = fn ($m) => (function ($x) { sort($x); return $x; })(array_column($m['cells'], 'code')) === (function ($x) { sort($x); return $x; })($d['seatCodes']);
+                $map = $prev && $same($prev) ? $prev : null;
+            }
+            $d['seatMap'] = $map ?? $this->defaultSeatMap($d['category'], $capacity, $floors, $d['seatCodes']);
             $identifier = $d['plate'];
         } elseif ($kind === 'routes') {
             $this->validate($b, ['from' => 'required|string|max:100|different:to', 'to' => 'required|string|max:100', 'durationMinutes' => 'required|integer|min:10|max:2880', 'pickups' => 'required|array|min:1|max:30', 'dropoffs' => 'required|array|min:1|max:30']);
-            $d += ['from' => $b['from'], 'to' => $b['to'], 'durationMinutes' => (int) $b['durationMinutes']];
+            $this->validate($b, ['basePrice' => 'nullable|integer|min:0|max:100000000', 'distanceKm' => 'nullable|integer|min:0|max:5000']);
+            $d += ['from' => $b['from'], 'to' => $b['to'], 'durationMinutes' => (int) $b['durationMinutes'],
+                'basePrice' => (int) ($b['basePrice'] ?? 0), 'distanceKm' => (int) ($b['distanceKm'] ?? 0), 'active' => ($b['active'] ?? true) !== false];
             foreach (['pickups', 'dropoffs'] as $key) {
                 $d[$key] = [];
                 foreach ($b[$key] as $i => $stop) {
@@ -207,16 +223,20 @@ final class OperatorService
         $tenant = $this->tenant($r->tenant_id);
         $occupied = DB::table('inventory')->where('trip_id', $r->id)->pluck('seat')->all();
         $blocked = $d['blockedSeats'] ?? [];
-        $per = (int) ceil($v['capacity'] / $v['floors']);
+        $map = $this->seatMapFor($d['vehicle'], $live);
         $seats = [];
-        foreach ($v['seatCodes'] as $i => $code) {
-            $seats[] = ['id' => $r->id.'-'.$code, 'code' => $code, 'floor' => $i < $per ? 1 : 2, 'row' => (int) floor(($i % $per) / 3) + 1, 'col' => ($i % $per) % 3 + 1, 'type' => ['limousine' => 'seat', 'cabin' => 'cabin', 'sleeper' => 'sleeper'][$v['category']], 'status' => in_array($code, $blocked) ? 'disabled' : (in_array($code, $occupied) ? 'booked' : 'available'), 'price' => $d['price']];
+        $groupNames = array_column($map['groups'] ?? [], 'name', 'id');
+        foreach ($map['cells'] as $c) {
+            $code = $c['code'];
+            $surcharge = (int) ($c['surcharge'] ?? 0);
+            $seats[] = ['id' => $r->id.'-'.$code, 'code' => $code, 'floor' => $c['floor'], 'row' => $c['row'], 'col' => $c['col'], 'type' => $c['type'], 'note' => ($c['note'] ?? '') ?: ($groupNames[$c['group'] ?? ''] ?? ''), 'surcharge' => $surcharge,
+                'status' => in_array($code, $blocked) || ! empty($c['disabled']) ? 'disabled' : (in_array($code, $occupied) ? 'booked' : 'available'), 'price' => max(0, $d['price'] + $surcharge)];
         }
         $start = C::parse($r->depart_at)->setTimezone('Asia/Ho_Chi_Minh');
         $end = C::parse($r->end_at)->setTimezone('Asia/Ho_Chi_Minh');
         $stop = fn ($s) => ['id' => $s['id'], 'name' => $s['name'], 'address' => $s['address'], 'time' => $start->addMinutes($s['offset'])->format('H:i')];
 
-        return ['id' => $r->id, 'tenantId' => $r->tenant_id, 'code' => $d['code'], 'operator' => $tenant['name'], 'vehicle' => ['id' => $r->vehicle_id, 'name' => $v['name'], 'category' => $v['category'], 'categoryLabel' => ['sleeper' => 'Giường nằm', 'limousine' => 'Limousine', 'cabin' => 'Cabin VIP'][$v['category']], 'seatsTotal' => $v['capacity'], 'floors' => $v['floors'], 'image' => $v['image'] ?: '/assets/images/bus_limousine_vip.png', 'amenities' => $v['amenities'], 'description' => $v['description'], 'rating' => 0], 'from' => $route['from'], 'to' => $route['to'], 'departureTime' => $start->format('H:i'), 'arrivalTime' => $end->format('H:i'), 'duration' => intdiv($route['durationMinutes'], 60).'h'.($route['durationMinutes'] % 60).'m', 'nextDay' => $start->format('Y-m-d') !== $end->format('Y-m-d'), 'departureLocation' => $route['pickups'][0], 'arrivalLocation' => $route['dropoffs'][0], 'price' => $d['price'], 'availableSeatsCount' => count(array_filter($seats, fn ($s) => $s['status'] === 'available')), 'departureStops' => array_map($stop, $route['pickups']), 'dropoffStops' => array_map($stop, $route['dropoffs']), 'seats' => $seats, 'date' => $d['date'], 'status' => $r->status, 'driverId' => $r->driver_id, 'branchId' => $d['branchId'] ?? '', 'vehicleId' => $r->vehicle_id, 'routeId' => $r->route_id, 'departAt' => $r->depart_at, 'endAt' => $r->end_at, 'blockedSeats' => $blocked, 'plate' => $v['plate']];
+        return ['id' => $r->id, 'tenantId' => $r->tenant_id, 'code' => $d['code'], 'operator' => $tenant['name'], 'vehicle' => ['id' => $r->vehicle_id, 'name' => $v['name'], 'category' => $v['category'], 'categoryLabel' => ['sleeper' => 'Giường nằm', 'limousine' => 'Limousine', 'cabin' => 'Cabin VIP'][$v['category']], 'seatsTotal' => $v['capacity'], 'floors' => $v['floors'], 'image' => $v['image'] ?: '/assets/images/bus_limousine_vip.png', 'amenities' => $v['amenities'], 'description' => $v['description'], 'rating' => 0], 'from' => $route['from'], 'to' => $route['to'], 'departureTime' => $start->format('H:i'), 'arrivalTime' => $end->format('H:i'), 'duration' => intdiv($route['durationMinutes'], 60).'h'.($route['durationMinutes'] % 60).'m', 'nextDay' => $start->format('Y-m-d') !== $end->format('Y-m-d'), 'departureLocation' => $route['pickups'][0], 'arrivalLocation' => $route['dropoffs'][0], 'price' => $d['price'], 'availableSeatsCount' => count(array_filter($seats, fn ($s) => $s['status'] === 'available')), 'departureStops' => array_map($stop, $route['pickups']), 'dropoffStops' => array_map($stop, $route['dropoffs']), 'seats' => $seats, 'seatGrid' => ['cols' => $map['cols'], 'rows' => $map['rows']], 'date' => $d['date'], 'status' => $r->status, 'driverId' => $r->driver_id, 'branchId' => $d['branchId'] ?? '', 'vehicleId' => $r->vehicle_id, 'routeId' => $r->route_id, 'departAt' => $r->depart_at, 'endAt' => $r->end_at, 'blockedSeats' => $blocked, 'plate' => $v['plate']];
     }
 
     public function saveTrip(string $tid, array $b, ?object $u, ?string $id = null): array
@@ -364,7 +384,7 @@ final class OperatorService
 
                 return $old;
             }
-            $this->validate($b, ['tripId' => 'required|string', 'seats' => 'required|array|min:1|max:5', 'seats.*' => 'required|string|distinct', 'passenger.fullName' => 'required|string|max:100', 'passenger.email' => 'nullable|email|max:200', 'passenger.pickupStopId' => 'required|string|max:80', 'passenger.dropoffStopId' => 'required|string|max:80', 'passenger.agreedTerms' => 'required|accepted']);
+            $this->validate($b, ['tripId' => 'required|string', 'seats' => 'required|array|min:1|max:5', 'seats.*' => 'required|string|distinct', 'passenger.fullName' => 'required|string|max:100', 'passenger.email' => 'nullable|email|max:200', 'passenger.pickupStopId' => 'required|string|max:80', 'passenger.dropoffStopId' => 'required|string|max:80', 'passenger.agreedTerms' => 'required|accepted', 'paymentMethod' => 'nullable|in:cash,bank_transfer']);
             $r = DB::table('trips')->where('id', $b['tripId'])->lockForUpdate()->first();
             $this->need($r && (! $tid || $r->tenant_id === $tid), 404, 'Chuyến không thuộc nhà xe này');
             $this->need($r->status === 'published' && $r->depart_at > $this->now() && $this->tenant($r->tenant_id)['status'] === 'active', 409, 'Chuyến đã đóng bán');
@@ -385,7 +405,7 @@ final class OperatorService
             $dropoff = collect($route['dropoffs'])->firstWhere('id', $p['dropoffStopId']);
             $this->need($pickup && $dropoff, 422, 'Điểm đón/trả không thuộc chuyến');
             $this->need($dropoff['offset'] > $pickup['offset'], 422, 'Điểm trả phải sau điểm đón');
-            $amount = count($b['seats']) * $trip['price'];
+            $amount = $this->seatAmount($trip, $b['seats']);
             $discount = 0;
             $promo = '';
             if (! empty($b['promoCode'])) {
@@ -411,7 +431,7 @@ final class OperatorService
                 $agencyRate = $agency['commissionBps'];
             }
             $id = 'DG'.strtoupper(base_convert((string) (int) (microtime(true) * 1000), 10, 36)).strtoupper(Str::random(8));
-            $data = ['trip' => $trip, 'date' => $trip['date'], 'selectedSeats' => $b['seats'], 'passenger' => $p, 'totalAmount' => $amount - $discount, 'discount' => $discount, 'promoCode' => $promo, 'agencyId' => $agencyId, 'agencyCommissionBps' => $agencyRate, 'platformCommissionBps' => $this->tenant($r->tenant_id)['commissionBps'], 'paymentMethod' => 'cash', 'checkedInAt' => null];
+            $data = ['trip' => $trip, 'date' => $trip['date'], 'selectedSeats' => $b['seats'], 'passenger' => $p, 'totalAmount' => $amount - $discount, 'discount' => $discount, 'promoCode' => $promo, 'agencyId' => $agencyId, 'agencyCommissionBps' => $agencyRate, 'platformCommissionBps' => $this->tenant($r->tenant_id)['commissionBps'], 'paymentMethod' => ($b['paymentMethod'] ?? '') ?: 'cash', 'checkedInAt' => null];
             DB::table('bookings')->insert(['id' => $id, 'tenant_id' => $r->tenant_id, 'trip_id' => $r->id, 'status' => 'confirmed', 'payment_status' => $amount - $discount === 0 ? 'paid' : 'unpaid', 'source' => $u ? 'counter' : 'online', 'data' => $this->json($data), 'created_at' => $this->now()]);
             if (! empty($b['holdId'])) {
                 DB::table('inventory')->where('hold_id', $b['holdId'])->update(['hold_id' => null, 'booking_id' => $id]);
@@ -453,7 +473,7 @@ final class OperatorService
                 DB::table('inventory')->where('booking_id', $id)->delete();
                 $trip = $this->seats($target, $b['seats'] ?? []);
                 $this->need(count($b['seats']) === count($d['selectedSeats']), 422, 'Số ghế phải bằng vé cũ');
-                $this->need($d['totalAmount'] === $trip['price'] * count($b['seats']) && $d['discount'] === 0, 409, 'Chỉ chuyển đồng giá, không ưu đãi');
+                $this->need($d['totalAmount'] === $this->seatAmount($trip, $b['seats']) && $d['discount'] === 0, 409, 'Chỉ chuyển đồng giá, không ưu đãi');
                 $d['trip'] = $trip;
                 $d['date'] = $trip['date'];
                 $d['selectedSeats'] = $b['seats'];
@@ -512,6 +532,93 @@ final class OperatorService
 
             return DB::table('ledger')->where('id', $id)->first();
         }, 3);
+    }
+
+    /** Sum of the per-seat prices (trip fare + seat surcharge) for the chosen codes. */
+    public function seatAmount(array $trip, array $codes): int
+    {
+        $prices = array_column($trip['seats'], 'price', 'code');
+
+        return (int) array_sum(array_map(fn ($c) => $prices[$c] ?? $trip['price'], $codes));
+    }
+
+    /**
+     * Seat map edited in Studio: a cols x rows grid per floor; empty cells are the aisle.
+     * Cells: code, floor, row, col, type (seat|sleeper|cabin), surcharge (VND, may be
+     * negative), note (shown to the customer), disabled (never sold, e.g. crew seat).
+     */
+    public function normalizeSeatMap(mixed $m, string $category): array
+    {
+        $this->need(is_array($m), 422, 'Sơ đồ ghế không hợp lệ');
+        $this->validate($m, ['cols' => 'required|integer|min:1|max:6', 'rows' => 'required|integer|min:1|max:20', 'cells' => 'required|array|min:1|max:60',
+            'cells.*.code' => 'required|string|regex:/^[A-Z0-9-]{1,8}$/', 'cells.*.floor' => 'required|integer|min:1|max:2',
+            'cells.*.row' => 'required|integer|min:1|max:20', 'cells.*.col' => 'required|integer|min:1|max:6',
+            'cells.*.type' => 'nullable|in:seat,sleeper,cabin', 'cells.*.surcharge' => 'nullable|integer|min:-5000000|max:50000000',
+            'cells.*.note' => 'nullable|string|max:40', 'cells.*.disabled' => 'nullable|boolean', 'cells.*.group' => 'nullable|string|max:20',
+            'groups' => 'nullable|array|max:12', 'groups.*.id' => 'required|string|regex:/^[a-z0-9-]{1,20}$/|distinct',
+            'groups.*.name' => 'required|string|max:30', 'groups.*.surcharge' => 'nullable|integer|min:-5000000|max:50000000']);
+        $groups = [];
+        foreach ($m['groups'] ?? [] as $g) {
+            $groups[$g['id']] = ['id' => $g['id'], 'name' => trim($g['name']), 'surcharge' => (int) ($g['surcharge'] ?? 0)];
+        }
+        $type = ['limousine' => 'seat', 'cabin' => 'cabin', 'sleeper' => 'sleeper'][$category] ?? 'seat';
+        $cells = [];
+        $codes = [];
+        $spots = [];
+        foreach ($m['cells'] as $c) {
+            $this->need($c['row'] <= $m['rows'] && $c['col'] <= $m['cols'], 422, 'Ghế '.$c['code'].' nằm ngoài khung sơ đồ');
+            $this->need(! isset($codes[$c['code']]), 422, 'Mã ghế '.$c['code'].' bị trùng');
+            $spot = $c['floor'].'-'.$c['row'].'-'.$c['col'];
+            $this->need(! isset($spots[$spot]), 422, 'Hai ghế trùng một vị trí');
+            $codes[$c['code']] = $spots[$spot] = true;
+            $group = ($c['group'] ?? '') ?: null;
+            $this->need(! $group || isset($groups[$group]), 422, 'Nhóm ghế của '.$c['code'].' không tồn tại');
+            // A seat in a price group takes the group's surcharge; the group name is shown to customers.
+            $cells[] = ['code' => $c['code'], 'floor' => (int) $c['floor'], 'row' => (int) $c['row'], 'col' => (int) $c['col'], 'type' => $c['type'] ?? $type, 'group' => $group,
+                'surcharge' => $group ? $groups[$group]['surcharge'] : (int) ($c['surcharge'] ?? 0), 'note' => trim((string) ($c['note'] ?? '')), 'disabled' => (bool) ($c['disabled'] ?? false)];
+        }
+        usort($cells, fn ($a, $b) => [$a['floor'], $a['row'], $a['col']] <=> [$b['floor'], $b['row'], $b['col']]);
+        $this->need((bool) array_filter($cells, fn ($c) => ! $c['disabled']), 422, 'Sơ đồ cần ít nhất một ghế bán được');
+
+        return ['cols' => (int) $m['cols'], 'rows' => (int) $m['rows'], 'groups' => array_values($groups), 'cells' => $cells];
+    }
+
+    /** Layout for vehicles saved without an edited map, keeping the existing code order. */
+    public function defaultSeatMap(string $category, int $capacity, int $floors, array $codes): array
+    {
+        [$cols, $spots] = ['sleeper' => [5, [1, 3, 5]], 'cabin' => [3, [1, 3]], 'limousine' => [4, [1, 3, 4]]][$category] ?? [5, [1, 3, 5]];
+        $type = ['limousine' => 'seat', 'cabin' => 'cabin', 'sleeper' => 'sleeper'][$category] ?? 'seat';
+        $per = (int) ceil(max(1, $capacity) / max(1, $floors));
+        $n = count($spots);
+        $cells = [];
+        foreach (array_values($codes) as $i => $code) {
+            $k = $i % $per;
+            $cells[] = ['code' => $code, 'floor' => $i < $per ? 1 : 2, 'row' => intdiv($k, $n) + 1, 'col' => $spots[$k % $n], 'type' => $type, 'surcharge' => 0, 'note' => '', 'disabled' => false];
+        }
+
+        return ['cols' => $cols, 'rows' => max(1, (int) ceil($per / $n)), 'groups' => [], 'cells' => $cells];
+    }
+
+    /**
+     * Seats sold on a trip are fixed by the vehicle snapshot taken when the trip was
+     * scheduled (inventory references those codes). A later Studio edit applies to
+     * that trip too when it keeps exactly the same codes (moved seats, new surcharges).
+     */
+    private function seatMapFor(array $snapshot, array $live): array
+    {
+        $codes = $snapshot['seatCodes'];
+        sort($codes);
+        foreach ([$live['seatMap'] ?? null, $snapshot['seatMap'] ?? null] as $m) {
+            if ($m) {
+                $mine = array_column($m['cells'], 'code');
+                sort($mine);
+                if ($mine === $codes) {
+                    return $m;
+                }
+            }
+        }
+
+        return $this->defaultSeatMap($snapshot['category'], (int) $snapshot['capacity'], (int) $snapshot['floors'], $snapshot['seatCodes']);
     }
 
     public function seed(?object $u = null): array

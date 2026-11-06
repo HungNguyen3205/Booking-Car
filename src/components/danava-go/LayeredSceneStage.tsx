@@ -1,12 +1,13 @@
-import { useJourneyReducedMotion, useJourneyMobile } from './useJourneyReducedMotion';
+import { useJourneyReducedMotion, useJourneyMobile, useViewportWidth } from './useJourneyReducedMotion';
 import React, { useEffect, useId, useState, memo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { decodeJourneyImage, getJourneyLandmark, JOURNEY_ROAD, type JourneyLandmark } from './journeyStageConfig';
+import { decodeJourneyImage, getJourneyLandmark, JOURNEY_CANVAS, JOURNEY_ROAD, MOBILE_STAGE_BLEED, type JourneyLandmark } from './journeyStageConfig';
 
 // Separate slots: changing one city never replaces the road or the other city.
 const Landmark = memo(function Landmark({ city, role, introReady }: { city: string; role: 'origin' | 'destination'; introReady: boolean }) {
   const reduced = useJourneyReducedMotion();
   const mobile = useJourneyMobile();
+  const viewportWidth = useViewportWidth();
   const slotId = useId().replace(/:/g, '');
   const [scene, setScene] = useState<JourneyLandmark>(() => getJourneyLandmark(city, role));
   useEffect(() => {
@@ -19,9 +20,14 @@ const Landmark = memo(function Landmark({ city, role, introReady }: { city: stri
   const safeId = Array.from(scene.id).reduce((hash, ch) => (Math.imul(hash, 31) + ch.charCodeAt(0)) >>> 0, 0).toString(36);
   const clip = `${slotId}-${role}-${safeId}-${scene.image ? 'photo' : 'fallback'}`;
   const [cx, cy, cw, ch] = scene.crop;
-  const x = role === 'origin' ? (mobile ? scene.frame.mobileOriginX ?? scene.frame.originX : scene.frame.originX) : (mobile ? scene.frame.mobileDestinationX ?? scene.frame.destinationX : scene.frame.destinationX);
   const y = role === 'origin' ? scene.frame.originY ?? scene.frame.y : scene.frame.y;
   const width = mobile ? scene.frame.mobileWidth ?? scene.frame.width : scene.frame.width;
+  // Stacked layout: the stage bleeds past both screen edges and slices by width, so
+  // anchor each landmark to the visible screen edge (origin left, destination right).
+  const edge = MOBILE_STAGE_BLEED * JOURNEY_CANVAS.width / (viewportWidth + 2 * MOBILE_STAGE_BLEED);
+  const x = mobile
+    ? (role === 'origin' ? edge : JOURNEY_CANVAS.width - edge - width)
+    : (role === 'origin' ? scene.frame.originX : scene.frame.destinationX);
   const height = scene.frame.height;
   const blend = scene.blend;
   const hasEdgeFade = Boolean(blend?.edgeFade?.left || blend?.edgeFade?.right);
@@ -42,7 +48,7 @@ const Landmark = memo(function Landmark({ city, role, introReady }: { city: stri
             className="journey-landmark-plane"
             style={{ filter: scene.tone }}
             viewBox="0 0 1600 1000"
-            preserveAspectRatio={mobile ? 'xMidYMax meet' : 'xMidYMid slice'}
+            preserveAspectRatio={mobile ? 'xMidYMax slice' : 'xMidYMid slice'}
             aria-hidden="true"
           >
             {scene.image ? (
@@ -52,7 +58,7 @@ const Landmark = memo(function Landmark({ city, role, introReady }: { city: stri
                 width={width}
                 height={height}
                 viewBox={`${cx} ${cy} ${cw} ${ch}`}
-                preserveAspectRatio="xMidYMax meet"
+                preserveAspectRatio={mobile ? (role === 'origin' ? 'xMinYMax meet' : 'xMaxYMax meet') : 'xMidYMax meet'}
                 data-bank-image={scene.id}
                 data-bank-role={role}
               >
@@ -159,7 +165,7 @@ export const LayeredSceneStage: React.FC<{ fromCity: string; toCity: string; cla
   const backgroundId = useId().replace(/:/g, '');
   const mobile = useJourneyMobile();
   return <div className={`journey-scenery ${className}`} aria-hidden="true">
-    <svg className="journey-road" data-testid="journey-fixed-road" viewBox="0 0 1600 1000" preserveAspectRatio={mobile ? "xMidYMax meet" : "xMidYMid slice"}>
+    <svg className="journey-road" data-testid="journey-fixed-road" viewBox="0 0 1600 1000" preserveAspectRatio={mobile ? "xMidYMax slice" : "xMidYMid slice"}>
       <g id={`${backgroundId}-base`}>{!roadError ? <image href={JOURNEY_ROAD} width="1600" height="1000" preserveAspectRatio="none" onError={() => setRoadError(true)} /> : <>
         <rect width="1600" height="1000" fill="#f7f4ec" />
         <path d="M180 650 C0 720 350 760 700 810 S1400 950 1700 980" stroke="#dad7c8" strokeWidth="180" fill="none" />
@@ -169,7 +175,7 @@ export const LayeredSceneStage: React.FC<{ fromCity: string; toCity: string; cla
     </svg>
     <div className="journey-sky-softener" />
     <Landmark city={fromCity} role="origin" introReady={introReady} /><Landmark city={toCity} role="destination" introReady={introReady} />
-    <svg className="journey-foreground" viewBox="0 0 1600 1000" preserveAspectRatio={mobile ? 'xMidYMax meet' : 'xMidYMid slice'} aria-hidden="true">
+    <svg className="journey-foreground" viewBox="0 0 1600 1000" preserveAspectRatio={mobile ? 'xMidYMax slice' : 'xMidYMid slice'} aria-hidden="true">
       <defs><clipPath id={`${backgroundId}-near`}><path d="M0 585 C150 605 220 640 450 674 S1150 730 1600 770 V1000 H0Z" /></clipPath></defs>
       <use href={`#${backgroundId}-base`} clipPath={`url(#${backgroundId}-near)`} />
     </svg>

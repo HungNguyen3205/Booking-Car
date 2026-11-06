@@ -6,6 +6,8 @@ import { VEHICLE_MODELS } from '../../data/mockData';
 // Every layer uses this canvas. The shared ground was derived from the existing
 // road artwork; its near lane heads right. Vehicles/buildings are never mirrored.
 export const JOURNEY_CANVAS = { width: 1600, height: 1000 };
+// Stacked layout: the stage bleeds this many px past each screen edge (.go-journey-stage left:-40px).
+export const MOBILE_STAGE_BLEED = 40;
 export const JOURNEY_ROAD = '/assets/images/scenes/journey_landscape.webp';
 
 export interface LandmarkEdgeFade {
@@ -40,8 +42,6 @@ export interface JourneyLandmark {
     y: number;
     originX: number;
     destinationX: number;
-    mobileOriginX?: number;
-    mobileDestinationX?: number;
     mobileWidth?: number;
     originY?: number;
     width: number;
@@ -71,7 +71,7 @@ export function getJourneyLandmark(city: string, role: 'origin' | 'destination' 
     tone: id === 'dong-nai' ? 'saturate(.90) sepia(.06) brightness(1.04)' : id === 'hue' ? 'saturate(.95) brightness(1.03)' : 'saturate(.96) sepia(.025)',
     image: bank?.image || '', source:bank?.source || [1,1],
     crop:bank?.crops[role === 'origin' ? 0 : 1] || [0,0,1,1],
-    frame:{y:310,originX:-90,destinationX:790,mobileOriginX:160,mobileDestinationX:640,mobileWidth:756,width:900,height:400},
+    frame:{y:310,originX:-90,destinationX:790,mobileWidth:756,width:900,height:400},
     blend:{hasAlpha:true,waterFade:{start:73,end:100}},
   };
 }

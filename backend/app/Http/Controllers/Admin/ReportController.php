@@ -3,125 +3,91 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\BusTrip;
-use App\Models\Partner;
-use App\Models\Route;
-use App\Models\TicketBooking;
-use Carbon\Carbon;
+use App\Services\OperatorService;
+use App\Services\StudioBridge;
+use Carbon\CarbonImmutable as C;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
+/**
+ * Studio "Báo cáo" from live bookings created in the period (Vietnam days).
+ * Revenue = money actually collected (ledger), platform profit = each ticket's
+ * recorded platform commission rate applied to what was collected.
+ */
 class ReportController extends Controller
 {
-    public function getSummary(Request $request)
+    public function __construct(OperatorService $ops, private StudioBridge $bridge)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
-        $partnerId = $request->input('partner_id');
-
-        $bookingsQuery = TicketBooking::whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->where('payment_status', 'paid');
-
-        if ($partnerId) {
-            $bookingsQuery->where('partner_id', $partnerId);
-        }
-
-        $grossRevenue = (clone $bookingsQuery)->sum('final_amount') ?: 0;
-        $totalTickets = (clone $bookingsQuery)->sum('seat_count') ?: 0;
-        $totalBookings = (clone $bookingsQuery)->count();
-
-        // Platform profit estimation (based on average 10% commission)
-        $estimatedProfit = (int) round($grossRevenue * 0.10);
-
-        // Revenue by Route
-        $routesReport = DB::table('ticket_bookings')
-            ->join('bus_trips', 'ticket_bookings.trip_id', '=', 'bus_trips.id')
-            ->join('routes', 'bus_trips.route_id', '=', 'routes.id')
-            ->whereBetween('ticket_bookings.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->where('ticket_bookings.payment_status', 'paid')
-            ->when($partnerId, fn($q) => $q->where('ticket_bookings.partner_id', $partnerId))
-            ->select(
-                'routes.id',
-                'routes.name',
-                'routes.from_city',
-                'routes.to_city',
-                DB::raw('COUNT(ticket_bookings.id) as bookings_count'),
-                DB::raw('SUM(ticket_bookings.seat_count) as tickets_sold'),
-                DB::raw('SUM(ticket_bookings.final_amount) as total_revenue')
-            )
-            ->groupBy('routes.id', 'routes.name', 'routes.from_city', 'routes.to_city')
-            ->orderBy('total_revenue', 'desc')
-            ->get();
-
-        // Revenue by Partner
-        $partnersReport = DB::table('ticket_bookings')
-            ->join('partners', 'ticket_bookings.partner_id', '=', 'partners.id')
-            ->whereBetween('ticket_bookings.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->where('ticket_bookings.payment_status', 'paid')
-            ->select(
-                'partners.id',
-                'partners.name',
-                'partners.commission_rate',
-                DB::raw('COUNT(ticket_bookings.id) as bookings_count'),
-                DB::raw('SUM(ticket_bookings.seat_count) as tickets_sold'),
-                DB::raw('SUM(ticket_bookings.final_amount) as total_revenue')
-            )
-            ->groupBy('partners.id', 'partners.name', 'partners.commission_rate')
-            ->orderBy('total_revenue', 'desc')
-            ->get();
-
-        return response()->json([
-            'status' => 1,
-            'data' => [
-                'period' => ['start' => $startDate, 'end' => $endDate],
-                'gross_revenue' => (int) $grossRevenue,
-                'total_tickets' => (int) $totalTickets,
-                'total_bookings' => (int) $totalBookings,
-                'estimated_profit' => (int) $estimatedProfit,
-                'routes_report' => $routesReport,
-                'partners_report' => $partnersReport,
-            ],
-        ]);
+        parent::__construct($ops);
     }
 
-    public function exportCsv(Request $request)
+    private function period(Request $r): array
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+        $now = C::now(StudioBridge::TZ);
+        $start = $r->input('start_date') ?: $now->startOfMonth()->toDateString();
+        $end = $r->input('end_date') ?: $now->endOfMonth()->toDateString();
+        abort_unless(preg_match('/^\d{4}-\d{2}-\d{2}$/', $start) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $end) && $start <= $end, 422, 'Khoảng ngày không hợp lệ');
 
-        $bookings = TicketBooking::with(['partner:id,name', 'trip.route'])
-            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return [$start, $end];
+    }
 
-        $csvHeader = "\xEF\xBB\xBFMã vé,Hành khách,Số điện thoại,Nhà xe,Tuyến đường,Số ghế,Số lượng,Tổng tiền,Trạng thái,Phương thức,Ngày đặt\n";
-        $csvContent = '';
+    private function rows(Request $r, string $start, string $end)
+    {
+        [$a, $z] = $this->bridge->utcBounds($start, $end);
+        $rows = $this->bridge->bookingRows($this->bridge->scope($r))->filter(fn ($b) => $b->created_at >= $a && $b->created_at <= $z)->values();
 
-        foreach ($bookings as $b) {
-            $seatsStr = is_array($b->seats) ? implode(';', $b->seats) : '';
-            $routeName = $b->trip && $b->trip->route ? $b->trip->route->name : '';
-            $partnerName = $b->partner ? $b->partner->name : '';
+        return $this->bridge->bookings($rows)->map(function ($b) use ($rows) {
+            $raw = $rows->firstWhere('id', $b['id']);
+            $b['platform_bps'] = (int) ($this->ops->data($raw)['platformCommissionBps'] ?? 0);
+            $b['route_id'] = $raw->trip_route_id;
 
-            $csvContent .= sprintf(
-                "\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,\"%s\",\"%s\",\"%s\"\n",
-                $b->booking_code,
-                $b->customer_name,
-                $b->customer_phone,
-                $partnerName,
-                $routeName,
-                $seatsStr,
-                $b->seat_count,
-                $b->final_amount,
-                $b->payment_status,
-                $b->payment_method,
-                $b->created_at->format('Y-m-d H:i')
-            );
+            return $b;
+        });
+    }
+
+    public function getSummary(Request $r)
+    {
+        [$start, $end] = $this->period($r);
+        $items = $this->rows($r, $start, $end);
+        $live = $items->where('booking_status', '!=', 'cancelled');
+        $profit = (int) round($items->sum(fn ($b) => $b['paid_amount'] * $b['platform_bps'] / 10000));
+
+        $routes = $live->groupBy('route_id')->map(fn ($g, $id) => [
+            'id' => $id, 'name' => $g->first()['trip']['route']['name'],
+            'from_city' => $g->first()['trip']['route']['from_city'], 'to_city' => $g->first()['trip']['route']['to_city'],
+            'bookings_count' => $g->count(), 'tickets_sold' => $g->sum('seat_count'), 'total_revenue' => $g->sum('paid_amount'),
+        ])->sortByDesc('total_revenue')->values();
+        $partners = $live->groupBy('partner_id')->map(fn ($g, $id) => [
+            'id' => $id, 'name' => $g->first()['partner']['name'],
+            'commission_rate' => round(($g->first()['platform_bps'] ?? 0) / 100, 2),
+            'tickets_sold' => $g->sum('seat_count'), 'total_revenue' => $g->sum('paid_amount'),
+            'commission_amount' => (int) round($g->sum(fn ($b) => $b['paid_amount'] * $b['platform_bps'] / 10000)),
+        ])->sortByDesc('total_revenue')->values();
+
+        return response()->json(['status' => 1, 'data' => [
+            'period' => ['start' => $start, 'end' => $end],
+            'gross_revenue' => (int) $items->sum('paid_amount'),
+            'total_tickets' => (int) $live->sum('seat_count'),
+            'total_bookings' => $live->count(),
+            'cancelled_bookings' => $items->count() - $live->count(),
+            'unpaid_amount' => (int) $live->sum('due_amount'),
+            'estimated_profit' => $profit,
+            'routes_report' => $routes,
+            'partners_report' => $partners,
+        ]]);
+    }
+
+    public function exportCsv(Request $r)
+    {
+        [$start, $end] = $this->period($r);
+        $status = ['confirmed' => 'Đã xác nhận', 'checked_in' => 'Đã lên xe', 'cancelled' => 'Đã hủy'];
+        $pay = ['paid' => 'Đã thu', 'unpaid' => 'Chưa thu', 'partially_paid' => 'Thu một phần', 'refund_due' => 'Chờ hoàn', 'refunded' => 'Đã hoàn'];
+        $rows = [['Mã vé', 'Ngày đặt', 'Nhà xe', 'Tuyến', 'Giờ chạy', 'Khách', 'SĐT', 'Ghế', 'Thành tiền', 'Đã thu', 'Còn nợ', 'Thanh toán', 'Trạng thái', 'Kênh']];
+        foreach ($this->rows($r, $start, $end) as $b) {
+            $rows[] = [$b['booking_code'], $b['created_at'], $b['partner']['name'], $b['trip']['route']['name'], $b['trip']['depart_time'],
+                $b['customer_name'], $b['customer_phone'], implode(' ', $b['seats']), $b['final_amount'], $b['paid_amount'], $b['due_amount'],
+                $pay[$b['payment_status']] ?? $b['payment_status'], $status[$b['booking_status']] ?? $b['booking_status'], $b['source'] === 'online' ? 'Online' : 'Tại quầy'];
         }
 
-        return response($csvHeader . $csvContent, 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="bao-cao-ve-danavago-' . date('Ymd') . '.csv"',
-        ]);
+        return $this->csv("bao-cao-ve-danavago-{$start}-{$end}.csv", $rows);
     }
 }
-

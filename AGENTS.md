@@ -26,6 +26,7 @@ Load only skills relevant to the current task. Review the actual browser result 
 - `src/utils/searchNavigation.ts`: clean root URL, legacy query import and per-history-entry search restore; never mutate /app or future admin paths. `npm run test:navigation` covers this contract.
 - `src/components/seats/SeatButton.tsx`, `SeatMap.tsx`, `seat-experience.css`: capsule / leather armchair / private-suite artwork and inventory-driven layout.
 - `src/components/seats/SeatSelectionModal.tsx`: existing selection totals and passenger limit.
+- `src/components/seats/BusSeatDeck.tsx`: top-down deck shared by appgo seat choice and the Studio seat-map editor (`studio/views/SeatMapEditor.tsx`). Vehicle `seatMap` (grid, price groups, per-seat surcharge, unsellable seats) lives in `OperatorService::normalizeSeatMap`; customers pay trip fare + seat surcharge (`seatAmount`).
 - `src/components/search`, `checkout`, `tickets`: booking flow; preserve behavior.
 - `docs/hero.md`: composition, asset provenance, limitations and verification.
 - `docs/cleanup.md`: removed resources and context-reduction rationale.
@@ -75,12 +76,16 @@ does not authorize deployment; follow the user's current scope.
 
 Read `docs/LARAVEL_PORTALS.md` before API, hosting or multi-domain changes.
 PHP Laravel backend lives in `backend/`; React frontend and hero animations stay.
-`/manage` and `/admin` use StudioApp; `/app` is the common live booking app,
-`/app/{slug}` is a local preview of a tenant app, `/nha-xe/{slug}` is its profile.
+Host/path → app is `src/utils/surface.ts` (`npm run test:surfaces`), mirrored by
+`backend/config/portals.php` + `PortalService::platformHosts()`; change both together.
+`app.danavago.com` (local `/appgo`) is appgo, the customer app on `/api/public/*`;
+`studio.` (local `/manage`) is the single StudioApp; `admin.`/`/admin` only redirect to it; tenant hosts and
+`/app/{slug}` use PortalEntry, `/nha-xe/{slug}` is the operator profile.
 PortalService resolves only active verified domains to the correct tenant.
 Never trust a client tenant ID to override a tenant-app hostname. Keep sessions
 host-only and require CSRF for public booking writes as well as management.
-Run `npm run test:server`, `npm run test:php`, build/lint and relevant browser QA.
+Studio `/api/admin/*` runs on the live model via `StudioBridge` (scope + role areas); never reintroduce
+separate booking tables. Run `npm run test:server`, `npm run test:studio`, `npm run test:php`, build/lint and browser QA.
 Backend PHP needs 8.3+, Composer 2; production document root is `backend/public`.
 Use `npm run build:hosting`, never replace Laravel .htaccess with SPA rewrites.
 Do not commit .env, vendor, local runtime, SQLite files, session files or uploads.

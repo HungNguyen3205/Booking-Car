@@ -158,7 +158,7 @@ export const ReportsView: React.FC = () => {
       </section>
 
       {/* Grid 2 Bảng chi tiết: Báo cáo Tuyến & Báo cáo Nhà xe */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))", gap: 20 }}>
         {/* Báo cáo theo Tuyến đường */}
         <div className="ds-panel">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>

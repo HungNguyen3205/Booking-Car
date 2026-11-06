@@ -25,6 +25,7 @@ class Admin extends Authenticatable
         'permissions',
         'tinh_trang',
         'last_login_at',
+        'permission_group_id',
     ];
 
     protected $attributes = [
@@ -51,6 +52,45 @@ class Admin extends Authenticatable
         ];
     }
 
+    /** Role descriptor (code, name, level) for the UI. */
+    public function getAdminRoleAttribute(): ?array
+    {
+        return PermissionMatrix::getAllRoles()[$this->role] ?? null;
+    }
+
+    /** Effective permissions: role defaults ∪ custom permission group ∪ individually granted. */
+    public function getAllPermissionsAttribute(): array
+    {
+        $granted = is_array($this->permissions) ? $this->permissions : [];
+        $group = [];
+        if ($this->permission_group_id) {
+            $raw = \Illuminate\Support\Facades\DB::table('permission_groups')->where('id', $this->permission_group_id)->value('permissions');
+            $group = json_decode($raw ?? '[]', true) ?: [];
+        }
+
+        return array_values(array_unique(array_merge(PermissionMatrix::getDefaultPermissionsForRole((string) $this->role), $group, $granted)));
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === PermissionMatrix::ROLE_OWNER;
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return $this->isOwner() || in_array($permission, $this->all_permissions, true);
+    }
+
+    public function hasAnyPermission(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if ($this->hasPermission($permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /**
      * Danh sách bài viết do Admin tạo

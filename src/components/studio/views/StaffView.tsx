@@ -17,9 +17,10 @@ import {
 } from "lucide-react";
 import { adminApi } from "../../../services/adminApi";
 import type { StaffItem } from "../../../services/adminApi";
+import PermissionGroupsPanel from "./modules/PermissionGroupsPanel";
 
 export default function StaffView() {
-  const [activeTab, setActiveTab] = useState<"staff" | "audit">("staff");
+  const [activeTab, setActiveTab] = useState<"staff" | "audit" | "groups">("staff");
   const [staffList, setStaffList] = useState<StaffItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,34 +38,32 @@ export default function StaffView() {
     password: "",
     so_dien_thoai: "",
     dia_chi: "",
-    role: "dispatcher",
+    role: "sales",
+    partner_id: "",
     permissions: [] as string[],
     tinh_trang: 1,
   });
+  const [partners, setPartners] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    adminApi.getPartners().then((r) => {
+      const list = (r.data || []) as { id: string; name: string }[];
+      setPartners(list);
+      if (list.length === 1) setFormData((f) => ({ ...f, partner_id: list[0].id }));
+    }).catch(() => setPartners([]));
+  }, []);
 
-  const availablePermissions = [
-    { key: "trips.view", label: "Xem lịch trình & chuyến xe" },
-    { key: "trips.manage", label: "Điều hành & xếp xe / tài xế" },
-    { key: "bookings.view", label: "Xem danh sách đặt vé" },
-    { key: "bookings.manage", label: "Bán vé, hủy vé & xác nhận thanh toán" },
-    { key: "routes.manage", label: "Quản lý tuyến đường & điểm đón trả" },
-    { key: "vehicles.manage", label: "Quản lý đội xe & ma trận sơ đồ ghế" },
-    { key: "finance.view", label: "Xem báo cáo doanh số & công nợ" },
-    { key: "finance.settle", label: "Chốt đối soát & thanh toán nhà xe" },
-    { key: "partners.manage", label: "Quản lý nhà xe đối tác & tên miền" },
-    { key: "system.settings", label: "Cấu hình hệ thống & SMTP / SMS" },
-  ];
 
   const roleLabels: Record<string, { label: string; badge: string }> = {
-    owner: { label: "Chủ hệ thống (Owner)", badge: "badge-purple" },
-    admin: { label: "Quản trị viên (Admin)", badge: "badge-blue" },
-    manager: { label: "Quản lý điều hành", badge: "badge-teal" },
-    dispatcher: { label: "Điều hành tour / vé", badge: "badge-orange" },
-    operator_staff: { label: "Nhân viên nhà xe", badge: "badge-gray" },
-    accountant: { label: "Kế toán tài chính", badge: "badge-green" },
+    owner: { label: "Chủ nhà xe", badge: "badge-purple" },
+    manager: { label: "Quản lý", badge: "badge-teal" },
+    dispatcher: { label: "Điều hành", badge: "badge-orange" },
+    sales: { label: "Bán vé", badge: "badge-blue" },
+    accountant: { label: "Kế toán", badge: "badge-green" },
+    driver: { label: "Tài xế", badge: "badge-gray" },
   };
 
   const loadData = async () => {
+    if (activeTab === "groups") return; // the panel loads its own data
     setLoading(true);
     try {
       if (activeTab === "staff") {
@@ -89,16 +88,6 @@ export default function StaffView() {
     loadData();
   }, [activeTab]);
 
-  const handleTogglePermission = (permKey: string) => {
-    setFormData((prev) => {
-      const exists = prev.permissions.includes(permKey);
-      if (exists) {
-        return { ...prev, permissions: prev.permissions.filter((p) => p !== permKey) };
-      } else {
-        return { ...prev, permissions: [...prev.permissions, permKey] };
-      }
-    });
-  };
 
   const handleCreateStaff = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +105,8 @@ export default function StaffView() {
           password: "",
           so_dien_thoai: "",
           dia_chi: "",
-          role: "dispatcher",
+          role: "sales",
+          partner_id: partners.length === 1 ? partners[0].id : "",
           permissions: [],
           tinh_trang: 1,
         });
@@ -179,6 +169,12 @@ export default function StaffView() {
             >
               <FileText size={16} /> Nhật ký hoạt động (Audit Logs)
             </button>
+            <button
+              className={`ds-tab-btn ${activeTab === "groups" ? "active" : ""}`}
+              onClick={() => setActiveTab("groups")}
+            >
+              <ShieldCheck size={16} /> Nhóm quyền
+            </button>
           </div>
           {activeTab === "staff" && (
             <button className="ds-btn ds-btn-primary" onClick={() => setModalOpen(true)}>
@@ -191,7 +187,9 @@ export default function StaffView() {
       {successMsg && <div className="ds-alert ds-alert-success">{successMsg}</div>}
       {errorMsg && <div className="ds-alert ds-alert-danger">{errorMsg}</div>}
 
-      {activeTab === "staff" ? (
+      {activeTab === "groups" ? (
+        <PermissionGroupsPanel />
+      ) : activeTab === "staff" ? (
         <>
           <div className="ds-filter-bar">
             <div className="ds-search-input">
@@ -207,12 +205,12 @@ export default function StaffView() {
               <Filter size={16} />
               <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
                 <option value="all">Tất cả vai trò</option>
-                <option value="owner">Chủ hệ thống</option>
-                <option value="admin">Quản trị viên</option>
-                <option value="manager">Quản lý điều hành</option>
-                <option value="dispatcher">Điều hành tour/vé</option>
-                <option value="operator_staff">Nhân viên nhà xe</option>
+                <option value="owner">Chủ nhà xe</option>
+                <option value="manager">Quản lý</option>
+                <option value="dispatcher">Điều hành</option>
+                <option value="sales">Bán vé</option>
                 <option value="accountant">Kế toán</option>
+                <option value="driver">Tài xế</option>
               </select>
             </div>
             <button className="ds-btn ds-btn-outline" onClick={loadData} title="Làm mới">
@@ -427,8 +425,8 @@ export default function StaffView() {
                       <input
                         type="password"
                         required
-                        minLength={6}
-                        placeholder="Tối thiểu 6 ký tự"
+                        minLength={12}
+                        placeholder="Tối thiểu 12 ký tự"
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       />
@@ -436,16 +434,19 @@ export default function StaffView() {
                   </div>
 
                   <div className="ds-form-group">
-                    <label>Số điện thoại</label>
-                    <div className="ds-input-icon">
-                      <Phone size={16} />
-                      <input
-                        type="tel"
-                        placeholder="0987654321"
-                        value={formData.so_dien_thoai}
-                        onChange={(e) => setFormData({ ...formData, so_dien_thoai: e.target.value })}
-                      />
-                    </div>
+                    <label>
+                      Thuộc nhà xe <span className="ds-required">*</span>
+                    </label>
+                    <select
+                      required
+                      value={formData.partner_id}
+                      onChange={(e) => setFormData({ ...formData, partner_id: e.target.value })}
+                    >
+                      {partners.length !== 1 && <option value="">Chọn nhà xe</option>}
+                      {partners.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="ds-form-group">
@@ -458,43 +459,21 @@ export default function StaffView() {
                         value={formData.role}
                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                       >
-                        <option value="dispatcher">Điều hành tour / vé (Dispatcher)</option>
-                        <option value="manager">Quản lý điều hành (Manager)</option>
-                        <option value="admin">Quản trị viên (Admin)</option>
-                        <option value="operator_staff">Nhân viên nhà xe (Operator Staff)</option>
-                        <option value="accountant">Kế toán tài chính (Accountant)</option>
+                        <option value="sales">Bán vé — bán tại quầy, thu tiền, soát vé</option>
+                        <option value="dispatcher">Điều hành — chuyến, xe, tuyến, soát vé</option>
+                        <option value="accountant">Kế toán — thu chi, sổ quỹ, báo cáo</option>
+                        <option value="driver">Tài xế — soát vé chuyến được phân công</option>
+                        <option value="manager">Quản lý — gần như toàn quyền nhà xe</option>
+                        <option value="owner">Chủ nhà xe — toàn quyền</option>
                       </select>
                     </div>
                   </div>
-
-                  <div className="ds-form-group">
-                    <label>Địa chỉ công tác</label>
-                    <input
-                      type="text"
-                      placeholder="Bến xe Mỹ Đình / Bến xe Trung tâm Đà Nẵng..."
-                      value={formData.dia_chi}
-                      onChange={(e) => setFormData({ ...formData, dia_chi: e.target.value })}
-                    />
-                  </div>
                 </div>
 
-                <div className="ds-permission-section mt-4">
-                  <label className="fw-bold mb-2 d-block">
-                    Phân quyền chi tiết (Quyền hạn bổ trợ):
-                  </label>
-                  <div className="ds-permission-grid">
-                    {availablePermissions.map((perm) => (
-                      <label key={perm.key} className="ds-checkbox-card">
-                        <input
-                          type="checkbox"
-                          checked={formData.permissions.includes(perm.key)}
-                          onChange={() => handleTogglePermission(perm.key)}
-                        />
-                        <span>{perm.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+                <p style={{ margin: "14px 0 0", fontSize: 13, color: "#64748b" }}>
+                  Quyền của tài khoản = quyền theo vai trò + nhóm quyền (gán ở tab "Nhóm quyền").
+                  Nhân sự đăng nhập tại trang quản lý bằng email và mật khẩu này.
+                </p>
               </div>
 
               <div className="ds-modal-footer">

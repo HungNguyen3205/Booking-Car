@@ -29,45 +29,9 @@ export const OverviewView: React.FC<{
         setStats(res.data);
       }
     } catch (err: any) {
-      console.warn("Using offline fallback data for Overview", err);
-      // High fidelity default data matching Image 1
-      setStats({
-        total_revenue: 5000000,
-        today_revenue: 1240000,
-        total_tickets_sold: 16,
-        today_tickets_sold: 4,
-        today_trips_count: 4,
-        occupancy_rate: 82.5,
-        total_bookings_count: 16,
-        pending_bookings_count: 12,
-        confirmed_bookings_count: 4,
-        completed_bookings_count: 8,
-        cancelled_bookings_count: 0,
-        vehicles_total: 9,
-        vehicles_active: 9,
-        vehicles_maintenance: 0,
-        total_customers: 2,
-        new_customers_week: 5,
-        six_month_chart: [
-          { label: "12/2025", date: "2025-12-01", value: 0 },
-          { label: "01/2026", date: "2026-01-01", value: 0 },
-          { label: "02/2026", date: "2026-02-01", value: 0 },
-          { label: "03/2026", date: "2026-03-01", value: 0 },
-          { label: "04/2026", date: "2026-04-01", value: 5000000 },
-          { label: "05/2026", date: "2026-05-01", value: 0 },
-        ],
-        revenue_chart: [],
-        operator_performance: [
-          { id: "1", name: "Cửa Ông Limousine", slug: "cua-ong-limousine", trips_count: 142, tickets_sold: 840, revenue: 218400000, commission_rate: 12 },
-          { id: "2", name: "Hải Vân Xanh", slug: "hai-van-xanh", trips_count: 88, tickets_sold: 165, revenue: 29700000, commission_rate: 10 },
-          { id: "3", name: "DANAVA Go Vận Tải", slug: "danava-go", trips_count: 45, tickets_sold: 30, revenue: 3600000, commission_rate: 0 },
-        ],
-        recent_bookings: [
-          { id: "1", booking_code: "DN-88421", customer_name: "Nguyễn Minh Tuấn", customer_phone: "0912445566", seats: ["VIP-01", "VIP-02"], final_amount: 530000, payment_status: "paid", created_at: new Date().toISOString() },
-          { id: "2", booking_code: "DN-92147", customer_name: "Lê Thị Mai Hương", customer_phone: "0988776655", seats: ["VIP-03"], final_amount: 290000, payment_status: "paid", created_at: new Date().toISOString() },
-          { id: "3", booking_code: "DN-77319", customer_name: "Hoàng Nhật Minh", customer_phone: "0905334455", seats: ["A01"], final_amount: 180000, payment_status: "paid", created_at: new Date().toISOString() },
-        ],
-      });
+      // Never substitute invented figures for real statistics.
+      setStats(null);
+      setError(`Không tải được số liệu tổng quan: ${err?.message || "lỗi kết nối"}`);
     } finally {
       setLoading(false);
     }
@@ -88,32 +52,28 @@ export const OverviewView: React.FC<{
     return `${dayName}, ${date} tháng ${month}, ${year}`;
   };
 
-  // 6-Month Chart Data (Exact match Image 1: 12/2025 to 05/2026)
-  const sixMonthData = stats?.six_month_chart && stats.six_month_chart.length > 0
-    ? stats.six_month_chart
-    : [
-        { label: "12/2025", date: "2025-12-01", value: 0 },
-        { label: "01/2026", date: "2026-01-01", value: 0 },
-        { label: "02/2026", date: "2026-02-01", value: 0 },
-        { label: "03/2026", date: "2026-03-01", value: 0 },
-        { label: "04/2026", date: "2026-04-01", value: 5000000 },
-        { label: "05/2026", date: "2026-05-01", value: 0 },
-      ];
+  // Last 6 months from the API; empty months render as zero bars.
+  const sixMonthData = stats?.six_month_chart ?? [];
 
   const maxVal = Math.max(1, ...sixMonthData.map((c) => c.value));
+  // Real month-over-month change; null when last month had no revenue.
+  const thisMonth = sixMonthData.at(-1)?.value ?? 0;
+  const lastMonth = sixMonthData.at(-2)?.value ?? 0;
+  const monthTrend = lastMonth > 0 ? Math.round(((thisMonth - lastMonth) / lastMonth) * 100) : null;
 
-  // Key values
-  const totalRevFormatted = money(stats?.total_revenue || 5000000).replace("đ", " ₫");
-  const totalBookings = stats?.total_bookings_count ?? 16;
-  const pendingBookings = stats?.pending_bookings_count ?? 12;
-  const confirmedBookings = stats?.confirmed_bookings_count ?? 4;
-  const completedBookings = stats?.completed_bookings_count ?? 8;
-  const cancelledBookings = stats?.cancelled_bookings_count ?? 0;
-  const vehiclesActive = stats?.vehicles_active ?? 9;
-  const vehiclesTotal = stats?.vehicles_total ?? 9;
-  const vehiclesMaint = stats?.vehicles_maintenance ?? 0;
-  const totalCustomers = stats?.total_customers ?? 2;
-  const newCustomersWeek = stats?.new_customers_week ?? 5;
+  // Key values: "—" until real data arrives (or if it failed).
+  const dash = "—";
+  const totalRevFormatted = stats ? money(stats.total_revenue || 0).replace("đ", " ₫") : dash;
+  const totalBookings = stats?.total_bookings_count ?? dash;
+  const pendingBookings = stats?.pending_bookings_count ?? dash;
+  const confirmedBookings = stats?.confirmed_bookings_count ?? dash;
+  const completedBookings = stats?.completed_bookings_count ?? dash;
+  const cancelledBookings = stats?.cancelled_bookings_count ?? dash;
+  const vehiclesActive = stats?.vehicles_active ?? dash;
+  const vehiclesTotal = stats?.vehicles_total ?? dash;
+  const vehiclesMaint = stats?.vehicles_maintenance ?? dash;
+  const totalCustomers = stats?.total_customers ?? dash;
+  const newCustomersWeek = stats?.new_customers_week ?? dash;
 
   return (
     <div className="ds-page" style={{ gap: 24 }}>
@@ -147,7 +107,13 @@ export const OverviewView: React.FC<{
             <span className="ds-kpi-label">TỔNG DOANH THU</span>
             <strong className="ds-kpi-val">{totalRevFormatted}</strong>
             <div className="ds-kpi-footer">
-              <span className="ds-kpi-trend-orange">↑ 12%</span> so với tháng trước
+              {monthTrend === null ? (
+                "Chưa đủ dữ liệu so sánh tháng trước"
+              ) : (
+                <>
+                  <span className="ds-kpi-trend-orange">{monthTrend >= 0 ? "↑" : "↓"} {Math.abs(monthTrend)}%</span> so với tháng trước
+                </>
+              )}
             </div>
           </div>
         </article>

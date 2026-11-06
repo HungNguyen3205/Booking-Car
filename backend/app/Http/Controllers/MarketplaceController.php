@@ -36,7 +36,11 @@ class MarketplaceController extends Controller
     public function search(Request $r)
     {
         $b = $r->validate(['from' => 'required|string|max:100|different:to', 'to' => 'required|string|max:100', 'date' => 'required|date_format:Y-m-d|after_or_equal:'.$this->ops->day(), 'passengers' => 'nullable|integer|min:1|max:5', 'operator' => 'nullable|string']);
-        $rows = DB::table('trips')->join('tenants', 'trips.tenant_id', '=', 'tenants.id')->where('trips.status', 'published')->where('tenants.status', 'active')->where('depart_at', '>', $this->ops->now())->select('trips.*')->orderBy('depart_at')->get();
+        $local = \Carbon\CarbonImmutable::parse($b['date'], 'Asia/Ho_Chi_Minh')->startOfDay();
+        [$dayStart, $dayEnd] = [$local->utc()->format('Y-m-d\TH:i:s.v\Z'), $local->addDay()->utc()->format('Y-m-d\TH:i:s.v\Z')];
+        $rows = DB::table('trips')->join('tenants', 'trips.tenant_id', '=', 'tenants.id')->where('trips.status', 'published')->where('tenants.status', 'active')->where('depart_at', '>', $this->ops->now())
+            // Only the requested local day (Asia/Ho_Chi_Minh), so search cost does not grow with the whole schedule.
+            ->where('depart_at', '>=', $dayStart)->where('depart_at', '<', $dayEnd)->select('trips.*')->orderBy('depart_at')->get();
         $hostTenant = app(PortalService::class)->tenantForHost($r);
         if ($hostTenant && isset($b['operator'])) {
             abort_unless($b['operator'] === $hostTenant, 403, 'Không truy cập nhà xe khác từ app này');
@@ -87,7 +91,17 @@ class MarketplaceController extends Controller
     {
         app(PortalService::class)->scopeTrip($r, (string) $r->input('tripId'));
 
-        return response()->json($this->ops->reserve($r->all(), null, null, $this->token($r), (string) $r->header('Idempotency-Key')), 201);
+        $booking = $this->ops->reserve($r->all(), null, null, $this->token($r), (string) $r->header('Idempotency-Key'));
+        // Every online booking gets a customer account (login = phone). The checkout
+        // shows these credentials before the ticket; an existing account is untouched.
+        $accounts = app(\App\Services\CustomerAccounts::class);
+        $account = $accounts->ensure($booking['passenger']['phone'], $booking['passenger']['fullName']);
+        if (! DB::table('customer_notifications')->where(['booking_id' => $booking['id'], 'title' => 'Đặt vé thành công'])->exists()) {
+            $accounts->notify($booking['passenger']['phone'], $booking['id'], 'Đặt vé thành công',
+                'Vé '.$booking['id'].' · '.$booking['trip']['from'].' → '.$booking['trip']['to'].' lúc '.$booking['trip']['departureTime'].' ngày '.$booking['date'].'. Thanh toán tại quầy hoặc chuyển khoản; nhà xe xác nhận khi nhận tiền.');
+        }
+
+        return response()->json($booking + ['account' => $account + ($account['created'] ? ['tempPassword' => \App\Services\CustomerAccounts::TEMP_PASSWORD] : [])], 201);
     }
 
     public function lookup(Request $r)

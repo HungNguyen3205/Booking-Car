@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\PlatformController;
 use App\Http\Controllers\PortalController;
@@ -20,6 +21,13 @@ use App\Http\Controllers\Admin\PromotionController as AdminPromotionController;
 use App\Http\Controllers\Admin\AdminController as AdminStaffController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
+use App\Http\Controllers\Admin\CashbookController as AdminCashbookController;
+use App\Http\Controllers\Admin\CheckinController as AdminCheckinController;
+use App\Http\Controllers\Admin\CompareReportController as AdminCompareReportController;
+use App\Http\Controllers\Admin\MarketingController as AdminMarketingController;
+use App\Http\Controllers\Admin\PermissionGroupController as AdminPermissionGroupController;
+use App\Http\Controllers\Admin\WorkforceController as AdminWorkforceController;
+use App\Http\Middleware\EnsureStudioAccess;
 use App\Services\OperatorService;
 use App\Services\PortalService;
 use Illuminate\Http\Request;
@@ -33,6 +41,10 @@ Route::prefix('api')->middleware('auth.session')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::patch('auth/password', [AuthController::class, 'password']);
+    // Customer accounts (login = phone, created at checkout).
+    Route::get('customer/bookings', [CustomerController::class, 'myBookings']);
+    Route::get('customer/notifications', [CustomerController::class, 'notifications']);
+    Route::post('customer/notifications/read', [CustomerController::class, 'readNotifications']);
     Route::get('public/operators', [MarketplaceController::class, 'operators']);
     Route::get('public/operators/{slug}', [PortalController::class, 'profile']);
     Route::get('public/context', [PortalController::class, 'context']);
@@ -42,87 +54,127 @@ Route::prefix('api')->middleware('auth.session')->group(function () {
     Route::delete('public/holds/{id}', [MarketplaceController::class, 'release']);
     Route::post('public/bookings', [MarketplaceController::class, 'reserve'])->middleware('throttle:30,1');
     Route::post('public/lookup', [MarketplaceController::class, 'lookup']);
+    Route::post('public/reviews', [AdminMarketingController::class, 'submitReview'])->middleware('throttle:10,1');
 
     // DANAVA Go Admin APIs (Quản trị toàn diện hệ thống)
-    Route::prefix('admin')->group(function () {
-        // 1. TỔNG QUAN
-        Route::get('statistics', [AdminDashboardController::class, 'getStatistics']);
+    // Studio API (/manage UI) on the live operator model. Every route needs a
+    // signed-in, active account; `studio:<area>` limits roles (StudioBridge::AREAS)
+    // and controllers scope data to the account's own operator (platform: all).
+    Route::prefix('admin')->middleware('auth')->group(function () {
+        $area = fn (string $a) => EnsureStudioAccess::class.':'.$a;
 
-        // 2. VẬN HÀNH
-        Route::get('bookings', [AdminTicketBookingController::class, 'index']);
-        Route::get('bookings/{id}', [AdminTicketBookingController::class, 'show']);
-        Route::post('bookings', [AdminTicketBookingController::class, 'store']);
-        Route::patch('bookings/{id}', [AdminTicketBookingController::class, 'update']);
-        Route::post('bookings/{id}/confirm-payment', [AdminTicketBookingController::class, 'confirmPayment']);
-        Route::delete('bookings/{id}', [AdminTicketBookingController::class, 'destroy']);
+        Route::get('statistics', [AdminDashboardController::class, 'getStatistics'])->middleware($area('overview'));
 
-        Route::get('trips', [AdminTripController::class, 'index']);
-        Route::get('trips/{id}', [AdminTripController::class, 'show']);
-        Route::post('trips', [AdminTripController::class, 'store']);
-        Route::patch('trips/{id}', [AdminTripController::class, 'update']);
-        Route::get('trips/{id}/manifest', [AdminTripController::class, 'manifest']);
-        Route::delete('trips/{id}', [AdminTripController::class, 'destroy']);
+        Route::middleware($area('bookings'))->group(function () {
+            Route::get('bookings', [AdminTicketBookingController::class, 'index']);
+            Route::get('bookings/{id}', [AdminTicketBookingController::class, 'show']);
+            Route::post('bookings', [AdminTicketBookingController::class, 'store']);
+            Route::patch('bookings/{id}', [AdminTicketBookingController::class, 'update']);
+            Route::post('bookings/{id}/confirm-payment', [AdminTicketBookingController::class, 'confirmPayment']);
+            Route::delete('bookings/{id}', [AdminTicketBookingController::class, 'destroy']);
+        });
 
-        Route::get('routes', [AdminRouteController::class, 'index']);
-        Route::get('routes/{id}', [AdminRouteController::class, 'show']);
-        Route::post('routes', [AdminRouteController::class, 'store']);
-        Route::patch('routes/{id}', [AdminRouteController::class, 'update']);
-        Route::delete('routes/{id}', [AdminRouteController::class, 'destroy']);
+        Route::middleware($area('trips'))->group(function () {
+            Route::get('trips', [AdminTripController::class, 'index']);
+            Route::get('trips/{id}', [AdminTripController::class, 'show']);
+            Route::get('trips/{id}/manifest', [AdminTripController::class, 'manifest']);
+        });
+        Route::middleware($area('fleet'))->group(function () {
+            Route::post('trips', [AdminTripController::class, 'store']);
+            Route::patch('trips/{id}', [AdminTripController::class, 'update']);
+            Route::delete('trips/{id}', [AdminTripController::class, 'destroy']);
+            Route::post('routes', [AdminRouteController::class, 'store']);
+            Route::patch('routes/{id}', [AdminRouteController::class, 'update']);
+            Route::delete('routes/{id}', [AdminRouteController::class, 'destroy']);
+            Route::post('vehicles', [AdminBusVehicleController::class, 'store']);
+            Route::patch('vehicles/{id}', [AdminBusVehicleController::class, 'update']);
+            Route::delete('vehicles/{id}', [AdminBusVehicleController::class, 'destroy']);
+            Route::post('seat-layouts', [AdminBusVehicleController::class, 'saveSeatLayout']);
+            Route::delete('seat-layouts/{id}', [AdminBusVehicleController::class, 'deleteSeatLayout']);
+        });
+        // Reading operators/routes/vehicles is needed to sell tickets, schedule and board.
+        Route::middleware($area('checkin'))->group(function () {
+            Route::get('routes', [AdminRouteController::class, 'index']);
+            Route::get('routes/{id}', [AdminRouteController::class, 'show']);
+            Route::get('vehicles', [AdminBusVehicleController::class, 'index']);
+            Route::get('vehicles/{id}', [AdminBusVehicleController::class, 'show']);
+            Route::get('seat-layouts', [AdminBusVehicleController::class, 'getSeatLayouts']);
+            Route::get('partners', [AdminPartnerController::class, 'index']);
+            Route::get('partners/{id}', [AdminPartnerController::class, 'show']);
+            Route::get('checkin/lookup', [AdminCheckinController::class, 'lookup']);
+            Route::get('checkin/trips', [AdminCheckinController::class, 'trips']);
+            Route::get('checkin/trips/{tripId}', [AdminCheckinController::class, 'manifest']);
+            Route::post('checkin/{id}', [AdminCheckinController::class, 'board']);
+            Route::delete('checkin/{id}', [AdminCheckinController::class, 'undo']);
+        });
 
-        Route::get('vehicles', [AdminBusVehicleController::class, 'index']);
-        Route::get('vehicles/{id}', [AdminBusVehicleController::class, 'show']);
-        Route::post('vehicles', [AdminBusVehicleController::class, 'store']);
-        Route::patch('vehicles/{id}', [AdminBusVehicleController::class, 'update']);
-        Route::delete('vehicles/{id}', [AdminBusVehicleController::class, 'destroy']);
-        Route::get('seat-layouts', [AdminBusVehicleController::class, 'getSeatLayouts']);
-        Route::post('seat-layouts', [AdminBusVehicleController::class, 'saveSeatLayout']);
-        Route::delete('seat-layouts/{id}', [AdminBusVehicleController::class, 'deleteSeatLayout']);
+        Route::middleware($area('customers'))->group(function () {
+            Route::get('passengers', [AdminPassengerController::class, 'index']);
+            Route::get('passengers/{phone}', [AdminPassengerController::class, 'show']);
+            Route::post('passengers/{phone}/notes', [AdminPassengerController::class, 'addNote']);
+        });
 
-        Route::get('passengers', [AdminPassengerController::class, 'index']);
-        Route::get('passengers/{phone}', [AdminPassengerController::class, 'show']);
-        Route::post('passengers/{phone}/notes', [AdminPassengerController::class, 'addNote']);
+        Route::patch('partners/{id}', [AdminPartnerController::class, 'update'])->middleware($area('partner'));
+        Route::middleware($area('platform'))->group(function () {
+            Route::post('partners', [AdminPartnerController::class, 'store']);
+            Route::delete('partners/{id}', [AdminPartnerController::class, 'destroy']);
+            Route::get('partner-domains', [AdminPartnerDomainController::class, 'index']);
+            Route::post('partner-domains', [AdminPartnerDomainController::class, 'store']);
+            Route::patch('partner-domains/{id}', [AdminPartnerDomainController::class, 'update']);
+            Route::post('partner-domains/{id}/verify', [AdminPartnerDomainController::class, 'verify']);
+            Route::post('reconciliations/generate', [AdminReconciliationController::class, 'generate']);
+            Route::post('reconciliations/{id}/settle', [AdminReconciliationController::class, 'settle']);
+            Route::get('settings', [AdminSettingController::class, 'index']);
+            Route::put('settings', [AdminSettingController::class, 'update']);
+        });
 
-        // 3. ĐỐI TÁC
-        Route::get('partners', [AdminPartnerController::class, 'index']);
-        Route::get('partners/{id}', [AdminPartnerController::class, 'show']);
-        Route::post('partners', [AdminPartnerController::class, 'store']);
-        Route::patch('partners/{id}', [AdminPartnerController::class, 'update']);
-        Route::delete('partners/{id}', [AdminPartnerController::class, 'destroy']);
+        Route::middleware($area('finance'))->group(function () {
+            Route::get('payments', [AdminPaymentController::class, 'index']);
+            Route::post('payments', [AdminPaymentController::class, 'store']);
+            Route::patch('payments/{id}/status', [AdminPaymentController::class, 'updateStatus']);
+            Route::get('reconciliations', [AdminReconciliationController::class, 'index']);
+            Route::get('reconciliations/{id}', [AdminReconciliationController::class, 'show']);
+            Route::get('cashbook', [AdminCashbookController::class, 'index']);
+            Route::post('cashbook', [AdminCashbookController::class, 'store']);
+            Route::delete('cashbook/{id}', [AdminCashbookController::class, 'destroy']);
+            Route::get('debts', [AdminCashbookController::class, 'debts']);
+        });
+        Route::middleware($area('reports'))->group(function () {
+            Route::get('reports', [AdminReportController::class, 'getSummary']);
+            Route::get('reports/export', [AdminReportController::class, 'exportCsv']);
+            Route::get('reports/compare', [AdminCompareReportController::class, 'index']);
+        });
 
-        Route::get('partner-domains', [AdminPartnerDomainController::class, 'index']);
-        Route::post('partner-domains', [AdminPartnerDomainController::class, 'store']);
-        Route::patch('partner-domains/{id}', [AdminPartnerDomainController::class, 'update']);
-        Route::post('partner-domains/{id}/verify', [AdminPartnerDomainController::class, 'verify']);
+        Route::middleware($area('marketing'))->group(function () {
+            Route::get('promotions', [AdminPromotionController::class, 'index']);
+            Route::post('promotions', [AdminPromotionController::class, 'store']);
+            Route::patch('promotions/{id}', [AdminPromotionController::class, 'update']);
+            Route::delete('promotions/{id}', [AdminPromotionController::class, 'destroy']);
+            Route::get('campaigns', [AdminMarketingController::class, 'campaigns']);
+            Route::post('campaigns/preview', [AdminMarketingController::class, 'preview']);
+            Route::post('campaigns', [AdminMarketingController::class, 'storeCampaign']);
+            Route::patch('campaigns/{id}', [AdminMarketingController::class, 'updateCampaign']);
+            Route::get('reviews', [AdminMarketingController::class, 'reviews']);
+            Route::patch('reviews/{id}', [AdminMarketingController::class, 'updateReview']);
+        });
 
-        // 4. TÀI CHÍNH
-        Route::get('payments', [AdminPaymentController::class, 'index']);
-        Route::post('payments', [AdminPaymentController::class, 'store']);
-        Route::patch('payments/{id}/status', [AdminPaymentController::class, 'updateStatus']);
-
-        Route::get('reconciliations', [AdminReconciliationController::class, 'index']);
-        Route::get('reconciliations/{id}', [AdminReconciliationController::class, 'show']);
-        Route::post('reconciliations/generate', [AdminReconciliationController::class, 'generate']);
-        Route::post('reconciliations/{id}/settle', [AdminReconciliationController::class, 'settle']);
-
-        Route::get('reports', [AdminReportController::class, 'getSummary']);
-        Route::get('reports/export', [AdminReportController::class, 'exportCsv']);
-
-        // 5. HỆ THỐNG
-        Route::get('promotions', [AdminPromotionController::class, 'index']);
-        Route::post('promotions', [AdminPromotionController::class, 'store']);
-        Route::patch('promotions/{id}', [AdminPromotionController::class, 'update']);
-        Route::delete('promotions/{id}', [AdminPromotionController::class, 'destroy']);
-
-        Route::get('staff', [AdminStaffController::class, 'getData']);
-        Route::post('staff', [AdminStaffController::class, 'createData']);
-        Route::post('staff/update', [AdminStaffController::class, 'updateData']);
-        Route::post('staff/delete', [AdminStaffController::class, 'deleteData']);
-        Route::post('staff/status', [AdminStaffController::class, 'statusData']);
-
-        Route::get('settings', [AdminSettingController::class, 'index']);
-        Route::put('settings', [AdminSettingController::class, 'update']);
-
-        Route::get('audit-logs', [AdminAuditLogController::class, 'index']);
+        Route::middleware($area('staff'))->group(function () {
+            Route::get('staff', [AdminStaffController::class, 'getData']);
+            Route::post('staff', [AdminStaffController::class, 'createData']);
+            Route::post('staff/update', [AdminStaffController::class, 'updateData']);
+            Route::post('staff/delete', [AdminStaffController::class, 'deleteData']);
+            Route::post('staff/status', [AdminStaffController::class, 'statusData']);
+            Route::get('audit-logs', [AdminAuditLogController::class, 'index']);
+            Route::get('permission-groups', [AdminPermissionGroupController::class, 'index']);
+            Route::post('permission-groups', [AdminPermissionGroupController::class, 'store']);
+            Route::patch('permission-groups/{id}', [AdminPermissionGroupController::class, 'update']);
+            Route::delete('permission-groups/{id}', [AdminPermissionGroupController::class, 'destroy']);
+            Route::patch('staff/{adminId}/permission-group', [AdminPermissionGroupController::class, 'assign']);
+            Route::get('attendance', [AdminWorkforceController::class, 'attendance']);
+            Route::post('attendance', [AdminWorkforceController::class, 'mark']);
+            Route::put('staff/{adminId}/compensation', [AdminWorkforceController::class, 'saveCompensation']);
+            Route::get('payroll', [AdminWorkforceController::class, 'payroll']);
+        });
     });
 
     Route::middleware('auth')->group(function () {

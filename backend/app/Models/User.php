@@ -18,6 +18,6 @@ class User extends Authenticatable
 
     protected function casts(): array
     {
-        return ['active' => 'boolean'];
+        return ['active' => 'boolean', 'must_change_password' => 'boolean'];
     }
 }

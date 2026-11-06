@@ -10,10 +10,12 @@ abstract class Controller
 {
     public function __construct(protected OperatorService $ops) {}
 
-    protected function user(Request $r): object
+    protected function user(Request $r, bool $allowCustomer = false): object
     {
         $u = $r->user();
         abort_unless($u && $u->active, 401, 'Vui lòng đăng nhập');
+        // Customer accounts (created at checkout) only use /api/customer/* and their own password.
+        abort_if($u->role === 'customer' && ! $allowCustomer, 403, 'Tài khoản khách không dùng được mục này');
         if ($u->tenant_id) {
             abort_unless($this->ops->tenant($u->tenant_id)['status'] === 'active', 401, 'Nhà xe tạm ngưng');
         }

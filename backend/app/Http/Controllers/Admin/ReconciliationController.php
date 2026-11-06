@@ -7,19 +7,36 @@ use App\Models\AuditLog;
 use App\Models\BookingTransaction;
 use App\Models\Partner;
 use App\Models\Reconciliation;
-use App\Models\TicketBooking;
+use App\Services\OperatorService;
+use App\Services\StudioBridge;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ReconciliationController extends Controller
 {
+    public function __construct(OperatorService $ops, private StudioBridge $bridge)
+    {
+        parent::__construct($ops);
+    }
+
+    /** Paid live bookings of one operator created in [start, end] (Vietnam days). */
+    private function paidBookings(string $tid, string $start, string $end)
+    {
+        [$a, $z] = $this->bridge->utcBounds($start, $end);
+        $rows = $this->bridge->bookingRows([$tid])->filter(fn ($b) => $b->created_at >= $a && $b->created_at <= $z && $b->status !== 'cancelled')->values();
+
+        return $this->bridge->bookings($rows)->filter(fn ($b) => $b['paid_amount'] > 0)->values();
+    }
+
     public function index(Request $request)
     {
         $query = Reconciliation::with('partner:id,name,slug,bank_name,bank_account,bank_holder');
 
-        if ($request->filled('partner_id')) {
-            $query->where('partner_id', $request->partner_id);
+        $scope = $this->bridge->scope($request);
+        if ($scope !== null) {
+            $query->whereIn('partner_id', $scope);
         }
 
         if ($request->filled('status')) {
@@ -29,10 +46,11 @@ class ReconciliationController extends Controller
         $reconciliations = $query->orderBy('period_end', 'desc')->paginate($request->input('per_page', 20));
 
         // Summary metrics
-        $totalRevenue = Reconciliation::sum('total_revenue');
-        $totalCommission = Reconciliation::sum('commission_amount');
-        $totalPayout = Reconciliation::sum('payout_amount');
-        $pendingPayout = Reconciliation::whereIn('status', ['draft', 'pending_approval', 'confirmed'])->sum('payout_amount');
+        $base = Reconciliation::when($scope !== null, fn ($q) => $q->whereIn('partner_id', $scope));
+        $totalRevenue = (clone $base)->sum('total_revenue');
+        $totalCommission = (clone $base)->sum('commission_amount');
+        $totalPayout = (clone $base)->sum('payout_amount');
+        $pendingPayout = (clone $base)->whereIn('status', ['draft', 'pending_approval', 'confirmed'])->sum('payout_amount');
 
         return response()->json([
             'status' => 1,
@@ -46,17 +64,11 @@ class ReconciliationController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $rec = Reconciliation::with([
-            'partner.bank_name',
-        ])->findOrFail($id);
-
-        $bookings = TicketBooking::where('partner_id', $rec->partner_id)
-            ->where('payment_status', 'paid')
-            ->whereBetween('created_at', [$rec->period_start . ' 00:00:00', $rec->period_end . ' 23:59:59'])
-            ->with(['trip.route'])
-            ->get();
+        $rec = Reconciliation::with('partner')->findOrFail($id);
+        abort_unless($this->bridge->inScope($this->bridge->scope($request, ''), $rec->partner_id), 403, 'Không có quyền xem kỳ đối soát này');
+        $bookings = $this->paidBookings($rec->partner_id, (string) $rec->period_start, (string) $rec->period_end);
 
         return response()->json([
             'status' => 1,
@@ -70,23 +82,22 @@ class ReconciliationController extends Controller
     public function generate(Request $request)
     {
         $validated = $request->validate([
-            'partner_id' => 'required|exists:partners,id',
+            'partner_id' => 'required|exists:tenants,id',
             'period_start' => 'required|date',
             'period_end' => 'required|date|after_or_equal:period_start',
             'notes' => 'nullable|string',
         ]);
 
+        $this->bridge->allow($request, 'platform');
+        $this->bridge->ensurePartnerRow($validated['partner_id']);
         $partner = Partner::findOrFail($validated['partner_id']);
         $start = $validated['period_start'] . ' 00:00:00';
         $end = $validated['period_end'] . ' 23:59:59';
 
-        $bookings = TicketBooking::where('partner_id', $partner->id)
-            ->where('payment_status', 'paid')
-            ->whereBetween('created_at', [$start, $end])
-            ->get();
+        $bookings = $this->paidBookings($partner->id, $validated['period_start'], $validated['period_end']);
 
         $totalTickets = $bookings->sum('seat_count') ?: 0;
-        $totalRevenue = $bookings->sum('final_amount') ?: 0;
+        $totalRevenue = $bookings->sum('paid_amount') ?: 0;
         $commissionRate = (float) $partner->commission_rate;
         $commissionAmount = (int) round($totalRevenue * ($commissionRate / 100));
         $payoutAmount = max(0, $totalRevenue - $commissionAmount);
@@ -124,6 +135,7 @@ class ReconciliationController extends Controller
 
     public function settle(Request $request, $id)
     {
+        $this->bridge->allow($request, 'platform');
         $rec = Reconciliation::findOrFail($id);
 
         $validated = $request->validate([

@@ -14,6 +14,24 @@ class AuditLogController extends Controller
      */
     public function index(Request $request)
     {
+        // Operator accounts see their own operator's live audit trail only.
+        $bridge = app(\App\Services\StudioBridge::class);
+        $user = $bridge->user($request);
+        if (! $bridge->isPlatform($user)) {
+            $names = \Illuminate\Support\Facades\DB::table('users')->where('tenant_id', $user->tenant_id)->pluck('name', 'id');
+            $emails = \Illuminate\Support\Facades\DB::table('users')->where('tenant_id', $user->tenant_id)->pluck('email', 'id');
+            $rows = \Illuminate\Support\Facades\DB::table('audit')->where('tenant_id', $user->tenant_id)->orderByDesc('created_at')->limit(500)->get()
+                ->map(fn ($a) => ['id' => $a->id, 'actor_type' => 'user', 'actor_id' => $a->actor_id, 'actor_name' => $names[$a->actor_id] ?? 'Hệ thống',
+                    'actor_email' => $emails[$a->actor_id] ?? '', 'action' => $a->action, 'target_type' => explode('.', $a->action)[0], 'target_id' => $a->entity_id,
+                    'target_label' => $a->entity_id, 'new_values' => json_decode($a->detail ?? '[]', true), 'old_values' => null,
+                    'created_at' => $bridge->local($a->created_at)]);
+            if ($request->filled('search')) {
+                $k = mb_strtolower(trim((string) $request->search));
+                $rows = $rows->filter(fn ($x) => str_contains(mb_strtolower($x['action'].' '.$x['actor_name'].' '.$x['target_id']), $k))->values();
+            }
+
+            return response()->json(['status' => 1, 'data' => $bridge->page($rows, $request, 15)]);
+        }
         $query = AuditLog::query()->orderByDesc('id');
 
         // 1. Lọc theo hành động (action)

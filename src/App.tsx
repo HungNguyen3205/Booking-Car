@@ -13,6 +13,7 @@ import { DanavaGoHero } from "./components/danava-go/DanavaGoHero";
 
 import { FeaturedRoutes } from "./components/home/FeaturedRoutes";
 import { VehicleExperience } from "./components/home/VehicleExperience";
+import { AccountCreatedModal } from "./components/appgo/CustomerAccount";
 import { BookingSteps } from "./components/home/BookingSteps";
 import { BenefitsSection } from "./components/home/BenefitsSection";
 import { FaqSection } from "./components/home/FaqSection";
@@ -189,6 +190,8 @@ export const App: React.FC = () => {
   const [passengerInfo, setPassengerInfo] = useState<PassengerInfo | null>(
     null,
   );
+  // Customer account created at checkout; announced before the ticket is shown.
+  const [accountNotice, setAccountNotice] = useState<Booking["account"] | null>(null);
   const [completedBooking, setCompletedBooking] = useState<Booking | null>(
     null,
   );
@@ -392,6 +395,7 @@ export const App: React.FC = () => {
           bookingKey.current,
         );
         setCompletedBooking(booking);
+        setAccountNotice(booking.account ?? null);
         setSeatHold(null);
         setCurrentStep("success");
       } catch (e) {
@@ -701,6 +705,9 @@ export const App: React.FC = () => {
                     exit={{ opacity: 0 }}
                     transition={{ duration: shouldReduceMotion ? 0.04 : 0.3 }}
                   >
+                    {accountNotice && (
+                      <AccountCreatedModal account={accountNotice} onContinue={() => setAccountNotice(null)} />
+                    )}
                     <BoardingTicket
                       booking={completedBooking}
                       onNavigateHome={() => setCurrentStep("home")}

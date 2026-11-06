@@ -7,11 +7,14 @@ import {
   CheckCircle,
   XCircle,
   Eye,
+  Pencil,
   Calendar,
   X,
 } from "lucide-react";
 import { adminApi, type TicketBookingItem, type PartnerItem, type BusTripItem } from "../../../services/adminApi";
 import { money, formatDate } from "../studioConfig";
+import { BookingEditModal } from "./BookingEditModal";
+import "./bookings-table.css";
 
 export const BookingsView: React.FC = () => {
   const [bookings, setBookings] = useState<TicketBookingItem[]>([]);
@@ -26,9 +29,10 @@ export const BookingsView: React.FC = () => {
 
   // Modals
   const [detailBooking, setDetailBooking] = useState<TicketBookingItem | null>(null);
+  const [editBooking, setEditBooking] = useState<TicketBookingItem | null>(null);
   const [paymentModal, setPaymentModal] = useState<TicketBookingItem | null>(null);
   const [createModal, setCreateModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("vnpay");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentRef, setPaymentRef] = useState("");
   const [msg, setMsg] = useState("");
 
@@ -42,7 +46,7 @@ export const BookingsView: React.FC = () => {
     seats: "VIP-01",
     total_amount: 260000,
     payment_status: "paid" as const,
-    payment_method: "vnpay",
+    payment_method: "cash",
     notes: "",
   });
 
@@ -67,6 +71,7 @@ export const BookingsView: React.FC = () => {
       }
       if (resPartners.data) {
         setPartners(resPartners.data);
+        if (resPartners.data.length === 1) setNewBooking((f) => ({ ...f, partner_id: f.partner_id || resPartners.data[0].id }));
       }
       if (resTrips.data?.data) {
         setTrips(resTrips.data.data);
@@ -100,8 +105,8 @@ export const BookingsView: React.FC = () => {
   const handleCancelBooking = async (id: string) => {
     if (!confirm("Bạn có chắc chắn muốn hủy đơn vé này?")) return;
     try {
-      await adminApi.cancelBooking(id);
-      setMsg("Đã hủy đơn vé!");
+      const res = await adminApi.cancelBooking(id);
+      setMsg(res.message || "Đã hủy đơn vé!");
       loadData();
     } catch (err: any) {
       alert("Lỗi hủy vé: " + err.message);
@@ -190,6 +195,8 @@ export const BookingsView: React.FC = () => {
             <option value="">Tất cả TT thanh toán</option>
             <option value="paid">Đã thu đủ</option>
             <option value="unpaid">Chưa thu tiền</option>
+            <option value="partially_paid">Thu một phần</option>
+            <option value="refund_due">Chờ hoàn tiền</option>
             <option value="refunded">Đã hoàn tiền</option>
           </select>
 
@@ -203,7 +210,6 @@ export const BookingsView: React.FC = () => {
             <option value="">Tất cả trạng thái vé</option>
             <option value="confirmed">Đã đặt chỗ</option>
             <option value="checked_in">Đã lên xe</option>
-            <option value="completed">Đã hoàn thành</option>
             <option value="cancelled">Đã hủy</option>
           </select>
 
@@ -239,8 +245,8 @@ export const BookingsView: React.FC = () => {
 
       {/* Bảng danh sách đơn vé */}
       <div className="ds-panel ds-table-responsive" style={{ padding: 0, overflow: "hidden" }}>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 840 }}>
+        <div className="bkv-scroll">
+          <table className="bkv-table">
             <thead>
               <tr style={{ background: "#f8fafd", borderBottom: "1px solid #e2eaf4" }}>
                 <th style={{ padding: "12px 16px", textAlign: "left" }}>Mã vé</th>
@@ -273,7 +279,7 @@ export const BookingsView: React.FC = () => {
                       <span style={{ color: "#6c809c", fontSize: 12 }}>{b.customer_phone}</span>
                     </td>
                     <td style={{ padding: "14px 16px" }}>
-                      <span style={{ fontWeight: 600, color: "#2563eb", display: "block" }}>
+                      <span style={{ fontWeight: 600, color: "#2563eb", display: "block" }} title={b.partner?.name}>
                         {b.partner?.name || "DANAVA Go"}
                       </span>
                       <span style={{ fontSize: 12, color: "#476381" }}>
@@ -284,7 +290,7 @@ export const BookingsView: React.FC = () => {
                       {b.trip?.depart_time ? formatDate(b.trip.depart_time) : "—"}
                     </td>
                     <td style={{ padding: "14px 16px", textAlign: "center" }}>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "center" }}>
+                      <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
                         {(b.seats || []).map((s) => (
                           <span key={s} style={{ background: "#eef5ff", color: "#1765e8", padding: "2px 6px", borderRadius: 4, fontSize: 11, fontWeight: 700 }}>
                             {s}
@@ -297,7 +303,7 @@ export const BookingsView: React.FC = () => {
                     </td>
                     <td style={{ padding: "14px 16px", textAlign: "center" }}>
                       <span className={`ds-badge ${b.payment_status === "paid" ? "paid" : "unpaid"}`} style={{ fontSize: 11 }}>
-                        {b.payment_status === "paid" ? "Đã thu đủ" : b.payment_status === "refunded" ? "Đã hoàn" : "Chưa thu"}
+                        {({ paid: "Đã thu đủ", partially_paid: "Thu một phần", refund_due: "Chờ hoàn tiền", refunded: "Đã hoàn" } as Record<string, string>)[b.payment_status] || "Chưa thu"}
                       </span>
                     </td>
                     <td style={{ padding: "14px 16px", textAlign: "center" }}>
@@ -307,6 +313,16 @@ export const BookingsView: React.FC = () => {
                     </td>
                     <td style={{ padding: "14px 16px", textAlign: "center" }}>
                       <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                        {b.booking_status !== "cancelled" && (
+                          <button
+                            onClick={() => setEditBooking(b)}
+                            title="Cập nhật thông tin"
+                            aria-label={`Cập nhật thông tin vé ${b.booking_code}`}
+                            style={{ border: "1px solid #fcd9b6", background: "#fff7ed", color: "#c2410c", padding: "4px 8px", borderRadius: 6, cursor: "pointer" }}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        )}
                         <button
                           onClick={() => setDetailBooking(b)}
                           title="Xem chi tiết vé"
@@ -344,6 +360,18 @@ export const BookingsView: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {editBooking && (
+        <BookingEditModal
+          booking={editBooking}
+          onClose={() => setEditBooking(null)}
+          onSaved={(message) => {
+            setEditBooking(null);
+            setMsg(message);
+            loadData();
+          }}
+        />
+      )}
 
       {/* Modal Chi tiết vé */}
       {detailBooking && (
@@ -423,10 +451,8 @@ export const BookingsView: React.FC = () => {
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   style={{ width: "100%", padding: "10px 12px", borderRadius: 8 }}
                 >
-                  <option value="vnpay">Cổng thanh toán VNPAY QR</option>
-                  <option value="momo">Ví điện tử MoMo</option>
-                  <option value="bank_transfer">Chuyển khoản VietQR ngân hàng</option>
                   <option value="cash">Tiền mặt tại quầy / trên xe</option>
+                  <option value="bank_transfer">Chuyển khoản ngân hàng</option>
                 </select>
               </div>
 
@@ -483,11 +509,13 @@ export const BookingsView: React.FC = () => {
                     style={{ width: "100%", padding: "8px 10px" }}
                   >
                     <option value="">Chọn chuyến chạy</option>
-                    {trips.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.route?.name} ({t.depart_time ? formatDate(t.depart_time) : ""})
-                      </option>
-                    ))}
+                    {trips
+                      .filter((t) => t.status === "scheduled" && (!newBooking.partner_id || t.partner_id === newBooking.partner_id))
+                      .map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.route?.name} ({t.depart_time ? formatDate(t.depart_time) : ""}) · còn {t.available_seats_count ?? "?"} chỗ
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>
@@ -523,21 +551,23 @@ export const BookingsView: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="VIP-01, VIP-02"
+                    placeholder="VD: A1, A2 (đúng mã ghế trên sơ đồ xe)"
                     value={newBooking.seats}
                     onChange={(e) => setNewBooking({ ...newBooking, seats: e.target.value })}
                     style={{ width: "100%", padding: "8px 10px" }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: "block", marginBottom: 4, fontSize: 13, fontWeight: 600 }}>Tổng tiền vé (đ):</label>
-                  <input
-                    type="number"
-                    required
-                    value={newBooking.total_amount}
-                    onChange={(e) => setNewBooking({ ...newBooking, total_amount: Number(e.target.value) })}
-                    style={{ width: "100%", padding: "8px 10px" }}
-                  />
+                  <label style={{ display: "block", marginBottom: 4, fontSize: 13, fontWeight: 600 }}>Tiền vé (theo giá chuyến):</label>
+                  {(() => {
+                    const trip = trips.find((t) => t.id === newBooking.trip_id);
+                    const count = newBooking.seats.split(",").map((x) => x.trim()).filter(Boolean).length;
+                    return (
+                      <div style={{ padding: "9px 12px", borderRadius: 12, background: "#f8fafc", border: "1px solid #e2e8f0", fontWeight: 700, color: "#102744" }}>
+                        {trip ? `${count || 0} × ${Number(trip.base_price).toLocaleString("vi-VN")}đ = ${((count || 0) * Number(trip.base_price)).toLocaleString("vi-VN")}đ` : "Chọn chuyến để xem giá"}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -560,10 +590,8 @@ export const BookingsView: React.FC = () => {
                     onChange={(e) => setNewBooking({ ...newBooking, payment_method: e.target.value })}
                     style={{ width: "100%", padding: "8px 10px" }}
                   >
-                    <option value="vnpay">VNPAY</option>
-                    <option value="momo">MoMo</option>
-                    <option value="bank_transfer">Chuyển khoản</option>
                     <option value="cash">Tiền mặt</option>
+                    <option value="bank_transfer">Chuyển khoản</option>
                   </select>
                 </div>
               </div>

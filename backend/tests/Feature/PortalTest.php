@@ -59,4 +59,26 @@ class PortalTest extends TestCase
         $p->save($a['id'], ['appEnabled' => false, 'appSlug' => 'tenant-a', 'customDomain' => ''], $u);
         $this->getJson('https://tenant-a.danavago.com/api/public/context')->assertNotFound();
     }
+
+    public function test_platform_hosts_resolve_to_their_app_and_never_to_a_tenant(): void
+    {
+        foreach (['danavago.com' => 'marketplace', 'www.danavago.com' => 'marketplace', 'app.danavago.com' => 'platform-app', 'studio.danavago.com' => 'studio', 'admin.danavago.com' => 'admin'] as $host => $kind) {
+            $this->getJson("https://$host/api/public/context")->assertOk()->assertJsonPath('kind', $kind)->assertJsonPath('operator', null);
+        }
+        $this->getJson('https://unknown-host.example/api/public/context')->assertNotFound();
+
+        // Even an active row that claims a platform host must not hijack it.
+        $u = $this->actor();
+        $t = app(OperatorService::class)->createTenant(['name' => 'Hijack', 'slug' => 'hijack'], $u);
+        app(PortalService::class)->save($t['id'], ['appEnabled' => true, 'appSlug' => 'hijack', 'customDomain' => ''], $u);
+        DB::table('tenant_domains')->insert(['id' => (string) Str::uuid(), 'tenant_id' => $t['id'], 'type' => 'custom', 'hostname' => 'studio.danavago.com', 'status' => 'active', 'verification_token' => Str::random(32), 'created_at' => now()->toIso8601String()]);
+        $this->getJson('https://studio.danavago.com/api/public/context')->assertOk()->assertJsonPath('kind', 'studio')->assertJsonPath('operator', null);
+
+        try {
+            app(PortalService::class)->save($t['id'], ['appEnabled' => true, 'appSlug' => 'hijack', 'customDomain' => 'studio.danavago.com'], $u);
+            $this->fail('A platform host must not be accepted as a custom domain');
+        } catch (HttpException $e) {
+            $this->assertSame(422, $e->getStatusCode());
+        }
+    }
 }

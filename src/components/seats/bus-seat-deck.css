@@ -1,0 +1,311 @@
+/* Shared top-down bus deck (customer seat choice + Studio seat-map editor). */
+.bsd-stage {
+  display: flex;
+  justify-content: center;
+  padding: 4px 14px 14px;
+}
+
+.bsd-shell {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  padding: 0 9px 10px;
+  border-radius: 54px 54px 30px 30px;
+  background: linear-gradient(180deg, #ffffff 0%, #eef2f7 55%, #e2e8f0 100%);
+  border: 2px solid #d5dde8;
+  box-shadow: 0 18px 36px -14px rgba(15, 23, 42, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+  box-sizing: border-box;
+}
+
+.bsd-shell.wide {
+  max-width: 480px;
+}
+
+.bsd-mirror {
+  position: absolute;
+  top: 44px;
+  width: 11px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #334155, #0f172a);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.18);
+}
+
+.bsd-mirror.left {
+  left: -9px;
+  transform: rotate(-8deg);
+}
+
+.bsd-mirror.right {
+  right: -9px;
+  transform: rotate(8deg);
+}
+
+.bsd-windshield {
+  height: 74px;
+  margin: 0 -9px;
+  padding: 0 18px 9px;
+  border-radius: 52px 52px 0 0;
+  background: linear-gradient(180deg, #7dd3fc 0%, #0ea5e9 18%, #1e293b 72%, #0f172a 100%);
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  overflow: hidden;
+}
+
+.bsd-windshield::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18%;
+  width: 64%;
+  height: 22px;
+  border-radius: 0 0 40px 40px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+}
+
+.bsd-cockpit {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+}
+
+.bsd-wheel {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2.5px solid #94a3b8;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+}
+
+.bsd-wheel::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #64748b;
+}
+
+.bsd-driver {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #cbd5e1;
+  padding: 4px 14px;
+  border-radius: 7px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bsd-floor {
+  padding: 9px 6px 11px;
+  border-radius: 0 0 24px 24px;
+  background: #0f172a;
+  box-shadow: inset 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.bsd-grid {
+  display: grid;
+  column-gap: 7px;
+  row-gap: 8px;
+}
+
+.bsd-aisle {
+  margin: -9px 0 -11px;
+  background: linear-gradient(180deg, #1e293b, #172033);
+  border-left: 1px dashed rgba(255, 255, 255, 0.09);
+  border-right: 1px dashed rgba(255, 255, 255, 0.09);
+  pointer-events: none;
+}
+
+.bsd-grid .bsd-pod {
+  position: relative;
+  min-width: 0;
+  height: 50px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  font: inherit;
+  color: #0f172a;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bsd-grid .bsd-pod.seat {
+  height: 46px;
+}
+
+.bsd-grid .bsd-pod.cabin {
+  height: 56px;
+}
+
+/* Pillow on the window side, LED strip on the aisle side. */
+.bsd-grid .bsd-pod.right {
+  flex-direction: row-reverse;
+}
+
+.bsd-pillow {
+  width: 14px;
+  height: 70%;
+  flex-shrink: 0;
+  border-radius: 5px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.bsd-grid .bsd-pod.seat .bsd-pillow {
+  width: 11px;
+}
+
+.bsd-code {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bsd-led {
+  width: 3px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  background: #38bdf8;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.65);
+}
+
+.bsd-badge {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  pointer-events: none;
+}
+
+.bsd-grid .bsd-pod.available:hover {
+  transform: translateY(-1px);
+  border-color: #93c5fd;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.18);
+}
+
+.bsd-grid .bsd-pod.booked,
+.bsd-grid .bsd-pod.disabled {
+  cursor: not-allowed;
+  background: #9aa5b4;
+  border-color: #6b7686;
+  color: #ffffff;
+}
+
+.bsd-grid .bsd-pod.booked .bsd-pillow,
+.bsd-grid .bsd-pod.disabled .bsd-pillow {
+  background: #6b7686;
+  border-color: #566070;
+}
+
+.bsd-grid .bsd-pod.booked .bsd-led,
+.bsd-grid .bsd-pod.disabled .bsd-led {
+  background: #6b7686;
+  box-shadow: none;
+}
+
+.bsd-grid .bsd-pod.disabled {
+  background: repeating-linear-gradient(135deg, #cbd5e1 0 6px, #b6c1cf 6px 12px);
+  color: #475569;
+}
+
+.bsd-grid .bsd-pod.selected,
+.bsd-grid .bsd-pod.editing {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: #1d4ed8;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
+  transform: scale(1.02);
+}
+
+.bsd-grid .bsd-pod.selected .bsd-pillow,
+.bsd-grid .bsd-pod.editing .bsd-pillow {
+  background: #1e40af;
+  border-color: #1d4ed8;
+}
+
+.bsd-grid .bsd-pod.selected .bsd-led,
+.bsd-grid .bsd-pod.editing .bsd-led {
+  background: #bfdbfe;
+}
+
+/* Editor: group colour on the pillow, so price groups are visible at a glance. */
+.bsd-grid .bsd-pod[style*="--bsd-tone"]:not(.editing):not(.disabled) .bsd-pillow {
+  background: var(--bsd-tone);
+  border-color: var(--bsd-tone);
+}
+
+.bsd-grid .bsd-pod:focus-visible,
+.bsd-grid .bsd-empty:focus-visible {
+  outline: 3px solid rgba(56, 189, 248, 0.7);
+  outline-offset: 2px;
+}
+
+.bsd-grid .bsd-empty {
+  min-width: 0;
+  height: 46px;
+  border-radius: 12px;
+  border: 1.5px dashed rgba(148, 163, 184, 0.55);
+  background: transparent;
+  color: rgba(203, 213, 225, 0.75);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bsd-grid .bsd-empty.aisle {
+  border-color: rgba(148, 163, 184, 0.25);
+  font-size: 12px;
+}
+
+.bsd-grid .bsd-empty:hover {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bsd-grid .bsd-pod {
+    transition: none;
+  }
+
+  .bsd-grid .bsd-pod.selected,
+  .bsd-grid .bsd-pod.editing,
+  .bsd-grid .bsd-pod.available:hover {
+    transform: none;
+  }
+}
+
+/* Host apps (Studio) style every button; the deck keeps its own look. */
+.bsd-grid .bsd-pod:disabled {
+  opacity: 1;
+}
