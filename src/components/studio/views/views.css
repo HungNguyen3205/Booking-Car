@@ -1017,3 +1017,160 @@
     font-size: 10px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Tổng quan: "Hiệu quả nhà xe đối tác" + "Đơn vé vừa đặt" as readable lists
+   (were 5-column tables forced to 820px inside half-width cards).
+   --------------------------------------------------------------------------- */
+.ov-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.ov-row,
+.ov-list > li > button.ov-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e8eef5;
+  border-radius: 14px;
+  background: #ffffff;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  /* Studio's global button styles would otherwise strip the card frame. */
+  border: 1px solid #e8eef5 !important;
+  background: #ffffff !important;
+  box-shadow: none;
+  height: auto;
+  min-height: 0;
+  line-height: normal;
+}
+
+.ov-list > li > button.ov-row {
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.ov-list > li > button.ov-row:hover {
+  border-color: #fbc08a !important;
+  box-shadow: 0 6px 16px -10px rgba(242, 115, 14, 0.45);
+  transform: translateY(-1px);
+}
+
+.ov-row-main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.ov-row-title {
+  font-size: 14.5px;
+  font-weight: 750;
+  color: #102744;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+
+.ov-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  color: #f2730e;
+  letter-spacing: 0.01em;
+}
+
+.ov-row-side {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  text-align: right;
+}
+
+.ov-amount {
+  font-size: 15px;
+  font-weight: 800;
+  color: #102744;
+  white-space: nowrap;
+}
+
+.ov-amount--brand {
+  color: #f2730e;
+}
+
+.ov-caption {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ov-avatar {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff4e9;
+  color: #c2410c;
+  font-weight: 800;
+  font-size: 13.5px;
+}
+
+.ov-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: #eef2f7;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.ov-bar span {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f59e0b, #f2730e);
+}
+
+.ov-empty {
+  margin: 4px 0 0;
+  padding: 18px;
+  border: 1px dashed #dbe3ee;
+  border-radius: 14px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .ov-row {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .ov-avatar {
+    flex-basis: 34px;
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+  }
+}

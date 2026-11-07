@@ -11,7 +11,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { adminApi, type DashboardStats } from "../../../services/adminApi";
-import { money } from "../studioConfig";
+import { money, formatDate } from "../studioConfig";
 
 export const OverviewView: React.FC<{
   onNavigate: (page: string) => void;
@@ -249,32 +249,35 @@ export const OverviewView: React.FC<{
             </button>
           </div>
 
-          <div className="ds-table-container">
-            <table className="ds-table">
-              <thead>
-                <tr>
-                  <th>Nhà xe</th>
-                  <th style={{ textAlign: "center" }}>Số chuyến</th>
-                  <th style={{ textAlign: "center" }}>Vé đã bán</th>
-                  <th style={{ textAlign: "right" }}>Doanh thu</th>
-                  <th style={{ textAlign: "center" }}>Hoa hồng</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(stats?.operator_performance || []).map((p) => (
-                  <tr key={p.id}>
-                    <td style={{ fontWeight: 700, color: "#1a202c" }}>{p.name}</td>
-                    <td style={{ textAlign: "center" }}>{p.trips_count}</td>
-                    <td style={{ textAlign: "center", color: "#16a34a", fontWeight: 700 }}>{p.tickets_sold}</td>
-                    <td style={{ textAlign: "right", fontWeight: 750, color: "#f2730e" }}>{money(p.revenue)}</td>
-                    <td style={{ textAlign: "center" }}>
-                      <span className="ds-badge badge-green">{p.commission_rate}%</span>
-                    </td>
-                  </tr>
+          {/* One row per operator: revenue with a bar relative to the best one. */}
+          {(() => {
+            const list = stats?.operator_performance || [];
+            const top = Math.max(1, ...list.map((p) => p.revenue || 0));
+            if (!list.length) return <p className="ov-empty">Chưa có nhà xe nào hoạt động trong kỳ.</p>;
+            return (
+              <ul className="ov-list">
+                {list.map((p) => (
+                  <li key={p.id} className="ov-row ov-row--partner">
+                    <div className="ov-row-main">
+                      <div className="ov-row-title">{p.name}</div>
+                      <div className="ov-row-meta">
+                        <span>{p.trips_count} chuyến</span>
+                        <span>{p.tickets_sold} vé đã bán</span>
+                        <span>Hoa hồng {p.commission_rate}%</span>
+                      </div>
+                      <div className="ov-bar" aria-hidden="true">
+                        <span style={{ width: `${Math.round(((p.revenue || 0) / top) * 100)}%` }} />
+                      </div>
+                    </div>
+                    <div className="ov-row-side">
+                      <div className="ov-amount ov-amount--brand">{money(p.revenue)}</div>
+                      <div className="ov-caption">doanh thu</div>
+                    </div>
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </ul>
+            );
+          })()}
         </div>
 
         {/* Recent Bookings Block */}
@@ -292,43 +295,40 @@ export const OverviewView: React.FC<{
             </button>
           </div>
 
-          <div className="ds-table-container">
-            <table className="ds-table">
-              <thead>
-                <tr>
-                  <th>Mã vé</th>
-                  <th>Hành khách</th>
-                  <th style={{ textAlign: "center" }}>Ghế</th>
-                  <th style={{ textAlign: "right" }}>Tổng tiền</th>
-                  <th style={{ textAlign: "center" }}>Thanh toán</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(stats?.recent_bookings || []).map((b) => (
-                  <tr key={b.id}>
-                    <td style={{ fontWeight: 750, color: "#f2730e" }}>{b.booking_code}</td>
-                    <td>
-                      <div style={{ fontWeight: 650, color: "#1a202c" }}>{b.customer_name}</div>
-                      <div style={{ fontSize: 11.5, color: "#64748b" }}>{b.customer_phone}</div>
-                    </td>
-                    <td style={{ textAlign: "center" }}>
-                      {(b.seats || []).map((s: string) => (
-                        <span key={s} className="ds-badge badge-blue" style={{ marginRight: 4 }}>
-                          {s}
-                        </span>
-                      ))}
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: 750 }}>{money(b.final_amount)}</td>
-                    <td style={{ textAlign: "center" }}>
-                      <span className={`ds-badge ${b.payment_status === "paid" ? "badge-green" : "badge-orange"}`}>
-                        {b.payment_status === "paid" ? "Đã thu đủ" : "Chờ thu tiền"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* One row per booking: who, which trip, how much, paid or not. */}
+          {(stats?.recent_bookings || []).length === 0 ? (
+            <p className="ov-empty">Chưa có đơn vé nào.</p>
+          ) : (
+            <ul className="ov-list">
+              {(stats?.recent_bookings || []).map((b: any) => {
+                const paid = b.payment_status === "paid";
+                const initials = String(b.customer_name || "?").trim().split(/\s+/).slice(-2).map((w: string) => w[0]).join("").toUpperCase();
+                return (
+                  <li key={b.id}>
+                    <button type="button" className="ov-row ov-row--booking" onClick={() => onNavigate("bookings")} title="Mở danh sách đơn vé">
+                      <span className="ov-avatar">{initials}</span>
+                      <div className="ov-row-main">
+                        <div className="ov-row-title">{b.customer_name}</div>
+                        <div className="ov-row-meta">
+                          <span>{b.customer_phone}</span>
+                          <span className="ov-code">{b.booking_code}</span>
+                        </div>
+                        <div className="ov-row-meta">
+                          {b.trip?.route?.name && <span>{b.trip.route.name}</span>}
+                          {b.trip?.depart_time && <span>{formatDate(b.trip.depart_time)}</span>}
+                          {(b.seats || []).length > 0 && <span>Ghế {(b.seats || []).join(", ")}</span>}
+                        </div>
+                      </div>
+                      <div className="ov-row-side">
+                        <div className="ov-amount">{money(b.final_amount)}</div>
+                        <span className={`ds-badge ${paid ? "badge-green" : "badge-orange"}`}>{paid ? "Đã thu đủ" : "Chờ thu tiền"}</span>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </section>
     </div>

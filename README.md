@@ -361,7 +361,10 @@ Khi thay đổi lớn, thêm một mục mới theo cùng mẫu.
 - Màn hình ≤ 640px: mọi bảng trong Studio hiển thị **mỗi dòng một thẻ** ("TÊN CỘT: giá trị"), không còn bị ép cột hay phải
   cuộn ngang (`studio/studio-mobile.css`). Tên cột lấy tự động từ tiêu đề bảng (`studio/useTableCardLabels.ts`), nên bảng
   thêm sau này cũng tự áp dụng. Bảng chấm công dạng lịch vẫn cuộn ngang; bảng khác muốn giữ cuộn ngang thì bọc bằng phần tử có `data-table-scroll`.
-- Trang Tổng quan xuống 1 cột trên điện thoại; nút trong bảng không bị bẻ chữ (cột Thao tác ở Chuyến chạy).
+- Trang Tổng quan: "Hiệu quả nhà xe đối tác" và "Đơn vé vừa đặt" thiết kế lại thành danh sách thẻ (không còn bảng 5 cột
+  phải cuộn ngang): nhà xe có doanh thu + thanh so sánh, số chuyến, vé, hoa hồng; đơn vé có khách, SĐT, mã vé, tuyến,
+  giờ, ghế, số tiền, trạng thái thu tiền (bấm vào mở Đơn vé). Xuống 1 cột trên điện thoại.
+- Nút trong bảng không bị bẻ chữ (cột Thao tác ở Chuyến chạy).
 - Máy tính: bảng giữ nguyên như cũ.
 
 ### v2.6 — 2026-11-07 · Deploy test lên cPanel AZDIGI
