@@ -18,8 +18,19 @@ Không có `node_modules`, `src`, `.env` thật hay mật khẩu trong gói (m�
 
 ## 1. Chọn PHP 8.3
 
-cPanel → **Select PHP Version** (hoặc MultiPHP Manager) → chọn **8.3** cho `danavago.com` và 2 subdomain.
-Bật extension: `pdo_sqlite`, `sqlite3`, `pdo_mysql`, `mbstring`, `fileinfo`, `openssl`, `tokenizer`, `xml`, `dom`, `curl`, `zip`.
+**Không** đổi PHP của cả tài khoản (có nhiều website khác, mặc định 8.2).
+
+- Extension: cPanel → **Select PHP Version** → tab **Extensions** → chọn phiên bản **8.3** (không *Set as current*) → tick
+  `fileinfo`, `pdo_sqlite`, `sqlite3`, `mbstring`, `intl`, `zip` (`pdo_mysql skipped as conflicting` là bình thường).
+- Terminal: luôn gọi `/opt/alt/php83/usr/bin/php`.
+- Web (sau khi giải nén/clone): thêm vào **đầu** `~/danavago/backend/public/.htaccess`
+  ```apache
+  <IfModule mime_module>
+    AddHandler application/x-httpd-alt-php83___lsphp .php
+  </IfModule>
+  ```
+  (lệnh có sẵn trong README → *Lỗi thường gặp khi cài trên hosting*). Thiếu bước này trình duyệt báo
+  "require a PHP version >= 8.3.0. You are running 8.2.x".
 
 ## 2. Tải lên và giải nén
 
@@ -70,7 +81,7 @@ Repo **hiện tại** là `https://github.com/HungNguyen3205/Booking-Car.git` (s
 Git không chứa `vendor/`, bản build giao diện, `.env` và database, nên server phải tự cài và tạo database mới:
 
 1. `git clone --branch main <URL-REPO> ~/danavago`
-2. `cd ~/danavago && npm ci --include=dev && npm run build:hosting` (Node 22: `export PATH="/opt/alt/alt-nodejs22/root/usr/bin:$PATH"`)
+2. `cd ~/danavago && npm ci --include=dev && RAYON_NUM_THREADS=1 UV_THREADPOOL_SIZE=1 npm run build:hosting` (hosting giới hạn luồng; thiếu biến này build sẽ `Aborted`) (Node 22: `export PATH="/opt/alt/alt-nodejs22/root/usr/bin:$PATH"`)
 3. `cd backend && php composer.phar install --no-dev --optimize-autoloader` (hoặc `composer install …`)
 4. Tạo `.env` theo `backend/.env.example` với các giá trị production như file `.env.production` ở mục 4,
    `DB_DATABASE=$HOME/danavago/backend/database/danavago.sqlite`, tạm `DANAVA_ALLOW_DEMO_SEED=true`.

@@ -231,10 +231,11 @@ docs/               Tài liệu chi tiết (xem bên dưới)
 
 | Mục | Giá trị |
 |---|---|
-| Hosting | cPanel AZDIGI, user `khoaluan`, PHP 8.3 tại `/opt/alt/php83/usr/bin/php`, Node 22 tại `/opt/alt/alt-nodejs22/root/usr/bin` |
+| Hosting | cPanel AZDIGI (CloudLinux), user `khoaluan`, PHP 8.3 tại `/opt/alt/php83/usr/bin/php` (extension bật trong Select PHP Version → Extensions → 8.3), Node 22 tại `/opt/alt/alt-nodejs22/root/usr/bin`; build phải chạy 1 luồng |
 | Mã nguồn | `~/danavago`, lấy code bằng Git. Repo **hiện tại**: `https://github.com/HungNguyen3205/Booking-Car.git`, nhánh `main` (sẽ đổi sang repo khác, xem [Đổi repo Git](#đổi-repo-git-trên-server)). Kiểm tra repo đang dùng: `git -C ~/danavago remote -v` |
 | Tên miền | `danavago.com`, `cuaong.danavago.com`, `haivan.danavago.com` |
 | Document root | `~/danavago.com`, `~/cuaong.danavago.com`, `~/haivan.danavago.com` là **symlink** → `~/danavago/backend/public`. Thư mục cũ được giữ lại tên `*.bak-YYYYMMDD-HHMM` |
+| PHP cho web | Tài khoản cPanel mặc định PHP 8.2 (dùng chung cho các website khác, **không đổi**). Riêng DANAVA chạy PHP 8.3 nhờ 4 dòng `AddHandler application/x-httpd-alt-php83___lsphp .php` thêm ở **đầu** `~/danavago/backend/public/.htaccess` (chỉ có trên server, Git bỏ qua bằng `git update-index --skip-worktree`; bản `.htaccess` gốc sao lưu ở `~/danavago-htaccess.bak`) |
 | Cấu hình | `~/danavago/backend/.env` (không có trên Git; `APP_ENV=production`, `TENANT_WILDCARD_READY=true`, `TENANT_APP_ROOT=danavago.com`) |
 | **Database** | **SQLite có sẵn**: `~/danavago/backend/database/danavago.sqlite`. Đã có đủ bảng (migrate), 2 nhà xe demo **Hải Vân Xanh** (`haivan.danavago.com`) và **Cửa Ông Limousine** (`cuaong.danavago.com`) với tuyến, xe van 7/9/11 chỗ, lịch chạy 7 ngày, và tài khoản quản trị Studio |
 | Tài khoản | Đăng nhập `https://danavago.com/manage`. Xem danh sách: `php artisan danava:staff-list`. Quên mật khẩu: `php artisan danava:reset-password <email>`. Mật khẩu server **không** ghi trong repo |
@@ -255,7 +256,8 @@ PHP=/opt/alt/php83/usr/bin/php
 cd ~/danavago
 cp backend/database/danavago.sqlite ~/danavago-db-backup-$(date +%Y%m%d-%H%M).sqlite   # sao lưu DB trước khi cập nhật
 git pull --ff-only origin main
-npm ci --include=dev && npm run build:hosting
+npm ci --include=dev
+RAYON_NUM_THREADS=1 UV_THREADPOOL_SIZE=1 npm run build:hosting   # hosting giới hạn số luồng: build 1 luồng
 cd backend
 $PHP "$(command -v composer || echo composer.phar)" install --no-dev --optimize-autoloader
 $PHP artisan migrate --force
@@ -290,12 +292,45 @@ Repo mới phải chứa cùng lịch sử code (đã push commit mới nhất t
 `git pull --ff-only` sẽ báo lỗi: **không** dùng `reset --hard`; liên hệ người quản lý code để đồng bộ trước. Sau khi đổi,
 chạy khối lệnh "Cập nhật code" ở trên như bình thường. Nhớ sửa lại dòng *Mã nguồn* trong bảng hiện trạng.
 
+### Lỗi thường gặp khi cài trên hosting
+
+`npm run build` báo `ThreadPoolBuildError … Resource temporarily unavailable` rồi `Aborted (core dumped)`: hosting dùng chung
+giới hạn số luồng, công cụ build (Rust) không mở được luồng. Luôn build bằng `RAYON_NUM_THREADS=1 UV_THREADPOOL_SIZE=1 npm run build:hosting`.
+Nếu vẫn lỗi: build trên máy dev (`npm run build:hosting`), nén `backend/public/{assets,spa.html,favicon.svg,icons.svg}` thành zip
+có thư mục gốc `public/`, upload vào home rồi `cd ~/danavago/backend && unzip -o ~/danavago-build.zip`.
+
+`composer install` báo `requires ext-fileinfo … missing`: PHP 8.3 chưa bật extension. cPanel → **Select PHP Version** →
+tab **Extensions** → chọn phiên bản **8.3** (không bấm *Set as current*, tài khoản có nhiều website khác) → tick
+`fileinfo`, `pdo_sqlite`, `sqlite3`, `mbstring`, `intl`, `zip`. Cảnh báo `pdo_mysql skipped as conflicting` là bình thường:
+`nd_pdo_mysql` đã bật thay thế. Kiểm tra: `/opt/alt/php83/usr/bin/php -m | grep -iE "fileinfo|pdo_sqlite|sqlite3|mbstring"`.
+Không dùng `--ignore-platform-req` (web vẫn lỗi khi chạy).
+
+Trình duyệt báo `Composer detected issues in your platform … require a PHP version ">= 8.3.0". You are running 8.2.x`:
+Terminal chạy PHP 8.3 (gọi thẳng `/opt/alt/php83/usr/bin/php`) nhưng web dùng PHP mặc định của tài khoản (8.2). Hosting
+CloudLinux/LiteSpeed không có MultiPHP Manager, nên đặt PHP 8.3 **chỉ cho thư mục DANAVA** (không ảnh hưởng website khác):
+
+```bash
+cd ~/danavago/backend/public
+cp .htaccess ~/danavago-htaccess.bak
+sed -i '1i # AZDIGI/CloudLinux: chạy PHP 8.3 cho riêng website DANAVA (không đổi PHP của cả tài khoản)
+<IfModule mime_module>
+  AddHandler application/x-httpd-alt-php83___lsphp .php
+</IfModule>
+' .htaccess
+git -C ~/danavago update-index --skip-worktree backend/public/.htaccess
+```
+
+Lỗi 500 hoặc trình duyệt tải về file `.php` sau khi sửa: khôi phục `cp ~/danavago-htaccess.bak ~/danavago/backend/public/.htaccess`.
+Nếu sau này `.htaccess` trong repo thay đổi, `git pull` sẽ báo xung đột ở file này: chạy
+`git update-index --no-skip-worktree backend/public/.htaccess`, sao lưu, `git checkout -- backend/public/.htaccess`, pull, rồi thêm lại 4 dòng trên.
+
 ### Không được làm
 
 - Không chạy `php artisan migrate:fresh`, `migrate:reset`, `db:wipe`, không xóa/ghi đè `backend/database/danavago.sqlite`.
 - Không upload lại gói zip đè lên `~/danavago` (gói zip có file `.sqlite` riêng, sẽ ghi đè dữ liệu thật). Nếu buộc phải dùng zip:
   giải nén ra thư mục khác, chỉ copy code, giữ nguyên `backend/database/danavago.sqlite` và `backend/.env`.
-- Không đổi PHP của **cả tài khoản** cPanel (tài khoản có nhiều website khác); chỉ đặt PHP 8.3 cho 3 domain trên trong MultiPHP Manager.
+- Không đổi PHP của **cả tài khoản** cPanel (tài khoản có nhiều website khác); PHP 8.3 cho DANAVA đặt bằng `.htaccess` như trên.
+- Không xóa 4 dòng `AddHandler … php83` ở đầu `backend/public/.htaccess` trên server (web sẽ quay về PHP 8.2 và báo lỗi).
 - Không đặt `public_html` hay document root vào `~/danavago` (chỉ `backend/public` được public).
 - Không commit `.env`, `vendor/`, file SQLite, file session hoặc ảnh tải lên.
 
@@ -325,7 +360,9 @@ Khi thay đổi lớn, thêm một mục mới theo cùng mẫu.
 
 - Commit `2ff0040` đã push lên `HungNguyen3205/Booking-Car` main, repo dùng để deploy test (2 repo `danavagroup/DANAVA_Bus`,
   `danava-org/DANAVA_Bus` chưa cập nhật). Sau này đổi sang repo khác: xem [Đổi repo Git](#đổi-repo-git-trên-server).
-- Server có sẵn database SQLite và 2 nhà xe demo; xem mục [Triển khai](#triển-khai-production-cpanel-azdigi).
+- Server có sẵn database SQLite, 2 nhà xe demo và tài khoản `admin@danavago.com`; xem mục [Triển khai](#triển-khai-production-cpanel-azdigi).
+- Đã cài bằng Git trên server: build 1 luồng (`RAYON_NUM_THREADS=1`), bật extension PHP 8.3 (fileinfo, pdo_sqlite…),
+  web chạy PHP 8.3 qua `.htaccess` (tài khoản mặc định 8.2). 3 domain là symlink tới `backend/public`, thư mục cũ `*.bak-20261107-1431`.
 - `backend/server.php` (chạy thử `php -S`) sửa so sánh đường dẫn trên Windows; `docs/AZDIGI_DEPLOY.md` có cả cách zip và Git.
 
 ### v2.5 — 2026-11-07 · Trang chủ app gọn hơn
