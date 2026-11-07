@@ -1,5 +1,9 @@
 # Deploy DANAVA GO lên cPanel AZDIGI (bản test)
 
+> ⚠️ **Server đã được deploy và ĐÃ CÓ DATABASE** (`~/danavago/backend/database/danavago.sqlite`). Các mục 1–4 dưới đây
+> chỉ dùng cho lần cài **đầu tiên** trên một server trống. Để cập nhật code, xem README → *Triển khai* → *Cập nhật code*.
+> Không upload lại gói zip đè lên `~/danavago`, không `migrate:fresh`: sẽ mất dữ liệu.
+
 Áp dụng cho: `danavago.com` (website + `/appgo` + Studio `/manage`), `cuaong.danavago.com` (app Cửa Ông),
 `haivan.danavago.com` (app Hải Vân Xanh). Cả 3 tên miền chạy **cùng một thư mục** `backend/public`;
 Laravel tự chọn app theo tên miền.
@@ -59,6 +63,23 @@ php artisan danava:staff-list                        # xem các tài khoản Stu
 Nếu `php -v` không phải 8.3 trong Terminal, dùng đường dẫn đầy đủ, ví dụ `/opt/alt/php83/usr/bin/php artisan …`.
 
 Mỗi lần sửa `.env` phải chạy lại `php artisan config:cache`.
+
+## 4b. Cách khác: cài bằng Git (thay cho mục 2 và 4)
+
+Repo **hiện tại** là `https://github.com/HungNguyen3205/Booking-Car.git` (sẽ đổi; thay URL bằng repo đang dùng).
+Git không chứa `vendor/`, bản build giao diện, `.env` và database, nên server phải tự cài và tạo database mới:
+
+1. `git clone --branch main <URL-REPO> ~/danavago`
+2. `cd ~/danavago && npm ci --include=dev && npm run build:hosting` (Node 22: `export PATH="/opt/alt/alt-nodejs22/root/usr/bin:$PATH"`)
+3. `cd backend && php composer.phar install --no-dev --optimize-autoloader` (hoặc `composer install …`)
+4. Tạo `.env` theo `backend/.env.example` với các giá trị production như file `.env.production` ở mục 4,
+   `DB_DATABASE=$HOME/danavago/backend/database/danavago.sqlite`, tạm `DANAVA_ALLOW_DEMO_SEED=true`.
+5. `touch database/danavago.sqlite && php artisan key:generate --force && php artisan migrate --force`
+6. `php artisan danava:seed-brand-demo --days=7` (2 nhà xe demo), `php artisan danava:create-admin <email> "<Tên>"`
+7. Đặt lại `DANAVA_ALLOW_DEMO_SEED=false`, phân quyền như mục 4, `php artisan config:cache`, rồi trỏ tên miền như mục 3.
+
+Đổi sang repo Git khác về sau: `git -C ~/danavago remote set-url origin <URL-MỚI>` rồi `git fetch origin`; database và
+`.env` không bị ảnh hưởng (chi tiết: README → *Đổi repo Git trên server*).
 
 ## 5. Kiểm tra
 

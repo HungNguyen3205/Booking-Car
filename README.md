@@ -222,11 +222,89 @@ docs/               Tài liệu chi tiết (xem bên dưới)
 - [docs/review-2026-10-27.md](docs/review-2026-10-27.md): kết quả review, các lỗi đã sửa và giới hạn còn lại (demo/backend).
 - [docs/cleanup.md](docs/cleanup.md): tài nguyên đã gỡ và lý do.
 
-## Triển khai
+## Triển khai (production: cPanel AZDIGI)
 
-Website `danavago.com` chạy trên cPanel. Quy trình build, sao chép và kiểm tra `/app` nằm trong [docs/CPANEL_UPDATE.md](docs/CPANEL_UPDATE.md). Production dùng `backend/public` làm document root và giữ nguyên `.htaccess` của Laravel. Không thay bằng rewrite kiểu SPA.
+> ⚠️ **Server ĐÃ CÓ SẴN DATABASE.** Đọc hết mục này trước khi deploy. Không tạo lại database, không chạy
+> `migrate:fresh`, `db:wipe`, không upload đè file `.sqlite`: làm vậy sẽ **mất toàn bộ** nhà xe, chuyến, vé, tài khoản.
 
-Không commit `.env`, `vendor/`, file SQLite, file session hoặc ảnh tải lên.
+### Hiện trạng server (cập nhật 2026-11-07)
+
+| Mục | Giá trị |
+|---|---|
+| Hosting | cPanel AZDIGI, user `khoaluan`, PHP 8.3 tại `/opt/alt/php83/usr/bin/php`, Node 22 tại `/opt/alt/alt-nodejs22/root/usr/bin` |
+| Mã nguồn | `~/danavago`, lấy code bằng Git. Repo **hiện tại**: `https://github.com/HungNguyen3205/Booking-Car.git`, nhánh `main` (sẽ đổi sang repo khác, xem [Đổi repo Git](#đổi-repo-git-trên-server)). Kiểm tra repo đang dùng: `git -C ~/danavago remote -v` |
+| Tên miền | `danavago.com`, `cuaong.danavago.com`, `haivan.danavago.com` |
+| Document root | `~/danavago.com`, `~/cuaong.danavago.com`, `~/haivan.danavago.com` là **symlink** → `~/danavago/backend/public`. Thư mục cũ được giữ lại tên `*.bak-YYYYMMDD-HHMM` |
+| Cấu hình | `~/danavago/backend/.env` (không có trên Git; `APP_ENV=production`, `TENANT_WILDCARD_READY=true`, `TENANT_APP_ROOT=danavago.com`) |
+| **Database** | **SQLite có sẵn**: `~/danavago/backend/database/danavago.sqlite`. Đã có đủ bảng (migrate), 2 nhà xe demo **Hải Vân Xanh** (`haivan.danavago.com`) và **Cửa Ông Limousine** (`cuaong.danavago.com`) với tuyến, xe van 7/9/11 chỗ, lịch chạy 7 ngày, và tài khoản quản trị Studio |
+| Tài khoản | Đăng nhập `https://danavago.com/manage`. Xem danh sách: `php artisan danava:staff-list`. Quên mật khẩu: `php artisan danava:reset-password <email>`. Mật khẩu server **không** ghi trong repo |
+| Kiểm tra | `https://danavago.com`, `/appgo`, `/manage`, `https://cuaong.danavago.com`, `https://haivan.danavago.com` |
+
+Database đến từ một trong hai cách đã dùng khi deploy lần đầu (cả hai cho cùng cấu trúc): gói zip có sẵn file
+`danavago.sqlite` copy từ máy dev (kèm tài khoản, mật khẩu đã đổi ngẫu nhiên), hoặc `migrate` + `danava:seed-brand-demo`
++ `danava:create-admin` chạy trên server. Dù cách nào, **từ nay chỉ cập nhật code, không đụng vào file database**.
+
+### Cập nhật code (mỗi lần có commit mới trên repo đang dùng, nhánh `main`)
+
+Chạy trong cPanel → Terminal. Lệnh **giữ nguyên database và `.env`**; `migrate --force` chỉ thêm bảng/cột mới, không xóa dữ liệu.
+
+```bash
+(set -e
+export PATH="/opt/alt/alt-nodejs22/root/usr/bin:/opt/alt/php83/usr/bin:$PATH"
+PHP=/opt/alt/php83/usr/bin/php
+cd ~/danavago
+cp backend/database/danavago.sqlite ~/danavago-db-backup-$(date +%Y%m%d-%H%M).sqlite   # sao lưu DB trước khi cập nhật
+git pull --ff-only origin main
+npm ci --include=dev && npm run build:hosting
+cd backend
+$PHP "$(command -v composer || echo composer.phar)" install --no-dev --optimize-autoloader
+$PHP artisan migrate --force
+$PHP artisan config:cache
+echo XONG)
+```
+
+Thêm lịch chạy cho 2 nhà xe demo khi hết 7 ngày (không tạo trùng, không xóa vé):
+
+```bash
+cd ~/danavago/backend
+sed -i 's/^DANAVA_ALLOW_DEMO_SEED=false/DANAVA_ALLOW_DEMO_SEED=true/' .env && /opt/alt/php83/usr/bin/php artisan config:cache
+/opt/alt/php83/usr/bin/php artisan danava:seed-brand-demo --days=7
+sed -i 's/^DANAVA_ALLOW_DEMO_SEED=true/DANAVA_ALLOW_DEMO_SEED=false/' .env && /opt/alt/php83/usr/bin/php artisan config:cache
+```
+
+### Đổi repo Git trên server
+
+Database (`backend/database/danavago.sqlite`), `backend/.env` và ảnh tải lên (`backend/storage/app/public`) **không nằm
+trên Git**, nên đổi repo không làm mất dữ liệu. Không xóa `~/danavago` rồi clone lại; chỉ đổi địa chỉ remote:
+
+```bash
+cd ~/danavago
+git remote -v                                   # repo cũ
+git remote set-url origin https://github.com/<TAI-KHOAN-MOI>/<REPO-MOI>.git
+git fetch origin
+git status                                      # phải sạch (không có thay đổi local)
+git log --oneline -1 origin/main                # commit mới nhất của repo mới
+```
+
+Repo mới phải chứa cùng lịch sử code (đã push commit mới nhất từ repo cũ lên). Nếu repo mới có lịch sử khác hẳn,
+`git pull --ff-only` sẽ báo lỗi: **không** dùng `reset --hard`; liên hệ người quản lý code để đồng bộ trước. Sau khi đổi,
+chạy khối lệnh "Cập nhật code" ở trên như bình thường. Nhớ sửa lại dòng *Mã nguồn* trong bảng hiện trạng.
+
+### Không được làm
+
+- Không chạy `php artisan migrate:fresh`, `migrate:reset`, `db:wipe`, không xóa/ghi đè `backend/database/danavago.sqlite`.
+- Không upload lại gói zip đè lên `~/danavago` (gói zip có file `.sqlite` riêng, sẽ ghi đè dữ liệu thật). Nếu buộc phải dùng zip:
+  giải nén ra thư mục khác, chỉ copy code, giữ nguyên `backend/database/danavago.sqlite` và `backend/.env`.
+- Không đổi PHP của **cả tài khoản** cPanel (tài khoản có nhiều website khác); chỉ đặt PHP 8.3 cho 3 domain trên trong MultiPHP Manager.
+- Không đặt `public_html` hay document root vào `~/danavago` (chỉ `backend/public` được public).
+- Không commit `.env`, `vendor/`, file SQLite, file session hoặc ảnh tải lên.
+
+### Chuyển sang MySQL khi chạy thật
+
+Dữ liệu SQLite **không** tự sang MySQL. Khi cần: tạo database + user trong cPanel → MySQL Databases, sao lưu file
+`.sqlite`, sửa `.env` (`DB_CONNECTION=mysql`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`), `php artisan migrate --force`,
+tạo lại tài khoản/dữ liệu (hoặc nhờ chuyển dữ liệu có đối soát). Chi tiết và xử lý lỗi: [docs/AZDIGI_DEPLOY.md](docs/AZDIGI_DEPLOY.md).
+Hướng dẫn cũ cho bản frontend tĩnh: [docs/CPANEL_UPDATE.md](docs/CPANEL_UPDATE.md).
 
 ## Giới hạn hiện tại
 
@@ -243,7 +321,14 @@ Không commit `.env`, `vendor/`, file SQLite, file session hoặc ảnh tải l�
 Ghi theo phiên bản để người cùng làm biết đã làm gì và còn gì phải làm. Phiên bản mới ở trên cùng.
 Khi thay đổi lớn, thêm một mục mới theo cùng mẫu.
 
-### v2.5 — 2026-11-07 · Trang chủ app gọn hơn *(chưa commit)*
+### v2.6 — 2026-11-07 · Deploy test lên cPanel AZDIGI
+
+- Commit `2ff0040` đã push lên `HungNguyen3205/Booking-Car` main, repo dùng để deploy test (2 repo `danavagroup/DANAVA_Bus`,
+  `danava-org/DANAVA_Bus` chưa cập nhật). Sau này đổi sang repo khác: xem [Đổi repo Git](#đổi-repo-git-trên-server).
+- Server có sẵn database SQLite và 2 nhà xe demo; xem mục [Triển khai](#triển-khai-production-cpanel-azdigi).
+- `backend/server.php` (chạy thử `php -S`) sửa so sánh đường dẫn trên Windows; `docs/AZDIGI_DEPLOY.md` có cả cách zip và Git.
+
+### v2.5 — 2026-11-07 · Trang chủ app gọn hơn
 
 - Áp dụng cho appgo và mọi app nhà xe: ảnh bìa thấp hơn (295 → 228px), khung tìm chuyến gọn hơn (354 → 290px; icon, chữ,
   nút nhỏ lại nhưng vùng bấm vẫn ≥ 34px), banner **Ưu đãi** đưa lên ngay dưới khung tìm chuyến, thẻ điểm đến thấp hơn.
@@ -251,7 +336,7 @@ Khi thay đổi lớn, thêm một mục mới theo cùng mẫu.
 - Màu thương hiệu tách vai trò: `--go-primary` (nền), `--go-on-primary` (chữ trên nền), `--go-primary-text` (chữ/icon trên
   nền trắng); logo Cửa Ông lấy từ mockup.
 
-### v2.4 — 2026-11-07 · Demo app Hải Vân Xanh & Cửa Ông *(chưa commit)*
+### v2.4 — 2026-11-07 · Demo app Hải Vân Xanh & Cửa Ông (commit `2ff0040`)
 
 - Lệnh `danava:seed-brand-demo` (`app/Services/BrandDemo.php`): 2 nhà xe có màu, logo, ảnh bìa, slogan, hotline, chính sách,
   tuyến có tọa độ GPS, xe van 7/9/11 chỗ với sơ đồ ghế kiểu van (A1 | A2 … D1 D2 D3), lịch chạy nhiều ngày.
@@ -265,7 +350,7 @@ Khi thay đổi lớn, thêm một mục mới theo cùng mẫu.
 - Tenant có thêm `slogan`, `tagline` (lưu sẵn, hiện chưa hiển thị trong app).
 - Tuyến có `waypoints` (điểm lộ trình chỉ dùng cho GPS, không phải điểm đón/trả); sửa tuyến trong Studio giữ nguyên waypoints.
 
-### v2.3 — 2026-11-07 · App 3 vai trò, tổ lái, quét vé theo xe, GPS *(chưa commit)*
+### v2.3 — 2026-11-07 · App 3 vai trò, tổ lái, quét vé theo xe, GPS (commit `2ff0040`)
 
 Đã làm:
 
@@ -281,7 +366,7 @@ Khi thay đổi lớn, thêm một mục mới theo cùng mẫu.
 
 Đã kiểm tra: build, lint; `test:crew` 5/5, `test:studio` 17/17, `test:server` 25/25, `test:logic` 26/26, `test:surfaces` 37/37, `test:navigation` 25/25; chạy thử trên trình duyệt 390px cả 3 vai trò và Studio (Tổ lái, sửa tuyến). Chưa chạy `test:php` (máy dev đang có PHP 8.2, PHPUnit cần 8.3+).
 
-### v2.2 — 2026-11-07 · App nhà xe theo thương hiệu, tài khoản Studio *(chưa commit)*
+### v2.2 — 2026-11-07 · App nhà xe theo thương hiệu, tài khoản Studio (commit `2ff0040`)
 
 - App nhà xe dùng lại toàn bộ appgo, chỉ khác màu chủ đạo (1 mã màu → các biến `--go-*`), logo, ảnh bìa, hotline, chính sách, tuyến của nhà xe (`appgoBrand.ts`, `OperatorBrandedApp.tsx`). Không có ảnh bìa → nền gradient theo màu, không dùng ảnh DANAVA/thành phố.
 - `/public/cities?operator=` để bản local `/app/{slug}` chỉ hiện thành phố của nhà xe.
@@ -297,7 +382,6 @@ Khi thay đổi lớn, thêm một mục mới theo cùng mẫu.
 
 ### Cần làm tiếp
 
-- [ ] Commit các thay đổi v2.2 + v2.3 sau khi xem lại (chưa commit/push).
 - [ ] Chạy `test:php` trên máy có PHP 8.3+; chạy `npm run test:journey` và `test:audit` trước khi triển khai.
 - [ ] Production: đặt `VITE_MAP_TILE_URL` (nhà cung cấp bản đồ), bảo đảm HTTPS cho camera/GPS, chạy migration mới trên MySQL.
 - [ ] Nhập tọa độ điểm dừng cho các tuyến thật; cân nhắc lưu đường đi thật (polyline) thay vì đường thẳng nối các điểm.
