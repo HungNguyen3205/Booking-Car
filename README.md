@@ -356,6 +356,14 @@ Hướng dẫn cũ cho bản frontend tĩnh: [docs/CPANEL_UPDATE.md](docs/CPANEL
 Ghi theo phiên bản để người cùng làm biết đã làm gì và còn gì phải làm. Phiên bản mới ở trên cùng.
 Khi thay đổi lớn, thêm một mục mới theo cùng mẫu.
 
+### v2.7 — 2026-11-07 · Studio đọc được trên điện thoại
+
+- Màn hình ≤ 640px: mọi bảng trong Studio hiển thị **mỗi dòng một thẻ** ("TÊN CỘT: giá trị"), không còn bị ép cột hay phải
+  cuộn ngang (`studio/studio-mobile.css`). Tên cột lấy tự động từ tiêu đề bảng (`studio/useTableCardLabels.ts`), nên bảng
+  thêm sau này cũng tự áp dụng. Bảng chấm công dạng lịch vẫn cuộn ngang; bảng khác muốn giữ cuộn ngang thì bọc bằng phần tử có `data-table-scroll`.
+- Trang Tổng quan xuống 1 cột trên điện thoại; nút trong bảng không bị bẻ chữ (cột Thao tác ở Chuyến chạy).
+- Máy tính: bảng giữ nguyên như cũ.
+
 ### v2.6 — 2026-11-07 · Deploy test lên cPanel AZDIGI
 
 - Commit `2ff0040` đã push lên `HungNguyen3205/Booking-Car` main, repo dùng để deploy test (2 repo `danavagroup/DANAVA_Bus`,

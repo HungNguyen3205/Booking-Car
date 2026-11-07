@@ -48,6 +48,8 @@ import "./studio-navy.css";
 import "./studio-login.css";
 import "./views/views.css";
 import "./studio-polish.css";
+import "./studio-mobile.css";
+import { useTableCardLabels } from "./useTableCardLabels";
 
 // DANAVA Go Admin Modular Views
 import OverviewView from "./views/OverviewView";
@@ -370,6 +372,8 @@ export default function StudioApp() {
     [tenants, setTenants] = useState<Item[]>([]),
     [tenantId, setTenantId] = useState(""),
     [page, setPage] = useState("overview"),
+    // Phones: tables render as cards; cells get their column name (useTableCardLabels).
+    [mainEl, setMainEl] = useState<HTMLElement | null>(null),
     [revision, setRevision] = useState(0),
     [context, setContext] = useState<Record<string, any>>({}),
     [error, setError] = useState(""),
@@ -383,6 +387,7 @@ export default function StudioApp() {
     [aiModalOpen, setAiModalOpen] = useState(false),
     [aiQuery, setAiQuery] = useState(""),
     [aiResponse, setAiResponse] = useState<string | null>(null);
+  useTableCardLabels(mainEl);
 
   const init = useCallback(async () => {
     try {
@@ -643,7 +648,7 @@ export default function StudioApp() {
       </aside>
 
       {/* MAIN VIEWPORT */}
-      <main className={"ds-main " + (isCollapsed ? "collapsed" : "")}>
+      <main ref={setMainEl} className={"ds-main " + (isCollapsed ? "collapsed" : "")}>
         {/* TOPBAR (Exact match Image 1: Bold title, breadcrumb, pill search, AD badge) */}
         <header className="ds-topbar">
           <div className="ds-topbar-left">

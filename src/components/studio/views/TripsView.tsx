@@ -314,7 +314,7 @@ export const TripsView: React.FC = () => {
                         </span>
                       </td>
                       <td style={{ padding: "14px 16px", textAlign: "center" }}>
-                        <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", minWidth: 150 }}>
                           <button
                             onClick={() => handleOpenManifest(t.id)}
                             title="Danh sách hành khách (Manifest)"
