@@ -29,6 +29,8 @@ export interface DashboardStats {
     commission_rate: number;
   }[];
   recent_bookings: any[];
+  /** All operators with sales in scope (the list itself is capped at 50). */
+  operator_total?: number;
 }
 
 export interface TicketBookingItem {

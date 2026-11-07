@@ -17,6 +17,11 @@ export const OverviewView: React.FC<{
   onNavigate: (page: string) => void;
 }> = ({ onNavigate }) => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  // Bottom lists: 5 rows, then "Xem thêm" scrolls inside the card (never stretches the page).
+  const PREVIEW = 5;
+  const [opsOpen, setOpsOpen] = useState(false);
+  const [opsQuery, setOpsQuery] = useState("");
+  const [bookingsOpen, setBookingsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -251,31 +256,56 @@ export const OverviewView: React.FC<{
 
           {/* One row per operator: revenue with a bar relative to the best one. */}
           {(() => {
-            const list = stats?.operator_performance || [];
-            const top = Math.max(1, ...list.map((p) => p.revenue || 0));
-            if (!list.length) return <p className="ov-empty">Chưa có nhà xe nào hoạt động trong kỳ.</p>;
+            const all = stats?.operator_performance || [];
+            const total = stats?.operator_total ?? all.length;
+            const top = Math.max(1, ...all.map((p) => p.revenue || 0));
+            const q = opsQuery.trim().toLowerCase();
+            const filtered = q ? all.filter((p) => p.name.toLowerCase().includes(q)) : all;
+            const shown = opsOpen || q ? filtered : filtered.slice(0, PREVIEW);
+            if (!all.length) return <p className="ov-empty">Chưa có nhà xe nào hoạt động trong kỳ.</p>;
             return (
-              <ul className="ov-list">
-                {list.map((p) => (
-                  <li key={p.id} className="ov-row ov-row--partner">
-                    <div className="ov-row-main">
-                      <div className="ov-row-title">{p.name}</div>
-                      <div className="ov-row-meta">
-                        <span>{p.trips_count} chuyến</span>
-                        <span>{p.tickets_sold} vé đã bán</span>
-                        <span>Hoa hồng {p.commission_rate}%</span>
+              <div className="ov-body">
+                <div className="ov-toolbar">
+                  <span className="ov-count">{total} nhà xe · xếp theo doanh thu</span>
+                  {all.length > PREVIEW && (
+                    <input className="ov-search" value={opsQuery} onChange={(e) => setOpsQuery(e.target.value)} placeholder="Tìm nhà xe…" aria-label="Tìm nhà xe" />
+                  )}
+                </div>
+                <ul className={`ov-list${opsOpen || q ? " ov-list--scroll" : ""}`}>
+                  {shown.map((p) => (
+                    <li key={p.id} className="ov-row ov-row--partner">
+                      <span className="ov-rank">{all.indexOf(p) + 1}</span>
+                      <div className="ov-row-main">
+                        <div className="ov-row-title">{p.name}</div>
+                        <div className="ov-row-meta">
+                          <span>{p.trips_count} chuyến</span>
+                          <span>{p.tickets_sold} vé đã bán</span>
+                          <span>Hoa hồng {p.commission_rate}%</span>
+                        </div>
+                        <div className="ov-bar" aria-hidden="true">
+                          <span style={{ width: `${Math.round(((p.revenue || 0) / top) * 100)}%` }} />
+                        </div>
                       </div>
-                      <div className="ov-bar" aria-hidden="true">
-                        <span style={{ width: `${Math.round(((p.revenue || 0) / top) * 100)}%` }} />
+                      <div className="ov-row-side">
+                        <div className="ov-amount ov-amount--brand">{money(p.revenue)}</div>
+                        <div className="ov-caption">doanh thu</div>
                       </div>
-                    </div>
-                    <div className="ov-row-side">
-                      <div className="ov-amount ov-amount--brand">{money(p.revenue)}</div>
-                      <div className="ov-caption">doanh thu</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                    </li>
+                  ))}
+                  {q && !filtered.length && <li className="ov-empty">Không có nhà xe nào khớp “{opsQuery}”.</li>}
+                </ul>
+                <div className="ov-footer">
+                  {!q && filtered.length > PREVIEW && (
+                    <button type="button" className="ov-more" onClick={() => setOpsOpen((v) => !v)}>
+                      {opsOpen ? "Thu gọn" : `Xem thêm (còn ${filtered.length - PREVIEW})`}
+                    </button>
+                  )}
+                  {total > all.length && <span className="ov-note">Hiện {all.length}/{total} nhà xe doanh thu cao nhất.</span>}
+                  <button type="button" className="ov-more ov-more--link" onClick={() => onNavigate("partners")}>
+                    Tất cả nhà xe →
+                  </button>
+                </div>
+              </div>
             );
           })()}
         </div>
@@ -299,8 +329,12 @@ export const OverviewView: React.FC<{
           {(stats?.recent_bookings || []).length === 0 ? (
             <p className="ov-empty">Chưa có đơn vé nào.</p>
           ) : (
-            <ul className="ov-list">
-              {(stats?.recent_bookings || []).map((b: any) => {
+            <div className="ov-body">
+            <div className="ov-toolbar">
+              <span className="ov-count">{(stats?.recent_bookings || []).length} đơn mới nhất</span>
+            </div>
+            <ul className={`ov-list${bookingsOpen ? " ov-list--scroll" : ""}`}>
+              {(stats?.recent_bookings || []).slice(0, bookingsOpen ? undefined : PREVIEW).map((b: any) => {
                 const paid = b.payment_status === "paid";
                 const initials = String(b.customer_name || "?").trim().split(/\s+/).slice(-2).map((w: string) => w[0]).join("").toUpperCase();
                 return (
@@ -328,6 +362,17 @@ export const OverviewView: React.FC<{
                 );
               })}
             </ul>
+            <div className="ov-footer">
+              {(stats?.recent_bookings || []).length > PREVIEW && (
+                <button type="button" className="ov-more" onClick={() => setBookingsOpen((v) => !v)}>
+                  {bookingsOpen ? "Thu gọn" : `Xem thêm (còn ${(stats?.recent_bookings || []).length - PREVIEW})`}
+                </button>
+              )}
+              <button type="button" className="ov-more ov-more--link" onClick={() => onNavigate("bookings")}>
+                Tất cả đơn vé →
+              </button>
+            </div>
+            </div>
           )}
         </div>
       </section>

@@ -91,8 +91,10 @@ class DashboardController extends Controller
             'new_customers_week' => $firstSeen->filter(fn ($d) => $d >= $weekAgo)->count(),
             'revenue_chart' => $chart,
             'six_month_chart' => $months,
-            'operator_performance' => $operators,
-            'recent_bookings' => $bookings->take(10)->values(),
+            // Overview lists stay light whatever the size: top 50 operators by revenue (+ total), 20 latest bookings.
+            'operator_performance' => $operators->take(50)->values(),
+            'operator_total' => $operators->count(),
+            'recent_bookings' => $bookings->take(20)->values(),
         ]]);
     }
 }

@@ -226,9 +226,9 @@ Route::get('uploads/{file}', function (string $file) {
 });
 
 Route::get('{path?}', function (Request $r, PortalService $p) {
-    $p->context($r);
     $file = public_path('spa.html');
     abort_unless(is_file($file), 503, 'Chưa có frontend build. Chạy npm run build và npm run build:hosting.');
 
-    return response()->file($file, ['Cache-Control' => 'no-cache']);
+    // Title/description/preview image per app (operator host or /app/{slug}), for link previews.
+    return response($p->spaHtml($r, file_get_contents($file)), 200, ['Content-Type' => 'text/html; charset=UTF-8', 'Cache-Control' => 'no-cache']);
 })->where('path', '^(?!api(?:/|$)|uploads(?:/|$)).*');

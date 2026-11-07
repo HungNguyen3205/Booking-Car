@@ -1026,8 +1026,14 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+}
+
+/* Rows never shrink below their content (they overlapped in a capped list). */
+.ov-list > li {
+  flex-shrink: 0;
 }
 
 .ov-row,
@@ -1173,4 +1179,125 @@
     height: 34px;
     font-size: 12px;
   }
+}
+
+
+/* Overview lists: fixed footprint whatever the data size. */
+.ds-card:has(> .ov-body) {
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  flex: 1;
+}
+
+.ov-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ov-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.ov-search {
+  flex: 0 1 200px;
+  min-width: 140px;
+  padding: 7px 12px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  background: #f8fafc;
+}
+
+.ov-search:focus {
+  outline: 2px solid #fdd8b5;
+  border-color: #f2730e;
+  background: #fff;
+}
+
+/* The list area has a fixed cap in every state; extra rows scroll inside the card. */
+.ov-body > .ov-list {
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.ov-row-title,
+.ov-row-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.ov-row-meta {
+  overflow: hidden;
+}
+
+.ov-rank {
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ov-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.ov-footer .ov-more {
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #102744;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  height: auto;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.ov-footer .ov-more:hover {
+  border-color: #fbc08a !important;
+  color: #c2410c;
+}
+
+.ov-footer .ov-more--link {
+  border-color: transparent !important;
+  color: #f2730e;
+  margin-left: auto;
+}
+
+.ov-note {
+  font-size: 11.5px;
+  color: #94a3b8;
 }

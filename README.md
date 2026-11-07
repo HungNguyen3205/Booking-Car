@@ -356,6 +356,14 @@ Hướng dẫn cũ cho bản frontend tĩnh: [docs/CPANEL_UPDATE.md](docs/CPANEL
 Ghi theo phiên bản để người cùng làm biết đã làm gì và còn gì phải làm. Phiên bản mới ở trên cùng.
 Khi thay đổi lớn, thêm một mục mới theo cùng mẫu.
 
+### v2.8 — 2026-11-07 · Link xem trước đúng nhà xe
+
+- Gửi link `cuaong.danavago.com`, `haivan.danavago.com` (hoặc `/app/{slug}`, `/nha-xe/{slug}`) qua Zalo/Messenger/Facebook
+  giờ hiện **tên, mô tả, ảnh của nhà xe** thay vì DANAVA GO. Laravel thay `<title>`, `description`, favicon, `theme-color`
+  và thêm thẻ Open Graph/Twitter vào `spa.html` theo tên miền (`PortalService::spaHtml`). Mô tả = slogan + tagline +
+  mô tả + hotline của nhà xe (sửa trong dữ liệu nhà xe); ảnh = ảnh bìa (WebP thì dùng logo).
+- Zalo/Facebook lưu tạm bản xem trước cũ: dùng https://developers.facebook.com/tools/debug/ → "Scrape Again" để làm mới.
+
 ### v2.7 — 2026-11-07 · Studio đọc được trên điện thoại
 
 - Màn hình ≤ 640px: mọi bảng trong Studio hiển thị **mỗi dòng một thẻ** ("TÊN CỘT: giá trị"), không còn bị ép cột hay phải
@@ -364,6 +372,8 @@ Khi thay đổi lớn, thêm một mục mới theo cùng mẫu.
 - Trang Tổng quan: "Hiệu quả nhà xe đối tác" và "Đơn vé vừa đặt" thiết kế lại thành danh sách thẻ (không còn bảng 5 cột
   phải cuộn ngang): nhà xe có doanh thu + thanh so sánh, số chuyến, vé, hoa hồng; đơn vé có khách, SĐT, mã vé, tuyến,
   giờ, ghế, số tiền, trạng thái thu tiền (bấm vào mở Đơn vé). Xuống 1 cột trên điện thoại.
+  Không kéo dài trang dù nhiều dữ liệu: mặc định 5 dòng, "Xem thêm" cuộn bên trong khung (tối đa 420px), tên dài cắt "…";
+  nhà xe có số thứ hạng và ô tìm nhanh. Server chỉ gửi 50 nhà xe doanh thu cao nhất (+ tổng số) và 20 đơn mới nhất.
 - Nút trong bảng không bị bẻ chữ (cột Thao tác ở Chuyến chạy).
 - Máy tính: bảng giữ nguyên như cũ.
 

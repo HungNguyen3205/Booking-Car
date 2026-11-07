@@ -74,6 +74,83 @@ class PortalService
         return ['kind' => $kind, 'operator' => null];
     }
 
+    /**
+     * spa.html with a <head> for the app being opened. Link previews (Zalo,
+     * Messenger, Facebook, Google) read only this HTML, not the React app, so
+     * an operator host (or /app/{slug}, /nha-xe/{slug}) gets the operator's
+     * name, description, cover image, logo and colour instead of DANAVA GO's.
+     */
+    public function spaHtml(Request $r, string $html): string
+    {
+        $ctx = $this->context($r);
+        $operator = $ctx['operator'];
+        if (! $operator && preg_match('~^/(?:app|nha-xe)/([a-z0-9-]+)~', '/'.ltrim($r->path(), '/'), $m)) {
+            try {
+                $operator = $this->profile($m[1]);
+            } catch (\Throwable) {
+                $operator = null;
+            }
+        }
+        // Production is HTTPS behind the host's web server; previews need absolute https URLs.
+        $base = (app()->environment('production') ? 'https' : $r->getScheme()).'://'.$r->getHttpHost();
+        $abs = fn (?string $u) => ! $u ? '' : (str_starts_with($u, 'http') ? $u : $base.'/'.ltrim($u, '/'));
+        if ($operator) {
+            $name = $operator['name'];
+            $title = $name.' — Đặt vé xe trực tuyến';
+            $sentence = fn (string $t) => preg_match('/[.!?…]$/u', $t) ? $t : $t.'.';
+            $parts = array_map($sentence, array_filter(array_map('trim', [$operator['slogan'] ?? '', $operator['tagline'] ?? '', $operator['description'] ?? ''])));
+            $description = implode(' ', $parts) ?: 'Đặt vé '.$name.' trực tuyến: chọn chuyến, chọn ghế, nhận vé điện tử.';
+            if (! empty($operator['phone'])) {
+                $description .= ' Hotline '.$operator['phone'].'.';
+            }
+            // Some apps (Zalo) do not render WebP previews: fall back to the logo then.
+            $cover = $operator['hero'] && ! str_ends_with(strtolower($operator['hero']), '.webp') ? $operator['hero'] : '';
+            $image = $abs($cover ?: $operator['logo'] ?: $operator['hero']);
+            $icon = $abs($operator['logo']);
+            $color = $operator['color'] ?? '';
+            $site = $name;
+        } else {
+            $title = 'DANAVA GO — Đặt vé xe khách trực tuyến cao cấp';
+            $description = 'Đi một chuyến. Mở ngàn trải nghiệm. Đặt vé xe khách trực tuyến cao cấp DANAVA GO kết nối các điểm đến tuyệt đẹp Việt Nam.';
+            $image = $abs('/assets/appgo/hero-bg-clean.jpg');
+            $icon = '';
+            $color = '#2563eb';
+            $site = 'DANAVA GO';
+        }
+        $e = fn (string $v) => htmlspecialchars(mb_substr($v, 0, 300), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $url = $base.'/'.ltrim($r->path() === '/' ? '' : $r->path(), '/');
+        $html = preg_replace('~<title>.*?</title>~s', '<title>'.$e($title).'</title>', $html, 1);
+        $html = preg_replace('~<meta name="description"[^>]*>~', '<meta name="description" content="'.$e($description).'" />', $html, 1);
+        if ($icon) {
+            $html = preg_replace('~<link rel="icon"[^>]*>~', '<link rel="icon" href="'.$e($icon).'" />', $html, 1);
+        }
+        $tags = [
+            '<meta property="og:type" content="website" />',
+            '<meta property="og:site_name" content="'.$e($site).'" />',
+            '<meta property="og:title" content="'.$e($title).'" />',
+            '<meta property="og:description" content="'.$e($description).'" />',
+            '<meta property="og:url" content="'.$e($url).'" />',
+            '<meta property="og:locale" content="vi_VN" />',
+            '<meta name="twitter:card" content="summary_large_image" />',
+            '<meta name="twitter:title" content="'.$e($title).'" />',
+            '<meta name="twitter:description" content="'.$e($description).'" />',
+        ];
+        if ($image) {
+            $tags[] = '<meta property="og:image" content="'.$e($image).'" />';
+            $tags[] = '<meta name="twitter:image" content="'.$e($image).'" />';
+        }
+        if ($color) {
+            $tags[] = '<meta name="theme-color" content="'.$e($color).'" />';
+        }
+        if ($icon) {
+            $tags[] = '<link rel="apple-touch-icon" href="'.$e($icon).'" />';
+        }
+
+        return str_replace('</head>', '    '.implode("
+    ", $tags)."
+  </head>", $html);
+    }
+
     public function scopeTrip(Request $r, string $tripId): void
     {
         $tid = $this->tenantForHost($r);
