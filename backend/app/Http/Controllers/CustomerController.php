@@ -30,6 +30,17 @@ class CustomerController extends Controller
         return ['items' => $rows->map(fn ($row) => $this->ops->booking($row))->values()];
     }
 
+    /** Live bus position, route and trip log for one of the customer's own tickets. */
+    public function tracking(Request $r, string $id, \App\Services\TrackingService $tracking)
+    {
+        $u = $this->customer($r);
+        $row = DB::table('bookings')->where('id', $id)->first();
+        abort_unless($row && ($this->ops->data($row)['passenger']['phone'] ?? '') === $u->phone, 404, 'Không tìm thấy vé');
+        abort_if($row->status === 'cancelled', 409, 'Vé đã huỷ');
+
+        return $tracking->view($tracking->tripRow($row->trip_id), false, $row);
+    }
+
     public function notifications(Request $r)
     {
         $u = $this->customer($r);

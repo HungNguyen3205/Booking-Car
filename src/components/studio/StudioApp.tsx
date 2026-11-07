@@ -135,8 +135,8 @@ const adminSidebarSections = [
 const PAGE_ROLES: Record<string, string[]> = {
   overview: ["owner", "manager", "dispatcher", "sales", "accountant"],
   bookings: ["owner", "manager", "dispatcher", "sales"],
-  trips: ["owner", "manager", "dispatcher", "driver"],
-  checkin: ["owner", "manager", "dispatcher", "sales", "driver"],
+  trips: ["owner", "manager", "dispatcher", "driver", "assistant"],
+  checkin: ["owner", "manager", "dispatcher", "sales", "driver", "assistant"],
   routes: ["owner", "manager", "dispatcher"],
   vehicles: ["owner", "manager", "dispatcher"],
   passengers: ["owner", "manager", "sales"],

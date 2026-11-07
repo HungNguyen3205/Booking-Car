@@ -6,7 +6,7 @@ import "./customer-account.css";
 
 const card: React.CSSProperties = { background: "#ffffff", borderRadius: 20, border: "1px solid #e2e8f0", padding: 16, marginBottom: 14 };
 const field: React.CSSProperties = { width: "100%", boxSizing: "border-box", padding: "12px 14px", borderRadius: 12, border: "1px solid #cbd5e1", fontSize: 16, fontFamily: "inherit" };
-const primary: React.CSSProperties = { width: "100%", padding: "13px 16px", borderRadius: 14, border: 0, background: "#2563eb", color: "#ffffff", fontWeight: 800, fontSize: 15, cursor: "pointer", fontFamily: "inherit" };
+const primary: React.CSSProperties = { width: "100%", padding: "13px 16px", borderRadius: 14, border: 0, background: "var(--go-primary)", color: "var(--go-on-primary)", fontWeight: 800, fontSize: 15, cursor: "pointer", fontFamily: "inherit" };
 const errorBox: React.CSSProperties = { padding: "10px 12px", borderRadius: 12, background: "#fef2f2", color: "#991b1b", fontSize: 13, fontWeight: 600 };
 
 /** Shown right after checkout, before the e-ticket. */

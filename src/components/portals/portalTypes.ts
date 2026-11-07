@@ -7,9 +7,14 @@ export interface OperatorProfile {
   description: string;
   address: string;
   color: string;
+  /** Optional dark text colour for a light brand colour. */
+  ink?: string;
   logo: string;
   hero: string;
   policies: string;
+  /** Operator app home: big slogan and the line under the name (Studio settings). */
+  slogan?: string;
+  tagline?: string;
   nextDepartureDate?: string;
   appEnabled: boolean;
   appUrl: string;

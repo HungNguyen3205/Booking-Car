@@ -79,6 +79,10 @@ PHP Laravel backend lives in `backend/`; React frontend and hero animations stay
 Host/path → app is `src/utils/surface.ts` (`npm run test:surfaces`), mirrored by
 `backend/config/portals.php` + `PortalService::platformHosts()`; change both together.
 `app.danavago.com` (local `/appgo`) is appgo, the customer app on `/api/public/*`;
+tenant apps render the same appgo with an operator `AppBrand` (`appgo/appgoBrand.ts`, colour via `--go-*` vars);
+app roles (README "Vai trò trong app"): customer, crew (driver/assistant = lơ xe: `CrewApp`, scans bound to `trip_id`,
+phone GPS via `TrackingService`), management (`ManageTab`); crew scope only via `StudioBridge::crewColumn/crewFilter/onTrip`
+(`npm run test:crew`); record each release in README "Nhật ký cập nhật";
 `studio.` (local `/manage`) is the single StudioApp; `admin.`/`/admin` only redirect to it; tenant hosts and
 `/app/{slug}` use PortalEntry, `/nha-xe/{slug}` is the operator profile.
 PortalService resolves only active verified domains to the correct tenant.

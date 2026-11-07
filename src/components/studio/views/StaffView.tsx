@@ -37,6 +37,7 @@ export default function StaffView() {
     email: "",
     password: "",
     so_dien_thoai: "",
+    license: "",
     dia_chi: "",
     role: "sales",
     partner_id: "",
@@ -104,6 +105,7 @@ export default function StaffView() {
           email: "",
           password: "",
           so_dien_thoai: "",
+          license: "",
           dia_chi: "",
           role: "sales",
           partner_id: partners.length === 1 ? partners[0].id : "",
@@ -211,6 +213,7 @@ export default function StaffView() {
                 <option value="sales">Bán vé</option>
                 <option value="accountant">Kế toán</option>
                 <option value="driver">Tài xế</option>
+                <option value="assistant">Lơ xe</option>
               </select>
             </div>
             <button className="ds-btn ds-btn-outline" onClick={loadData} title="Làm mới">
@@ -462,17 +465,49 @@ export default function StaffView() {
                         <option value="sales">Bán vé — bán tại quầy, thu tiền, soát vé</option>
                         <option value="dispatcher">Điều hành — chuyến, xe, tuyến, soát vé</option>
                         <option value="accountant">Kế toán — thu chi, sổ quỹ, báo cáo</option>
-                        <option value="driver">Tài xế — soát vé chuyến được phân công</option>
+                        <option value="driver">Tài xế — soát vé, bật GPS chuyến được phân công</option>
+                        <option value="assistant">Lơ xe — soát vé, bật GPS chuyến được phân công</option>
                         <option value="manager">Quản lý — gần như toàn quyền nhà xe</option>
                         <option value="owner">Chủ nhà xe — toàn quyền</option>
                       </select>
                     </div>
                   </div>
+
+                  {(formData.role === "driver" || formData.role === "assistant") && (
+                    <>
+                      <div className="ds-form-group">
+                        <label>
+                          Số điện thoại <span className="ds-required">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="09xxxxxxxx"
+                          value={formData.so_dien_thoai}
+                          onChange={(e) => setFormData({ ...formData, so_dien_thoai: e.target.value })}
+                        />
+                      </div>
+                      {formData.role === "driver" && (
+                        <div className="ds-form-group">
+                          <label>
+                            Hạng giấy phép lái xe <span className="ds-required">*</span>
+                          </label>
+                          <input
+                            required
+                            placeholder="VD: D, E"
+                            value={formData.license}
+                            onChange={(e) => setFormData({ ...formData, license: e.target.value })}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 <p style={{ margin: "14px 0 0", fontSize: 13, color: "#64748b" }}>
                   Quyền của tài khoản = quyền theo vai trò + nhóm quyền (gán ở tab "Nhóm quyền").
-                  Nhân sự đăng nhập tại trang quản lý bằng email và mật khẩu này.
+                  Nhân sự đăng nhập tại trang quản lý bằng email và mật khẩu này. Tài xế và lơ xe đăng nhập
+                  trên app (Tài khoản → Nhân viên nhà xe), được phân công ở mục Chuyến chạy → Tổ lái.
                 </p>
               </div>
 

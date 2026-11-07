@@ -63,6 +63,9 @@ class PermissionMatrix
             'driver' => [
                 self::PERM_BOOKINGS_VIEW,
             ],
+            'assistant' => [
+                self::PERM_BOOKINGS_VIEW,
+            ],
             self::ROLE_OPERATOR_STAFF => [
                 'code'        => self::ROLE_OPERATOR_STAFF,
                 'name'        => 'Nhân viên nhà xe',

@@ -21,9 +21,9 @@ class StudioController extends Controller
         if ($r->isMethod('GET')) {
             return $this->ops->tenant($tid);
         }$u = $this->role($r, ['owner', 'manager']);
-        $b = $r->validate(['name' => 'required|string|max:150', 'email' => 'nullable|email', 'address' => 'nullable|string|max:300', 'description' => 'nullable|string|max:1500', 'policies' => 'nullable|string|max:5000', 'color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/']);
+        $b = $r->validate(['name' => 'required|string|max:150', 'email' => 'nullable|email', 'address' => 'nullable|string|max:300', 'description' => 'nullable|string|max:1500', 'policies' => 'nullable|string|max:5000', 'color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/', 'slogan' => 'nullable|string|max:120', 'tagline' => 'nullable|string|max:160', 'ink' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/']);
         $t = $this->ops->tenant($tid);
-        foreach (['email', 'address', 'description', 'policies', 'color'] as $k) {
+        foreach (['email', 'address', 'description', 'policies', 'color', 'slogan', 'tagline', 'ink'] as $k) {
             if (array_key_exists($k, $b)) {
                 $t[$k] = $b[$k] ?? '';
             }
@@ -94,7 +94,7 @@ class StudioController extends Controller
         $tid = $this->tid($r);
         $trip = $this->ops->tripRow($tid, $id);
         $u = $this->user($r);
-        abort_if($u->role === 'driver' && $trip->driver_id !== $u->driver_id, 403, 'Không phải chuyến được phân công');
+        abort_unless(\App\Services\StudioBridge::onTrip($u, $trip), 403, 'Không phải chuyến được phân công');
         $rows = [['Ma ve', 'Ho ten', 'Dien thoai', 'Ghe', 'Diem don', 'Trang thai']];
         foreach (DB::table('bookings')->where('trip_id', $id)->where('status', '!=', 'cancelled')->get() as $row) {
             $b = $this->ops->booking($row);
@@ -117,7 +117,7 @@ class StudioController extends Controller
     public function order(Request $r, string $id)
     {
         $tid = $this->tid($r);
-        $u = $this->role($r, $r->input('action') === 'checkin' ? ['owner', 'manager', 'dispatcher', 'sales', 'driver'] : ['owner', 'manager', 'dispatcher', 'sales']);
+        $u = $this->role($r, $r->input('action') === 'checkin' ? ['owner', 'manager', 'dispatcher', 'sales', 'driver', 'assistant'] : ['owner', 'manager', 'dispatcher', 'sales']);
 
         return $this->ops->changeBooking($tid, $id, $r->all(), $u);
     }
@@ -186,7 +186,7 @@ class StudioController extends Controller
         $u = $this->role($r, ['owner', 'manager']);
         if ($r->isMethod('GET')) {
             return ['items' => User::where('tenant_id', $tid)->get()];
-        }$b = $r->validate(['name' => 'required|string|max:150', 'email' => 'required|email|max:200', 'password' => 'required|string|min:12|max:200', 'role' => 'required|in:owner,manager,dispatcher,sales,accountant,driver', 'driverId' => 'nullable|string']);
+        }$b = $r->validate(['name' => 'required|string|max:150', 'email' => 'required|email|max:200', 'password' => 'required|string|min:12|max:200', 'role' => 'required|in:owner,manager,dispatcher,sales,accountant,driver,assistant', 'driverId' => 'nullable|string']);
         abort_if($u->role === 'manager' && in_array($b['role'], ['owner', 'manager']), 403, 'Quản lý không được tạo chủ sở hữu hoặc quản lý khác');
         if (! empty($b['driverId'])) {
             $this->ops->resource($tid, 'drivers', $b['driverId']);

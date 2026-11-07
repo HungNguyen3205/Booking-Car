@@ -5,6 +5,18 @@
   --go-primary-dark: #1d4ed8;
   --go-primary-light: #eff6ff;
   --go-primary-glow: rgba(37, 99, 235, 0.18);
+  /* Brand shades. An operator app overrides all of these from one colour
+     (brandVars in appgoBrand.ts); these literals are the DANAVA Go defaults. */
+  --go-primary-deep: #1e3a8a;
+  --go-primary-soft: #dbeafe;
+  --go-primary-pale: #93c5fd;
+  --go-primary-bright: #3b82f6;
+  --go-accent: #38bdf8;
+  /* Text/icons in the brand colour on light surfaces, and text on a brand fill.
+     Light brand colours (e.g. amber) switch both to a dark ink (appgoBrand.ts). */
+  --go-primary-text: #2563eb;
+  --go-on-primary: #ffffff;
+  --go-accent-dark: #0284c7;
   --go-navy-header: #0a192f;
   --go-bg: #f4f7fb;
   --go-card-bg: #ffffff;
@@ -92,7 +104,7 @@
 }
 
 .go-logo-text .go-brand-go {
-  color: #38bdf8;
+  color: var(--go-accent);
   font-style: italic;
   position: relative;
 }
@@ -104,7 +116,7 @@
   left: 0;
   right: 0;
   height: 2.5px;
-  background: #38bdf8;
+  background: var(--go-accent);
   border-radius: 999px;
 }
 
@@ -112,10 +124,10 @@
 .go-home-hero {
   position: relative;
   width: 100%;
-  min-height: 295px;
+  min-height: 228px;
   overflow: hidden;
   background-color: #0c1a2f;
-  padding: 12px 16px 36px;
+  padding: 12px 16px 30px;
   box-sizing: border-box;
 }
 
@@ -240,7 +252,7 @@
   font-size: 21px;
   font-weight: 800;
   font-style: italic;
-  color: #38bdf8;
+  color: var(--go-accent);
   position: relative;
 }
 
@@ -251,7 +263,7 @@
   left: 0;
   right: 0;
   height: 2.5px;
-  background: #38bdf8;
+  background: var(--go-accent);
   border-radius: 999px;
 }
 
@@ -310,7 +322,7 @@
 .go-home-heading-wrap {
   position: relative;
   z-index: 3;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .go-home-title {
@@ -339,8 +351,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 14px;
-  padding-bottom: 8px;
+  margin-top: 10px;
+  padding-bottom: 4px;
 }
 
 .go-hero-badge {
@@ -370,8 +382,8 @@
   z-index: 20;
   margin: -24px 16px 0;
   background: #ffffff;
-  border-radius: 24px;
-  padding: 16px 18px 20px;
+  border-radius: 22px;
+  padding: 12px 16px 14px;
   box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.1), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
   border: 1px solid rgba(241, 245, 249, 0.9);
 }
@@ -381,9 +393,9 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   background-color: #f1f5f9;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 4px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .go-trip-type-btn {
@@ -391,7 +403,7 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 8px 0;
+  padding: 7px 0;
   border-radius: 12px;
   border: 0;
   font-size: 13.5px;
@@ -404,26 +416,26 @@
 
 .go-trip-type-btn.active {
   background-color: var(--go-primary);
-  color: #ffffff;
+  color: var(--go-on-primary);
   font-weight: 700;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--go-primary) 28%, transparent);
 }
 
 .go-location-field {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 6px 0;
+  gap: 12px;
+  padding: 3px 0;
   cursor: pointer;
   width: 100%;
 }
 
 .go-field-icon-wrap {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background-color: #eff6ff;
-  color: var(--go-primary);
+  background-color: var(--go-primary-light);
+  color: var(--go-primary-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -436,22 +448,22 @@
 }
 
 .go-field-label {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--go-text-muted);
   font-weight: 500;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .go-field-value {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--go-text-dark);
   line-height: 1.25;
 }
 
 .go-swap-btn {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background-color: #f1f5f9;
   color: #334155;
@@ -472,7 +484,7 @@
 .go-search-divider {
   height: 1px;
   background-color: #f1f5f9;
-  margin: 6px 0 6px 56px;
+  margin: 4px 0 4px 48px;
 }
 
 .go-date-chips {
@@ -482,8 +494,8 @@
 }
 
 .go-chip-active {
-  background-color: #dbeafe;
-  color: #1d4ed8;
+  background-color: var(--go-primary-soft);
+  color: var(--go-primary-dark);
   font-weight: 600;
   font-size: 12px;
   padding: 5px 14px;
@@ -505,20 +517,20 @@
 
 .go-btn-primary {
   width: 100%;
-  margin-top: 16px;
-  padding: 14px 20px;
+  margin-top: 12px;
+  padding: 12px 20px;
   background-color: var(--go-primary);
-  color: #ffffff;
+  color: var(--go-on-primary);
   font-weight: 700;
-  font-size: 16px;
-  border-radius: 16px;
+  font-size: 15.5px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   border: 0;
   cursor: pointer;
-  box-shadow: 0 6px 18px -3px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 6px 18px -3px color-mix(in srgb, var(--go-primary) 35%, transparent);
   transition: all 0.2s ease;
 }
 
@@ -528,14 +540,14 @@
 
 /* Sections on Home */
 .go-section {
-  padding: 22px 16px 4px;
+  padding: 16px 16px 4px;
 }
 
 .go-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .go-section-title {
@@ -548,7 +560,7 @@
 .go-section-link {
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--go-primary);
+  color: var(--go-primary-text);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -570,7 +582,7 @@
   box-shadow: 0 4px 14px -3px rgba(15, 23, 42, 0.08);
   cursor: pointer;
   background-color: #cbd5e1;
-  height: 104px;
+  height: 88px;
 }
 
 .go-dest-card img {
@@ -634,15 +646,15 @@
 
 /* Promo Banner */
 .go-promo-banner {
-  margin: 14px 16px 20px;
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  margin: 14px 16px 0;
+  background: linear-gradient(135deg, var(--go-primary-soft) 0%, var(--go-primary-light) 100%);
   border: 1px solid rgba(191, 219, 254, 0.6);
   border-radius: 20px;
-  padding: 14px 16px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 16px -4px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 4px 16px -4px color-mix(in srgb, var(--go-primary) 8%, transparent);
   position: relative;
   overflow: hidden;
 }
@@ -660,13 +672,13 @@
   height: 40px;
   border-radius: 12px;
   background-color: var(--go-primary);
-  color: #ffffff;
+  color: var(--go-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
   font-weight: 800;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--go-primary) 28%, transparent);
 }
 
 .go-promo-content {
@@ -698,13 +710,13 @@
 
 .go-promo-btn {
   background: #ffffff;
-  color: var(--go-primary);
+  color: var(--go-primary-text);
   font-size: 11.5px;
   font-weight: 700;
   padding: 5px 14px;
   border-radius: 999px;
   border: 0;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--go-primary) 12%, transparent);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -712,8 +724,8 @@
 }
 
 .go-promo-art {
-  width: 90px;
-  height: 90px;
+  width: 76px;
+  height: 76px;
   position: relative;
   flex-shrink: 0;
 }
@@ -751,14 +763,14 @@
 
 .go-filter-pill-active {
   background-color: var(--go-primary);
-  color: #ffffff;
+  color: var(--go-on-primary);
   font-size: 12.5px;
   font-weight: 700;
   padding: 7px 18px;
   border-radius: 999px;
   border: 0;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--go-primary) 25%, transparent);
 }
 
 .go-filter-pill-inactive {
@@ -819,7 +831,7 @@
 
 .go-ticket-brand-logo em {
   font-style: italic;
-  color: #38bdf8;
+  color: var(--go-accent);
   font-weight: 800;
 }
 
@@ -883,7 +895,7 @@
   width: 36px;
   display: flex;
   justify-content: center;
-  color: var(--go-primary);
+  color: var(--go-primary-text);
 }
 
 .go-ticket-divider {
@@ -933,7 +945,7 @@
 }
 
 .go-cell-val.highlight-blue {
-  color: var(--go-primary);
+  color: var(--go-primary-text);
   font-size: 16px;
 }
 
@@ -947,7 +959,7 @@
   width: 100%;
   padding: 12px 18px;
   background-color: var(--go-primary);
-  color: #ffffff;
+  color: var(--go-on-primary);
   font-size: 14px;
   font-weight: 700;
   border-radius: 14px;
@@ -958,7 +970,7 @@
   justify-content: center;
   gap: 8px;
   margin-top: 14px;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--go-primary) 25%, transparent);
 }
 
 .go-ticket-sub-actions {
@@ -989,7 +1001,7 @@
 
 .go-alert-notice {
   margin-top: 14px;
-  background-color: #eff6ff;
+  background-color: var(--go-primary-light);
   border: 1px solid rgba(191, 219, 254, 0.7);
   border-radius: 14px;
   padding: 10px 14px;
@@ -1001,13 +1013,13 @@
 .go-alert-title {
   font-size: 11.5px;
   font-weight: 700;
-  color: #1e40af;
+  color: var(--go-primary-dark);
   margin: 0;
 }
 
 .go-alert-sub {
   font-size: 10.5px;
-  color: #3b82f6;
+  color: var(--go-primary-bright);
   margin: 1px 0 0;
 }
 
@@ -1067,7 +1079,7 @@
   border-radius: 999px;
   border: 1px solid var(--go-primary);
   background: #ffffff;
-  color: var(--go-primary);
+  color: var(--go-primary-text);
   font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
@@ -1120,7 +1132,7 @@
 }
 
 .go-tab-item.active {
-  color: var(--go-primary);
+  color: var(--go-primary-text);
 }
 
 .go-tab-label {
@@ -1217,7 +1229,7 @@
 .go-trips-logo-danava {
   font-size: 21px;
   font-weight: 800;
-  color: #1e3a8a;
+  color: var(--go-primary-deep);
   letter-spacing: -0.02em;
 }
 
@@ -1225,7 +1237,7 @@
   font-size: 22px;
   font-weight: 800;
   font-style: italic;
-  color: #2563eb;
+  color: var(--go-primary-text);
   position: relative;
 }
 
@@ -1236,7 +1248,7 @@
   left: 0;
   right: 0;
   height: 2.5px;
-  background: #2563eb;
+  background: var(--go-primary);
   border-radius: 999px;
 }
 
@@ -1269,7 +1281,7 @@
 .go-trips-edit-btn {
   background: transparent;
   border: 0;
-  color: #2563eb;
+  color: var(--go-primary-text);
   padding: 8px;
   border-radius: 50%;
   cursor: pointer;
@@ -1280,7 +1292,7 @@
 }
 
 .go-trips-edit-btn:hover {
-  background-color: #eff6ff;
+  background-color: var(--go-primary-light);
 }
 
 /* Date Strip 3-Column Grid */
@@ -1302,9 +1314,9 @@
 }
 
 .go-trips-date-pill.active {
-  background-color: #2563eb;
-  border-color: #2563eb;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32);
+  background-color: var(--go-primary);
+  border-color: var(--go-primary);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--go-primary) 32%, transparent);
 }
 
 .go-trips-date-pill .pill-day {
@@ -1542,7 +1554,7 @@
 }
 
 .go-badge-next-day {
-  color: #2563eb;
+  color: var(--go-primary-text);
   font-size: 10.5px;
   font-weight: 700;
   margin-left: 3px;
@@ -1579,7 +1591,7 @@
   gap: 4px;
   font-size: 11.5px;
   font-weight: 600;
-  color: #2563eb;
+  color: var(--go-primary-text);
   background: transparent;
   border: 0;
   padding: 0;
@@ -1598,7 +1610,7 @@
 .go-trip-price-val {
   font-size: 19px;
   font-weight: 800;
-  color: #2563eb;
+  color: var(--go-primary-text);
   letter-spacing: -0.02em;
 }
 
@@ -1612,21 +1624,21 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: var(--go-primary);
+  color: var(--go-on-primary);
   font-size: 13.5px;
   font-weight: 700;
   padding: 8.5px 20px;
   border-radius: 12px;
   border: 0;
   cursor: pointer;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--go-primary) 28%, transparent);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .go-trip-choose-btn:hover {
-  background-color: #1d4ed8;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.38);
+  background-color: var(--go-primary-dark);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--go-primary) 38%, transparent);
 }
 
 /* =========================================================================
@@ -1710,9 +1722,9 @@
 }
 
 .go-step-item.active .go-step-num {
-  background-color: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  background-color: var(--go-primary);
+  color: var(--go-on-primary);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--go-primary) 30%, transparent);
 }
 
 .go-step-label {
@@ -1722,7 +1734,7 @@
 }
 
 .go-step-item.active .go-step-label {
-  color: #2563eb;
+  color: var(--go-primary-text);
   font-weight: 700;
 }
 
@@ -1735,7 +1747,7 @@
 /* Countdown Notice Banner */
 .go-payment-countdown-banner {
   margin: 14px 16px 12px;
-  background-color: #eff6ff;
+  background-color: var(--go-primary-light);
   border-radius: 14px;
   padding: 12px 14px;
   display: flex;
@@ -1748,13 +1760,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #1e3a8a;
+  color: var(--go-primary-deep);
   font-size: 14px;
   font-weight: 600;
 }
 
 .go-countdown-time {
-  color: #2563eb;
+  color: var(--go-primary-text);
   font-weight: 800;
   letter-spacing: -0.01em;
 }
@@ -1790,8 +1802,8 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background-color: #e0f2fe;
-  color: #0284c7;
+  background-color: var(--go-primary-soft);
+  color: var(--go-accent-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1866,8 +1878,8 @@
 }
 
 .go-form-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  border-color: var(--go-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--go-primary) 12%, transparent);
 }
 
 .go-form-input::placeholder {
@@ -1894,8 +1906,8 @@
 }
 
 .go-payment-method-row.selected {
-  border: 1.5px solid #2563eb;
-  background-color: #f0f7ff;
+  border: 1.5px solid var(--go-primary);
+  background-color: var(--go-primary-light);
 }
 
 .go-method-left {
@@ -1916,14 +1928,14 @@
 }
 
 .go-payment-method-row.selected .go-radio-outer {
-  border-color: #2563eb;
+  border-color: var(--go-primary);
 }
 
 .go-radio-inner {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #2563eb;
+  background-color: var(--go-primary);
 }
 
 .go-method-icon-wrap {
@@ -1931,7 +1943,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1e3a8a;
+  color: var(--go-primary-deep);
 }
 
 .go-method-info {
@@ -1960,7 +1972,7 @@ button.go-payment-method-row {
 }
 
 button.go-payment-method-row:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline: 3px solid color-mix(in srgb, var(--go-primary) 35%, transparent);
   outline-offset: 2px;
 }
 
@@ -1990,7 +2002,7 @@ button.go-payment-method-row:focus-visible {
   border: 1.5px solid #94a3b8;
   cursor: pointer;
   margin-top: 2px;
-  accent-color: #2563eb;
+  accent-color: var(--go-primary);
 }
 
 .go-terms-label {
@@ -2000,7 +2012,7 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-terms-link {
-  color: #2563eb;
+  color: var(--go-primary-text);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -2033,7 +2045,7 @@ button.go-payment-method-row:focus-visible {
 .go-total-val {
   font-size: 21px;
   font-weight: 800;
-  color: #2563eb;
+  color: var(--go-primary-text);
   letter-spacing: -0.02em;
 }
 
@@ -2041,21 +2053,21 @@ button.go-payment-method-row:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: var(--go-primary);
+  color: var(--go-on-primary);
   font-size: 14.5px;
   font-weight: 700;
   padding: 12px 28px;
   border-radius: 14px;
   border: 0;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--go-primary) 30%, transparent);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .go-pay-submit-btn:hover {
-  background-color: #1d4ed8;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
+  background-color: var(--go-primary-dark);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--go-primary) 40%, transparent);
 }
 
 /* ==========================================================================
@@ -2146,14 +2158,14 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-seats-step-circle.done {
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: var(--go-primary);
+  color: var(--go-on-primary);
 }
 
 .go-seats-step-circle.active {
-  background-color: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background-color: var(--go-primary);
+  color: var(--go-on-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--go-primary) 15%, transparent);
 }
 
 .go-seats-step-circle.pending {
@@ -2168,7 +2180,7 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-seats-step-line.done {
-  background-color: #2563eb;
+  background-color: var(--go-primary);
 }
 
 .go-seats-step-line.pending {
@@ -2212,9 +2224,9 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-seats-floor-btn.active {
-  background-color: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  background-color: var(--go-primary);
+  color: var(--go-on-primary);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--go-primary) 25%, transparent);
 }
 
 /* Legend: Trống / Đã đặt / Đang chọn */
@@ -2251,7 +2263,7 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-seats-legend-swatch.selected {
-  background-color: #2563eb;
+  background-color: var(--go-primary);
 }
 
 /* ==========================================================================
@@ -2305,7 +2317,7 @@ button.go-payment-method-row:focus-visible {
 /* Windshield Glass & Front Cockpit */
 .go-bus-windshield {
   height: 72px;
-  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 20%, #0f172a 90%);
+  background: linear-gradient(180deg, var(--go-accent) 0%, var(--go-accent-dark) 20%, #0f172a 90%);
   border-radius: 48px 48px 0 0;
   position: relative;
   overflow: hidden;
@@ -2475,16 +2487,16 @@ button.go-payment-method-row:focus-visible {
   width: 3px;
   height: 22px;
   border-radius: 2px;
-  background-color: #38bdf8;
-  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+  background-color: var(--go-accent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--go-accent) 60%, transparent);
   flex-shrink: 0;
 }
 
 /* Pod State: Available */
 .go-cabin-pod.available:hover {
   transform: translateY(-1px);
-  border-color: #93c5fd;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15);
+  border-color: var(--go-primary-pale);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--go-primary) 15%, transparent);
 }
 
 /* Pod State: Booked (A02, A06, etc.) */
@@ -2510,15 +2522,15 @@ button.go-payment-method-row:focus-visible {
 
 /* Pod State: Selected (A03) */
 .go-cabin-pod.selected {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border-color: #1d4ed8;
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
+  background: linear-gradient(135deg, var(--go-primary), var(--go-primary-dark));
+  border-color: var(--go-primary-dark);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--go-primary) 45%, transparent);
   transform: scale(1.02);
 }
 
 .go-cabin-pod.selected .go-cabin-pillow {
-  background-color: #1e40af;
-  border-color: #1d4ed8;
+  background-color: var(--go-primary-dark);
+  border-color: var(--go-primary-dark);
 }
 
 .go-cabin-pod.selected .go-cabin-code {
@@ -2526,7 +2538,7 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-cabin-pod.selected .go-cabin-led {
-  background-color: #93c5fd;
+  background-color: var(--go-primary-pale);
   box-shadow: 0 0 8px rgba(147, 197, 253, 0.9);
 }
 
@@ -2563,8 +2575,8 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-station-icon-wrap.blue {
-  background-color: #eff6ff;
-  color: #2563eb;
+  background-color: var(--go-primary-light);
+  color: var(--go-primary-text);
 }
 
 .go-station-icon-wrap.slate {
@@ -2652,7 +2664,7 @@ button.go-payment-method-row:focus-visible {
 .go-seats-bottom-price {
   font-size: 22px;
   font-weight: 900;
-  color: #2563eb;
+  color: var(--go-primary-text);
   letter-spacing: -0.02em;
   text-align: right;
 }
@@ -2660,8 +2672,8 @@ button.go-payment-method-row:focus-visible {
 .go-seats-submit-btn {
   width: 100%;
   height: 48px;
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: var(--go-primary);
+  color: var(--go-on-primary);
   font-size: 15.5px;
   font-weight: 700;
   border-radius: 14px;
@@ -2671,13 +2683,13 @@ button.go-payment-method-row:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--go-primary) 35%, transparent);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .go-seats-submit-btn:hover {
-  background-color: #1d4ed8;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+  background-color: var(--go-primary-dark);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--go-primary) 45%, transparent);
 }
 
 /* ==========================================================================
@@ -2787,7 +2799,7 @@ button.go-payment-method-row:focus-visible {
 
 .go-ticket-banner {
   height: 92px;
-  background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%);
+  background: linear-gradient(135deg, #0a192f 0%, var(--go-primary-deep) 100%);
   position: relative;
   overflow: hidden;
   padding: 14px 18px;
@@ -2817,7 +2829,7 @@ button.go-payment-method-row:focus-visible {
 .go-ticket-banner-logo .go {
   font-size: 20px;
   font-weight: 900;
-  color: #38bdf8;
+  color: var(--go-accent);
   font-style: italic;
 }
 
@@ -2825,7 +2837,7 @@ button.go-payment-method-row:focus-visible {
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: #93c5fd;
+  color: var(--go-primary-pale);
   text-transform: uppercase;
   margin-top: 4px;
 }
@@ -2869,7 +2881,7 @@ button.go-payment-method-row:focus-visible {
 .go-ticket-time {
   font-size: 26px;
   font-weight: 900;
-  color: #2563eb;
+  color: var(--go-primary-text);
   letter-spacing: -0.02em;
   margin: 2px 0;
 }
@@ -2883,8 +2895,8 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-ticket-plus-day {
-  background-color: #e0f2fe;
-  color: #0284c7;
+  background-color: var(--go-primary-soft);
+  color: var(--go-accent-dark);
   font-size: 10.5px;
   font-weight: 700;
   padding: 1px 6px;
@@ -2947,8 +2959,8 @@ button.go-payment-method-row:focus-visible {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background-color: #eff6ff;
-  color: #2563eb;
+  background-color: var(--go-primary-light);
+  color: var(--go-primary-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2975,7 +2987,7 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-ticket-detail-val.blue {
-  color: #2563eb;
+  color: var(--go-primary-text);
 }
 
 .go-ticket-detail-val.green {
@@ -3059,8 +3071,8 @@ button.go-payment-method-row:focus-visible {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: #eff6ff;
-  color: #2563eb;
+  background-color: var(--go-primary-light);
+  color: var(--go-primary-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3115,8 +3127,8 @@ button.go-payment-method-row:focus-visible {
   height: 42px;
   border-radius: 12px;
   border: 0;
-  background-color: #eff6ff;
-  color: #2563eb;
+  background-color: var(--go-primary-light);
+  color: var(--go-primary-text);
   font-size: 13.5px;
   font-weight: 700;
   display: flex;
@@ -3128,7 +3140,7 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-eticket-action-btn:hover {
-  background-color: #dbeafe;
+  background-color: var(--go-primary-soft);
 }
 
 /* Bottom Floating Bar */
@@ -3150,8 +3162,8 @@ button.go-payment-method-row:focus-visible {
 .go-eticket-download-btn {
   width: 100%;
   height: 48px;
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: var(--go-primary);
+  color: var(--go-on-primary);
   font-size: 15.5px;
   font-weight: 700;
   border-radius: 14px;
@@ -3161,13 +3173,13 @@ button.go-payment-method-row:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--go-primary) 35%, transparent);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .go-eticket-download-btn:hover {
-  background-color: #1d4ed8;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+  background-color: var(--go-primary-dark);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--go-primary) 45%, transparent);
 }
 
 
@@ -3312,6 +3324,108 @@ button.go-payment-method-row:focus-visible {
 }
 
 .go-seat-price-guide b {
-  color: #1d4ed8;
+  color: var(--go-primary-dark);
   font-weight: 800;
+}
+
+/* ---------------------------------------------------------------------------
+   Operator brand (same app, operator colour/logo/cover). See appgoBrand.ts.
+   Colours come from the --go-* variables set on .go-app-wrapper.
+   --------------------------------------------------------------------------- */
+.go-brand-operator .go-home-hero,
+.go-brand-operator .go-ticket-banner-wrap {
+  background: linear-gradient(135deg, #0a192f 0%, var(--go-primary-deep) 55%, var(--go-primary) 100%);
+}
+
+.go-op-logo {
+  height: 28px;
+  width: auto;
+  max-width: 72px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-right: 6px;
+  align-self: center;
+}
+
+.go-ticket-brand-logo .go-op-logo,
+.go-trips-logo .go-op-logo {
+  height: 22px;
+}
+
+.go-op-name {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 18px;
+  vertical-align: middle;
+}
+
+.go-home-brand,
+.go-logo-text,
+.go-trips-logo,
+.go-ticket-brand-logo,
+.go-ticket-banner-logo {
+  min-width: 0;
+}
+
+.go-trips-logo .go-op-name,
+.go-ticket-brand-logo .go-op-name {
+  font-size: 16px;
+  max-width: 170px;
+}
+
+.go-op-routes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.go-op-route {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--go-border);
+  background: var(--go-card-bg);
+  color: var(--go-text-dark);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+}
+
+.go-op-route:hover {
+  border-color: var(--go-primary-pale);
+}
+
+.go-op-route > svg {
+  color: var(--go-primary-text);
+  flex: 0 0 auto;
+}
+
+.go-op-route-name {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 0;
+}
+
+.go-op-route-name svg {
+  color: var(--go-primary-text);
+}
+
+.go-op-route-meta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--go-text-muted);
+  background: var(--go-primary-light);
+  padding: 3px 8px;
+  border-radius: 999px;
 }

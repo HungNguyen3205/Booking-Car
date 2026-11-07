@@ -18,7 +18,8 @@ export const RoutesView: React.FC = () => {
   const [createModal, setCreateModal] = useState(false);
   const [msg, setMsg] = useState("");
 
-  const [formData, setFormData] = useState({
+  type StopForm = { id?: string; name: string; address: string; stop_type: "pickup" | "dropoff" | "both"; time_offset_minutes: number; extra_fee: number; coords: string };
+  const blankRoute = () => ({
     partner_id: "",
     name: "",
     from_city: "Hà Nội",
@@ -27,10 +28,46 @@ export const RoutesView: React.FC = () => {
     duration_minutes: 150,
     base_price: 260000,
     stops: [
-      { name: "Bến xe Mỹ Đình", address: "Số 20 Phạm Hùng", stop_type: "pickup" as const, time_offset_minutes: 0, extra_fee: 0 },
-      { name: "Bãi Cháy", address: "Bến xe Bãi Cháy", stop_type: "dropoff" as const, time_offset_minutes: 150, extra_fee: 0 },
-    ],
+      { name: "Bến xe Mỹ Đình", address: "Số 20 Phạm Hùng", stop_type: "pickup", time_offset_minutes: 0, extra_fee: 0, coords: "" },
+      { name: "Bãi Cháy", address: "Bến xe Bãi Cháy", stop_type: "dropoff", time_offset_minutes: 150, extra_fee: 0, coords: "" },
+    ] as StopForm[],
   });
+  const [formData, setFormData] = useState(blankRoute);
+  // Editing an existing route (adds GPS coordinates used by trip tracking).
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  /** "16.0544, 108.2022" (copied from Google Maps) -> {lat,lng}; "" -> null; invalid -> undefined. */
+  const parseCoords = (text: string) => {
+    if (!text.trim()) return null;
+    const m = text.trim().match(/^(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)$/);
+    if (!m) return undefined;
+    const lat = Number(m[1]), lng = Number(m[2]);
+    return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : undefined;
+  };
+
+  const openCreate = () => {
+    setEditingId(null);
+    setFormData(blankRoute());
+    setCreateModal(true);
+  };
+
+  const openEdit = (r: RouteItem) => {
+    setEditingId(r.id);
+    setFormData({
+      partner_id: r.partner_id,
+      name: r.name,
+      from_city: r.from_city,
+      to_city: r.to_city,
+      distance_km: r.distance_km,
+      duration_minutes: r.duration_minutes,
+      base_price: r.base_price,
+      stops: (r.stops || []).map((s) => ({
+        id: s.id, name: s.name, address: s.address || "", stop_type: s.stop_type, time_offset_minutes: s.time_offset_minutes, extra_fee: s.extra_fee || 0,
+        coords: s.lat != null && s.lng != null ? `${s.lat}, ${s.lng}` : "",
+      })),
+    });
+    setCreateModal(true);
+  };
 
   const loadData = async () => {
     try {
@@ -54,12 +91,20 @@ export const RoutesView: React.FC = () => {
 
   const handleSaveRoute = async (e: React.FormEvent) => {
     e.preventDefault();
+    const stops = [];
+    for (const { coords, ...s } of formData.stops) {
+      const geo = parseCoords(coords);
+      if (geo === undefined) {
+        alert(`Tọa độ của "${s.name || "điểm dừng"}" chưa đúng. Nhập dạng: 16.0544, 108.2022`);
+        return;
+      }
+      stops.push({ ...s, lat: geo?.lat ?? null, lng: geo?.lng ?? null });
+    }
     try {
-      await adminApi.createRoute({
-        ...formData,
-        partner_id: formData.partner_id || (partners[0]?.id ?? ""),
-      });
-      setMsg("Lưu tuyến đường thành công!");
+      const payload = { ...formData, stops, partner_id: formData.partner_id || (partners[0]?.id ?? "") };
+      if (editingId) await adminApi.updateRoute(editingId, payload);
+      else await adminApi.createRoute(payload);
+      setMsg(editingId ? "Đã cập nhật tuyến đường" : "Lưu tuyến đường thành công!");
       setCreateModal(false);
       loadData();
     } catch (err: any) {
@@ -72,7 +117,7 @@ export const RoutesView: React.FC = () => {
       ...formData,
       stops: [
         ...formData.stops,
-        { name: "", address: "", stop_type: "pickup", time_offset_minutes: 15, extra_fee: 0 },
+        { name: "", address: "", stop_type: "pickup", time_offset_minutes: 15, extra_fee: 0, coords: "" },
       ],
     });
   };
@@ -115,7 +160,7 @@ export const RoutesView: React.FC = () => {
               <RefreshCw size={14} /> Làm mới
             </button>
             <button
-              onClick={() => setCreateModal(true)}
+              onClick={openCreate}
               className="ds-primary"
               style={{ padding: "9px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}
             >
@@ -181,6 +226,13 @@ export const RoutesView: React.FC = () => {
               >
                 Xem chi tiết
               </button>
+              <button
+                onClick={() => openEdit(r)}
+                title="Sửa tuyến, điểm dừng và tọa độ GPS"
+                style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #1765e8", background: "#eef5ff", color: "#1765e8", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
+              >
+                Sửa · Tọa độ GPS
+              </button>
             </div>
           </div>
         ))}
@@ -189,9 +241,9 @@ export const RoutesView: React.FC = () => {
       {/* Modal Thêm tuyến mới */}
       {createModal && (
         <div className="ds-modal-backdrop" onClick={() => setCreateModal(false)}>
-          <div className="ds-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 620 }}>
+          <div className="ds-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 780 }}>
             <header>
-              <h2>Thiết lập Tuyến đường & Điểm đón/trả mới</h2>
+              <h2>{editingId ? "Sửa tuyến đường & tọa độ GPS" : "Thiết lập Tuyến đường & Điểm đón/trả mới"}</h2>
               <button onClick={() => setCreateModal(false)}><X size={20} /></button>
             </header>
             <form onSubmit={handleSaveRoute} style={{ padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -274,7 +326,7 @@ export const RoutesView: React.FC = () => {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 180, overflowY: "auto", paddingRight: 4 }}>
                   {formData.stops.map((s, idx) => (
-                    <div key={idx} style={{ display: "grid", gridTemplateColumns: "1.5fr 1.5fr 1fr 1fr auto", gap: 6, alignItems: "center" }}>
+                    <div key={idx} style={{ display: "grid", gridTemplateColumns: "1.3fr 1.3fr 0.9fr 0.6fr 1.4fr auto", gap: 6, alignItems: "center" }}>
                       <input
                         type="text"
                         placeholder="Tên điểm dừng"
@@ -321,6 +373,19 @@ export const RoutesView: React.FC = () => {
                         }}
                         style={{ padding: "6px 8px", fontSize: 12 }}
                       />
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="Tọa độ: 16.05, 108.20"
+                        title="Dán tọa độ từ Google Maps (vĩ độ, kinh độ). Dùng để kiểm tra xe đi đúng tuyến."
+                        value={s.coords}
+                        onChange={(e) => {
+                          const updated = [...formData.stops];
+                          updated[idx].coords = e.target.value;
+                          setFormData({ ...formData, stops: updated });
+                        }}
+                        style={{ padding: "6px 8px", fontSize: 12, borderColor: parseCoords(s.coords) === undefined ? "#dc2626" : undefined }}
+                      />
                       <button
                         type="button"
                         onClick={() => removeStopField(idx)}
@@ -331,6 +396,10 @@ export const RoutesView: React.FC = () => {
                     </div>
                   ))}
                 </div>
+                <p style={{ margin: "8px 0 0", fontSize: 12, color: "#64748b" }}>
+                  Tọa độ GPS (tùy chọn): mở Google Maps, bấm giữ vào điểm đón/trả, sao chép “vĩ độ, kinh độ”. App so vị trí xe với
+                  đường nối các điểm có tọa độ để cảnh báo xe đi lệch tuyến; nhập thêm điểm dọc đường (trạm dừng nghỉ) để chính xác hơn.
+                </p>
               </div>
 
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 14 }}>

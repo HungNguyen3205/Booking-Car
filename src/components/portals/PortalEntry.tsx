@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
-const OperatorApp = lazy(() => import("../operator-app/OperatorApp"));
+// Operator apps are appgo with the operator's brand (components/appgo/appgoBrand.ts).
+const OperatorApp = lazy(() => import("../appgo/OperatorBrandedApp"));
 const Profile = lazy(() => import("./OperatorProfilePage"));
 export default function PortalEntry({
   profile = false,
@@ -7,7 +8,7 @@ export default function PortalEntry({
   profile?: boolean;
 }) {
   return (
-    <Suspense fallback={<div style={{ padding: 40 }}>Đang mở DANAVA GO…</div>}>
+    <Suspense fallback={<div style={{ padding: 40 }}>Đang mở ứng dụng…</div>}>
       {profile ? <Profile /> : <OperatorApp />}
     </Suspense>
   );

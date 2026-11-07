@@ -24,7 +24,9 @@ class MarketplaceController extends Controller
     {
         $names = [];
         $tid = app(PortalService::class)->tenantForHost($r);
-        foreach (DB::table('trips')->join('tenants', 'trips.tenant_id', '=', 'tenants.id')->where('trips.status', 'published')->where('tenants.status', 'active')->when($tid, fn ($q) => $q->where('trips.tenant_id', $tid))->select('trips.*')->get() as $t) {
+        // ?operator= narrows the list (appgo operator brand on /app/{slug}); it never widens a tenant host.
+        $operator = is_string($r->query('operator')) ? $r->query('operator') : null;
+        foreach (DB::table('trips')->join('tenants', 'trips.tenant_id', '=', 'tenants.id')->where('trips.status', 'published')->where('tenants.status', 'active')->when($tid, fn ($q) => $q->where('trips.tenant_id', $tid))->when($operator, fn ($q) => $q->where('trips.tenant_id', $operator))->select('trips.*')->get() as $t) {
             $d = $this->ops->data($t);
             $names[] = $d['route']['from'];
             $names[] = $d['route']['to'];
@@ -117,5 +119,22 @@ class MarketplaceController extends Controller
         abort_if($tid && $row->tenant_id !== $tid, 404, 'Không tìm thấy vé trong app này');
 
         return $this->ops->booking($row);
+    }
+
+    /** Guest trip tracking: same proof as lookup (ticket code + passenger phone). */
+    public function tracking(Request $r, \App\Services\TrackingService $tracking)
+    {
+        $key = 'tracking:'.hash('sha256', $r->ip());
+        abort_if(RateLimiter::tooManyAttempts($key, 8), 429, 'Thử tra cứu quá nhiều lần');
+        $phone = $this->ops->phone($r->input('phone'));
+        $row = DB::table('bookings')->where('id', (string) $r->input('code'))->first();
+        if (! $row || $this->ops->data($row)['passenger']['phone'] !== $phone) {
+            RateLimiter::hit($key, 900);
+            abort(404, 'Không tìm thấy vé với mã và số điện thoại này');
+        }$tid = app(PortalService::class)->tenantForHost($r);
+        abort_if($tid && $row->tenant_id !== $tid, 404, 'Không tìm thấy vé trong app này');
+        abort_if($row->status === 'cancelled', 409, 'Vé đã huỷ');
+
+        return $tracking->view($tracking->tripRow($row->trip_id), false, $row);
     }
 }

@@ -20,7 +20,7 @@ class PortalService
         $vehicles = $this->ops->records($t['id'], 'vehicles');
         $sub = DB::table('tenant_domains')->where(['tenant_id' => $t['id'], 'type' => 'subdomain', 'status' => 'active'])->value('hostname');
         $custom = DB::table('tenant_domains')->where(['tenant_id' => $t['id'], 'type' => 'custom', 'status' => 'active'])->value('hostname');
-        $public = array_intersect_key($t, array_flip(['id', 'name', 'slug', 'phone', 'email', 'description', 'address', 'color', 'logo', 'hero', 'policies']));
+        $public = array_intersect_key($t, array_flip(['id', 'name', 'slug', 'phone', 'email', 'description', 'address', 'color', 'logo', 'hero', 'policies', 'slogan', 'tagline', 'ink']));
         $next = DB::table('trips')->where(['tenant_id' => $t['id'], 'status' => 'published'])->where('depart_at', '>', $this->ops->now())->orderBy('depart_at')->first();
 
         return [...$public, 'nextDepartureDate' => $next ? $this->ops->data($next)['date'] : null, 'appEnabled' => (bool) ($t['appEnabled'] ?? false), 'appUrl' => ($custom || ($sub && config('portals.wildcard_ready'))) ? 'https://'.($custom ?: $sub) : '/app/'.$t['slug'], 'profileUrl' => 'https://'.config('portals.profile_host').'/nha-xe/'.$t['slug'], 'routes' => $routes, 'vehicles' => array_map(fn ($v) => array_intersect_key($v, array_flip(['id', 'name', 'category', 'capacity', 'floors', 'image', 'description', 'amenities'])), $vehicles)];

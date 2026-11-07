@@ -56,6 +56,9 @@ class RouteController extends Controller
                 }
                 $stop = ['id' => $s['id'] ?? 'stop-'.($i + 1), 'name' => trim($s['name']), 'address' => trim($s['address'] ?? '') ?: trim($s['name']),
                     'offset' => max(0, min($duration, (int) ($s['time_offset_minutes'] ?? 0)))];
+                if (isset($s['lat'], $s['lng']) && $s['lat'] !== '' && $s['lng'] !== '' && $s['lat'] !== null && $s['lng'] !== null) {
+                    $stop += ['lat' => (float) $s['lat'], 'lng' => (float) $s['lng']];   // GPS on-route check
+                }
                 $type = $s['stop_type'] ?? 'pickup';
                 if (in_array($type, ['pickup', 'both'], true)) {
                     $pickups[] = $stop + ['id' => $stop['id']];
@@ -77,6 +80,7 @@ class RouteController extends Controller
             'basePrice' => (int) ($b['base_price'] ?? $old['basePrice'] ?? 0), 'distanceKm' => (int) ($b['distance_km'] ?? $old['distanceKm'] ?? 0),
             'active' => ($b['status'] ?? (($old['active'] ?? true) ? 'active' : 'inactive')) === 'active',
             'pickups' => $pickups, 'dropoffs' => $dropoffs,
+            'waypoints' => $old['waypoints'] ?? [],   // GPS-only route shape, kept on edit
         ];
     }
 
@@ -88,8 +92,10 @@ class RouteController extends Controller
             'name' => "$req|string|max:150", 'from_city' => "$req|string|max:80", 'to_city' => "$req|string|max:80",
             'distance_km' => 'nullable|integer|min:0|max:5000', 'duration_minutes' => "$req|integer|min:10|max:2880",
             'base_price' => 'nullable|integer|min:0|max:100000000', 'status' => 'nullable|string|in:active,inactive',
-            'stops' => 'nullable|array|max:30', 'stops.*.name' => 'nullable|string|max:150', 'stops.*.address' => 'nullable|string|max:300',
+            // stops.*.id keeps stop ids stable on edit: trips already scheduled reference them.
+            'stops' => 'nullable|array|max:30', 'stops.*.id' => 'nullable|string|max:60', 'stops.*.name' => 'nullable|string|max:150', 'stops.*.address' => 'nullable|string|max:300',
             'stops.*.stop_type' => 'nullable|string|in:pickup,dropoff,both', 'stops.*.time_offset_minutes' => 'nullable|integer|min:0',
+            'stops.*.lat' => 'nullable|numeric|between:-90,90', 'stops.*.lng' => 'nullable|numeric|between:-180,180',
         ];
     }
 

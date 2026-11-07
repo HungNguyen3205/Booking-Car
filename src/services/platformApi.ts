@@ -160,6 +160,9 @@ export interface CustomerNotification {
 }
 export const customerLogin = (phone: string, password: string) =>
   api<SessionResponse>("/auth/login", { method: "POST", body: { phone, password } });
+/** Operator staff (owner, tài xế, lơ xe…) sign in to the app with their Studio email. */
+export const staffLogin = (email: string, password: string) =>
+  api<SessionResponse>("/auth/login", { method: "POST", body: { email: email.trim().toLowerCase(), password } });
 export const changePassword = (currentPassword: string, newPassword: string) =>
   api<SessionResponse>("/auth/password", { method: "PATCH", body: { currentPassword, newPassword } });
 export const logoutSession = () => api<SessionResponse>("/auth/logout", { method: "POST" });

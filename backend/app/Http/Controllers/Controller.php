@@ -48,9 +48,7 @@ abstract class Controller
     {
         $q = DB::table('trips')->where('tenant_id', $tid)->orderByDesc('depart_at');
         $u = $this->user($r);
-        if ($u->role === 'driver') {
-            $q->where('driver_id', $u->driver_id ?: 'unassigned');
-        }
+        \App\Services\StudioBridge::crewFilter($q, $u);
 
         return $q->get();
     }
@@ -58,7 +56,7 @@ abstract class Controller
     protected function bookings(Request $r, string $tid)
     {
         $q = DB::table('bookings')->where('tenant_id', $tid)->orderByDesc('created_at');
-        if ($this->user($r)->role === 'driver') {
+        if (\App\Services\StudioBridge::crewColumn($this->user($r))) {
             $q->whereIn('trip_id', $this->tripRows($r, $tid)->pluck('id'));
         }
 

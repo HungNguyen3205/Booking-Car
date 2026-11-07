@@ -51,8 +51,8 @@ class CheckinController extends Controller
     {
         $u = $this->bridge->user($r);
         $rows = $this->bridge->bookingRows($this->bridge->scope($r, ''));
-        if ($u->role === 'driver') {
-            $rows = $rows->where('trip_driver_id', $u->driver_id ?: 'unassigned');
+        if ($column = StudioBridge::crewColumn($u)) {
+            $rows = $rows->where('trip_'.$column, $u->driver_id ?: 'unassigned');
         }
 
         return $rows->values();
@@ -77,10 +77,33 @@ class CheckinController extends Controller
         });
         if (! empty($b['trip_id'])) {
             $rows = $rows->where('trip_id', $b['trip_id']);
+            if ($rows->isEmpty()) {
+                $this->refuseOtherTrip($r, $q, $b['trip_id']);
+            }
         }
         $items = $this->bridge->bookings($rows->sortByDesc('trip_depart_at')->take(10)->values())->map(fn ($x) => $this->present($x))->values();
 
         return response()->json(['status' => 1, 'data' => $items]);
+    }
+
+    /**
+     * Scanning is bound to the bus being boarded: a ticket of the same operator
+     * on another trip gets a clear refusal (which bus/time it belongs to) instead
+     * of "not found", so the crew can redirect the passenger.
+     */
+    private function refuseOtherTrip(Request $r, string $code, string $tripId): void
+    {
+        $row = DB::table('bookings')->where('id', $code)->first();
+        if (! $row || $row->trip_id === $tripId || ! $this->bridge->inScope($this->bridge->scope($r, ''), $row->tenant_id)) {
+            return;
+        }
+        $trip = DB::table('trips')->where('id', $row->trip_id)->first();
+        if (! $trip) {
+            return;
+        }
+        $view = $this->bridge->trip($trip);
+        abort(409, 'Vé '.$row->id.' thuộc chuyến khác: '.$view['route']['name'].' lúc '.substr((string) $view['depart_time'], 11, 5).' '.substr((string) $view['depart_time'], 8, 2).'/'.substr((string) $view['depart_time'], 5, 2)
+            .($view['vehicle']['plate_number'] ? ', xe '.$view['vehicle']['plate_number'] : '').'. Không cho lên xe này.');
     }
 
     private function one(Request $r, string $id): array
@@ -95,6 +118,11 @@ class CheckinController extends Controller
     {
         $u = $this->bridge->user($r);
         [$row, $b] = $this->one($r, $id);
+        $tripId = (string) $r->input('trip_id', '');
+        if ($tripId !== '' && $row->trip_id !== $tripId) {
+            $this->refuseOtherTrip($r, $row->id, $tripId);
+            abort(409, 'Vé không thuộc chuyến/xe đang soát');
+        }
         if ($row->status === 'checked_in') {
             return response()->json(['status' => 1, 'message' => 'Vé đã được soát lúc '.substr((string) $b['checked_in_at'], 11, 5).' '.substr((string) $b['checked_in_at'], 8, 2).'/'.substr((string) $b['checked_in_at'], 5, 2), 'data' => $this->present($b)]);
         }
@@ -131,9 +159,7 @@ class CheckinController extends Controller
         abort_unless(preg_match('/^\d{4}-\d{2}-\d{2}$/', $day), 422, 'Ngày không hợp lệ');
         $q = $this->bridge->scoped(DB::table('trips'), $this->bridge->scope($r))->whereBetween('depart_at', $this->bridge->utcBounds($day, $day))
             ->whereNotIn('status', ['draft', 'cancelled'])->orderBy('depart_at');
-        if ($u->role === 'driver') {
-            $q->where('driver_id', $u->driver_id ?: 'unassigned');
-        }
+        StudioBridge::crewFilter($q, $u);
         $trips = $q->get();
         $bookings = $trips->isEmpty() ? collect() : DB::table('bookings')->whereIn('trip_id', $trips->pluck('id'))->where('status', '!=', 'cancelled')->get(['trip_id', 'status', 'data']);
         $items = $trips->map(function ($t) use ($bookings) {

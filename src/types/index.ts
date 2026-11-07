@@ -41,6 +41,9 @@ export interface Seat {
 export interface Trip {
   id: string;
   code: string;
+  /** ISO UTC departure / arrival from the live API (absent in local demo data). */
+  departAt?: string;
+  endAt?: string;
   operator: string;
   vehicle: Vehicle;
   from: string;

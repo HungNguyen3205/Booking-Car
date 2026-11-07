@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\CompareReportController as AdminCompareReportCont
 use App\Http\Controllers\Admin\MarketingController as AdminMarketingController;
 use App\Http\Controllers\Admin\PermissionGroupController as AdminPermissionGroupController;
 use App\Http\Controllers\Admin\WorkforceController as AdminWorkforceController;
+use App\Http\Controllers\Admin\TrackingController as AdminTrackingController;
 use App\Http\Middleware\EnsureStudioAccess;
 use App\Services\OperatorService;
 use App\Services\PortalService;
@@ -45,6 +46,7 @@ Route::prefix('api')->middleware('auth.session')->group(function () {
     Route::get('customer/bookings', [CustomerController::class, 'myBookings']);
     Route::get('customer/notifications', [CustomerController::class, 'notifications']);
     Route::post('customer/notifications/read', [CustomerController::class, 'readNotifications']);
+    Route::get('customer/bookings/{id}/tracking', [CustomerController::class, 'tracking']);
     Route::get('public/operators', [MarketplaceController::class, 'operators']);
     Route::get('public/operators/{slug}', [PortalController::class, 'profile']);
     Route::get('public/context', [PortalController::class, 'context']);
@@ -54,6 +56,7 @@ Route::prefix('api')->middleware('auth.session')->group(function () {
     Route::delete('public/holds/{id}', [MarketplaceController::class, 'release']);
     Route::post('public/bookings', [MarketplaceController::class, 'reserve'])->middleware('throttle:30,1');
     Route::post('public/lookup', [MarketplaceController::class, 'lookup']);
+    Route::post('public/tracking', [MarketplaceController::class, 'tracking'])->middleware('throttle:30,1');
     Route::post('public/reviews', [AdminMarketingController::class, 'submitReview'])->middleware('throttle:10,1');
 
     // DANAVA Go Admin APIs (Quản trị toàn diện hệ thống)
@@ -78,11 +81,13 @@ Route::prefix('api')->middleware('auth.session')->group(function () {
             Route::get('trips', [AdminTripController::class, 'index']);
             Route::get('trips/{id}', [AdminTripController::class, 'show']);
             Route::get('trips/{id}/manifest', [AdminTripController::class, 'manifest']);
+            Route::get('crew', [AdminTrackingController::class, 'crew']);
         });
         Route::middleware($area('fleet'))->group(function () {
             Route::post('trips', [AdminTripController::class, 'store']);
             Route::patch('trips/{id}', [AdminTripController::class, 'update']);
             Route::delete('trips/{id}', [AdminTripController::class, 'destroy']);
+            Route::patch('trips/{id}/crew', [AdminTrackingController::class, 'assign']);
             Route::post('routes', [AdminRouteController::class, 'store']);
             Route::patch('routes/{id}', [AdminRouteController::class, 'update']);
             Route::delete('routes/{id}', [AdminRouteController::class, 'destroy']);
@@ -106,6 +111,12 @@ Route::prefix('api')->middleware('auth.session')->group(function () {
             Route::get('checkin/trips/{tripId}', [AdminCheckinController::class, 'manifest']);
             Route::post('checkin/{id}', [AdminCheckinController::class, 'board']);
             Route::delete('checkin/{id}', [AdminCheckinController::class, 'undo']);
+            // Crew phone GPS + trip log (assigned crew, or owner/manager/dispatcher).
+            Route::get('tracking/live', [AdminTrackingController::class, 'live']);
+            Route::get('trips/{id}/tracking', [AdminTrackingController::class, 'show']);
+            Route::post('trips/{id}/tracking/start', [AdminTrackingController::class, 'start']);
+            Route::post('trips/{id}/tracking/position', [AdminTrackingController::class, 'position'])->middleware('throttle:30,1');
+            Route::post('trips/{id}/tracking/finish', [AdminTrackingController::class, 'finish']);
         });
 
         Route::middleware($area('customers'))->group(function () {

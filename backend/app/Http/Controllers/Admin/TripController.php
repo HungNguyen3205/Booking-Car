@@ -31,9 +31,7 @@ class TripController extends Controller
     {
         $u = $this->bridge->user($r);
         $q = $this->bridge->scoped(DB::table('trips'), $this->bridge->scope($r))->orderByDesc('depart_at');
-        if ($u->role === 'driver') {
-            $q->where('driver_id', $u->driver_id ?: 'unassigned');
-        }
+        StudioBridge::crewFilter($q, $u);
 
         return $q;
     }

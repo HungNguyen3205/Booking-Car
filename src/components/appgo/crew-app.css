@@ -1,0 +1,890 @@
+/* Roles in the app: crew (tài xế / lơ xe), owner "Quản lý" tab, customer trip
+   tracking. Brand colours come from the --go-* variables (appgoBrand.ts). */
+
+.go-app-container--ops {
+  padding-bottom: 0;
+}
+
+.go-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--go-border);
+  font: inherit;
+  font-size: 14px;
+  background: #fff;
+  color: var(--go-text-dark);
+}
+
+.go-input:focus {
+  outline: 2px solid var(--go-primary-pale);
+  border-color: var(--go-primary);
+}
+
+.go-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--go-border);
+  background: #fff;
+  color: var(--go-text-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.go-icon-btn--light {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.go-spin {
+  animation: go-spin 0.9s linear infinite;
+}
+
+@keyframes go-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Account: staff entry ---------- */
+.go-staff-entry {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px dashed var(--go-primary-pale);
+  background: var(--go-primary-light);
+  color: var(--go-primary-dark);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.go-staff-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid var(--go-border);
+  color: var(--go-primary-text);
+}
+
+.go-staff-card > div {
+  flex: 1;
+  min-width: 0;
+  color: var(--go-text-dark);
+}
+
+.go-staff-card strong {
+  display: block;
+  font-size: 14px;
+}
+
+.go-staff-card small {
+  color: var(--go-text-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.go-staff-card button {
+  border: 1px solid var(--go-border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--go-primary-text);
+  cursor: pointer;
+}
+
+/* ---------- Ticket: follow the bus ---------- */
+.go-btn-ticket-track {
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--go-primary);
+  background: var(--go-primary-light);
+  color: var(--go-primary-dark);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* ---------- Tracking sheet ---------- */
+.go-track-sheet {
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.go-track-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.go-track-head h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--go-text-dark);
+}
+
+.go-track-head p {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  color: var(--go-text-muted);
+}
+
+.go-track-status {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+
+.go-track-status svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.go-track-status--ok {
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.go-track-status--off {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.go-track-status--stale,
+.go-track-status--wait {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.go-track-status--done {
+  background: var(--go-primary-light);
+  color: var(--go-primary-dark);
+}
+
+.go-trip-map {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--go-border);
+  z-index: 0;
+  position: relative;
+}
+
+.go-map-bus {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.25), 0 4px 10px rgba(15, 23, 42, 0.3);
+  background: var(--go-primary, #2563eb);
+  position: relative;
+}
+
+.go-map-bus--off {
+  background: #dc2626;
+  animation: go-pulse 1.2s ease-in-out infinite;
+}
+
+.go-map-bus--stale {
+  background: #94a3b8;
+}
+
+.go-map-bus span {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  background: #0f172a;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+@keyframes go-pulse {
+  50% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0.25);
+  }
+}
+
+.go-track-note {
+  font-size: 12px;
+  color: var(--go-text-muted);
+  margin: 8px 0 0;
+  line-height: 1.5;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.go-track-subtitle {
+  margin: 16px 0 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--go-text-dark);
+}
+
+.go-track-empty {
+  font-size: 13px;
+  color: var(--go-text-muted);
+  margin: 6px 0;
+  list-style: none;
+}
+
+.go-track-log {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--go-border);
+  display: grid;
+  gap: 10px;
+}
+
+.go-track-log-item {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--go-text-dark);
+}
+
+.go-track-log-item::before {
+  content: "";
+  position: absolute;
+  left: -20px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--go-primary);
+}
+
+.go-track-log-item--off_route::before {
+  background: #dc2626;
+}
+
+.go-track-log-item--back_on_route::before,
+.go-track-log-item--boarded::before {
+  background: #16a34a;
+}
+
+.go-track-log-item--finished::before {
+  background: #64748b;
+}
+
+.go-track-log-time {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--go-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.go-track-log-text small {
+  display: block;
+  color: var(--go-text-muted);
+}
+
+.go-track-stops {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.go-track-stops li {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  align-items: flex-start;
+}
+
+.go-track-stops small {
+  display: block;
+  color: var(--go-text-muted);
+}
+
+.go-track-stops .is-pickup {
+  color: #16a34a;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.go-track-stops .is-dropoff {
+  color: #dc2626;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+/* ---------- Crew / owner operations ---------- */
+.go-ops {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.go-ops-header {
+  background: linear-gradient(135deg, #0a192f 0%, var(--go-primary-deep) 60%, var(--go-primary) 100%);
+  color: #fff;
+  padding: 44px 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.go-ops-header small {
+  opacity: 0.8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.go-ops-header h1 {
+  margin: 4px 0 2px;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.go-ops-header p {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.go-ops-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.go-ops-trip {
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--go-border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font: inherit;
+  color: var(--go-text-dark);
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+  box-shadow: 0 4px 12px -6px rgba(15, 23, 42, 0.12);
+}
+
+.go-ops-trip.is-off {
+  border-color: #fca5a5;
+  background: #fff7f7;
+}
+
+.go-ops-trip-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.go-ops-trip-top strong {
+  font-size: 18px;
+}
+
+.go-ops-trip-route {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.go-ops-trip-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--go-text-muted);
+}
+
+.go-ops-trip-meta span {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.go-ops-trip-crew {
+  font-size: 12px;
+  color: var(--go-text-muted);
+}
+
+.go-ops-badge {
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.go-ops-badge--running {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.go-ops-badge--finished {
+  background: var(--go-primary-light);
+  color: var(--go-primary-dark);
+}
+
+.go-ops-trip.is-off .go-ops-badge {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.go-ops-empty {
+  text-align: center;
+  padding: 28px 18px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px dashed var(--go-border);
+  color: var(--go-text-muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.go-ops-refresh,
+.go-ops-studio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--go-border);
+  background: #fff;
+  color: var(--go-primary-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.go-ops-links {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.go-ops-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.go-ops-stats div {
+  background: #fff;
+  border: 1px solid var(--go-border);
+  border-radius: 14px;
+  padding: 10px 8px;
+  text-align: center;
+  display: grid;
+}
+
+.go-ops-stats strong {
+  font-size: 19px;
+  color: var(--go-primary-dark);
+}
+
+.go-ops-stats span {
+  font-size: 11.5px;
+  color: var(--go-text-muted);
+}
+
+.go-ops-panel {
+  padding: 40px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.go-ops-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.go-ops-panel-head > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.go-ops-panel-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--go-text-dark);
+}
+
+.go-ops-panel-head p {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--go-text-muted);
+}
+
+.go-ops-start {
+  margin-top: 0;
+}
+
+.go-ops-finish {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1.5px solid #dc2626;
+  background: #fff;
+  color: #b91c1c;
+  font: inherit;
+  font-weight: 800;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.go-gps-bar {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #ecfdf5;
+  color: #166534;
+  font-size: 13px;
+}
+
+.go-gps-bar small {
+  display: block;
+  font-size: 11.5px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.go-gps-bar--off,
+.go-gps-bar--denied,
+.go-gps-bar--error,
+.go-gps-bar--unsupported {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.go-gps-bar--waiting {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.go-ops-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  background: var(--go-border-light);
+  padding: 4px;
+  border-radius: 14px;
+}
+
+.go-ops-tabs button {
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  padding: 9px 4px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--go-text-muted);
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.go-ops-tabs button.active {
+  background: #fff;
+  color: var(--go-primary-text);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.go-ops-manifest {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.go-ops-manifest li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--go-border);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.go-ops-manifest li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.go-ops-manifest strong {
+  display: block;
+  font-size: 14px;
+}
+
+.go-ops-manifest small {
+  color: var(--go-text-muted);
+  font-size: 12px;
+}
+
+.go-ops-manifest li.is-boarded {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.go-ops-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--go-border);
+  flex: 0 0 auto;
+}
+
+.go-ops-call {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--go-primary-text);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--go-primary-light);
+}
+
+/* ---------- Scanner ---------- */
+.go-scan {
+  display: grid;
+  gap: 10px;
+}
+
+.go-scan .go-btn-primary {
+  margin-top: 0;
+}
+
+.go-scan-video {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 1 / 1;
+}
+
+.go-scan-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.go-scan-frame {
+  position: absolute;
+  inset: 18%;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  border-radius: 18px;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.35);
+}
+
+.go-scan-cam-btn {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(15, 23, 42, 0.75);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.go-scan-manual {
+  display: flex;
+  gap: 8px;
+}
+
+.go-scan-manual input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--go-border);
+  font: inherit;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.go-scan-manual button {
+  width: 48px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--go-primary);
+  color: var(--go-on-primary);
+  cursor: pointer;
+}
+
+.go-scan-manual button:disabled {
+  opacity: 0.5;
+}
+
+.go-scan-msg--error {
+  color: #b91c1c;
+  font-size: 13px;
+  margin: 0;
+}
+
+.go-scan-result {
+  display: flex;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.go-scan-result svg {
+  flex: 0 0 auto;
+}
+
+.go-scan-result > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.go-scan-result strong {
+  display: block;
+  font-size: 14.5px;
+}
+
+.go-scan-result p {
+  margin: 3px 0 0;
+}
+
+.go-scan-result button {
+  margin-top: 10px;
+  border: 1px solid currentColor;
+  background: #fff;
+  color: inherit;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.go-scan-result--ok {
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.go-scan-result--error {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.go-scan-result--found {
+  background: var(--go-primary-light);
+  color: var(--go-text-dark);
+}
+
+.go-scan-warn {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.go-scan-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.go-scan-actions .is-primary {
+  background: var(--go-primary);
+  border-color: var(--go-primary);
+  color: var(--go-on-primary);
+}
+
+/* ---------- Seat deck in the operator's colours (Studio/DANAVA keep theirs) ---------- */
+.go-brand-operator .bsd-grid .bsd-pod.selected {
+  background: linear-gradient(135deg, var(--go-primary), var(--go-primary-dark));
+  border-color: var(--go-primary-dark);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--go-primary) 45%, transparent);
+}
+
+.go-brand-operator .bsd-grid .bsd-pod.selected .bsd-pillow {
+  background: var(--go-primary-deep);
+  border-color: var(--go-primary-dark);
+}
+
+.go-brand-operator .bsd-grid .bsd-pod.selected .bsd-led {
+  background: var(--go-primary-soft);
+}
+
+.go-brand-operator .bsd-led {
+  background: var(--go-accent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--go-accent) 65%, transparent);
+}
+
+.go-brand-operator .bsd-windshield {
+  background: linear-gradient(180deg, var(--go-accent) 0%, var(--go-primary) 18%, #1e293b 72%, #0f172a 100%);
+}
+

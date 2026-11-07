@@ -26,9 +26,9 @@ class StudioBridge
     public const AREAS = [
         'overview' => ['owner', 'manager', 'dispatcher', 'sales', 'accountant'],
         'bookings' => ['owner', 'manager', 'dispatcher', 'sales'],
-        'trips' => ['owner', 'manager', 'dispatcher', 'sales', 'driver'],   // read; writes need 'fleet'
+        'trips' => ['owner', 'manager', 'dispatcher', 'sales', 'driver', 'assistant'],   // read; writes need 'fleet'
         'fleet' => ['owner', 'manager', 'dispatcher'],
-        'checkin' => ['owner', 'manager', 'dispatcher', 'sales', 'driver'],
+        'checkin' => ['owner', 'manager', 'dispatcher', 'sales', 'driver', 'assistant'],
         'customers' => ['owner', 'manager', 'sales'],
         'finance' => ['owner', 'manager', 'accountant'],
         'reports' => ['owner', 'manager', 'accountant'],
@@ -37,6 +37,36 @@ class StudioBridge
         'partner' => ['owner', 'manager'],      // own operator profile only
         'platform' => [],                         // platform-wide settings, domains, all operators
     ];
+
+    /**
+     * Crew roles see only trips they are assigned to: a driver by trips.driver_id,
+     * an assistant ("lơ xe") by trips.assistant_id. users.driver_id holds the
+     * crew record (records kind=drivers) for both.
+     */
+    public const CREW = ['driver' => 'driver_id', 'assistant' => 'assistant_id'];
+
+    public static function crewColumn(object $u): ?string
+    {
+        return self::CREW[$u->role] ?? null;
+    }
+
+    /** Limit a trips query (or a join aliased by $prefix) to the crew member's trips. */
+    public static function crewFilter($query, object $u, string $prefix = '')
+    {
+        if ($column = self::crewColumn($u)) {
+            $query->where($prefix.$column, $u->driver_id ?: 'unassigned');
+        }
+
+        return $query;
+    }
+
+    /** True when $u may act on $trip: not crew, or assigned to it. */
+    public static function onTrip(object $u, object $trip): bool
+    {
+        $column = self::crewColumn($u);
+
+        return ! $column || ($u->driver_id && ($trip->{$column} ?? null) === $u->driver_id);
+    }
 
     private array $tenantCache = [];
 
@@ -180,7 +210,7 @@ class StudioBridge
     {
         $q = $this->scoped(DB::table('bookings as b'), $scope, 'b.tenant_id')
             ->join('trips as t', 't.id', '=', 'b.trip_id')
-            ->select('b.*', 't.depart_at as trip_depart_at', 't.end_at as trip_end_at', 't.status as trip_status', 't.route_id as trip_route_id', 't.driver_id as trip_driver_id');
+            ->select('b.*', 't.depart_at as trip_depart_at', 't.end_at as trip_end_at', 't.status as trip_status', 't.route_id as trip_route_id', 't.driver_id as trip_driver_id', 't.assistant_id as trip_assistant_id');
         if ($fromDay && $toDay) {
             [$a, $z] = $this->utcBounds($fromDay, $toDay);
             $q->whereBetween('t.depart_at', [$a, $z]);
@@ -235,10 +265,10 @@ class StudioBridge
     {
         $stops = [];
         foreach (($r['pickups'] ?? []) as $i => $s) {
-            $stops[] = ['id' => $s['id'], 'name' => $s['name'], 'address' => $s['address'] ?? '', 'stop_type' => 'pickup', 'time_offset_minutes' => (int) ($s['offset'] ?? 0), 'extra_fee' => 0, 'sort_order' => $i];
+            $stops[] = ['id' => $s['id'], 'name' => $s['name'], 'address' => $s['address'] ?? '', 'stop_type' => 'pickup', 'time_offset_minutes' => (int) ($s['offset'] ?? 0), 'extra_fee' => 0, 'sort_order' => $i, 'lat' => $s['lat'] ?? null, 'lng' => $s['lng'] ?? null];
         }
         foreach (($r['dropoffs'] ?? []) as $i => $s) {
-            $stops[] = ['id' => $s['id'], 'name' => $s['name'], 'address' => $s['address'] ?? '', 'stop_type' => 'dropoff', 'time_offset_minutes' => (int) ($s['offset'] ?? 0), 'extra_fee' => 0, 'sort_order' => 100 + $i];
+            $stops[] = ['id' => $s['id'], 'name' => $s['name'], 'address' => $s['address'] ?? '', 'stop_type' => 'dropoff', 'time_offset_minutes' => (int) ($s['offset'] ?? 0), 'extra_fee' => 0, 'sort_order' => 100 + $i, 'lat' => $s['lat'] ?? null, 'lng' => $s['lng'] ?? null];
         }
 
         return [
@@ -305,6 +335,8 @@ class StudioBridge
             'route' => ['id' => $row->route_id, 'name' => $route['name'], 'from_city' => $route['from'], 'to_city' => $route['to'], 'duration_minutes' => (int) $route['durationMinutes']],
             'vehicle' => ['id' => $row->vehicle_id, 'name' => $v['name'], 'plate_number' => $v['plate'] ?? '', 'category' => $v['category'], 'capacity' => (int) $v['capacity'], 'floor_count' => (int) ($v['floors'] ?? 1)],
             'driver' => $this->driver($row->driver_id),
+            'assistant_id' => $row->assistant_id ?? null,
+            'assistant' => $this->driver($row->assistant_id ?? null),
         ];
     }
 

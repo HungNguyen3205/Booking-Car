@@ -51,6 +51,13 @@ quan, hoặc chọn hostname riêng; không thay toàn bộ document root của 
 - Node chỉ dùng để build/chạy Vite khi phát triển. Production có thể chạy PHP-FPM
   trên cPanel, không cần một tiến trình Node backend thường trực.
 - `/app` cũ được thay bằng app dùng API thực. Màu, tên, logo, ảnh bìa lấy theo nhà xe.
+- **App nhà xe = appgo + thương hiệu.** `PortalEntry` → `appgo/OperatorBrandedApp.tsx` nạp
+  `/public/context` (host nhà xe) hoặc `/public/operators/{slug}` (local `/app/{slug}`), rồi render
+  cùng `DanavaGoApp` với `brand` từ `appgo/appgoBrand.ts`. Chỉ khác: màu (`color` → mọi biến
+  `--go-*`), logo/tên, ảnh bìa (`hero`), hotline/email, chính sách, tuyến của nhà xe thay cho
+  "Điểm đến nổi bật"; ẩn voucher mẫu và banner ưu đãi của sàn. Không có ảnh bìa → nền gradient
+  theo màu, không dùng ảnh DANAVA/thành phố. Màu mới trong appgo phải dùng `var(--go-*)`,
+  không viết mã hex xanh cứng. `operator-app/OperatorApp.tsx` (demo Cửa Ông cũ) không còn được dùng.
   Các thành phần chọn ghế, nhập khách, xác nhận và vé điện tử được tái sử dụng.
 
 ## Cài đặt local
@@ -93,6 +100,18 @@ Không bật `DANAVA_ALLOW_DEMO_SEED=true` trên môi trường khách thật.
 `npm run dev` khởi động PHP development server ở 8787 và Vite ở 5173. Có thể đặt
 `PHP_BINARY` trong `.env` tại root nếu PHP CLI không có trong PATH. Các thiết lập
 Laravel và bí mật phải nằm trong **backend/.env**. Không dùng `.env` Node cũ.
+
+## Quên tài khoản Studio
+
+Không có "quên mật khẩu" qua email. Chạy trên máy chủ (thư mục `backend`):
+
+```bash
+php artisan danava:staff-list                     # xem lại email đăng nhập Studio
+php artisan danava:reset-password admin@danavago.com   # nhập mật khẩu mới ≥12 ký tự (ẩn)
+php artisan danava:create-admin <email> "<Tên>"       # thêm quản trị nền tảng mới
+```
+
+Lệnh chỉ đổi tài khoản Studio (không đổi tài khoản khách), cần quyền shell trên hosting.
 
 ## Luồng tạo thêm nhà xe
 

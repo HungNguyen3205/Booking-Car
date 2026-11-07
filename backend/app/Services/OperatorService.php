@@ -142,13 +142,20 @@ final class OperatorService
             foreach (['pickups', 'dropoffs'] as $key) {
                 $d[$key] = [];
                 foreach ($b[$key] as $i => $stop) {
-                    $this->validate($stop, ['name' => 'required|string|max:150', 'address' => 'required|string|max:300', 'offset' => 'nullable|integer|min:0|max:'.$d['durationMinutes']]);
-                    $d[$key][] = ['id' => $stop['id'] ?? $key.'-'.$i, 'name' => $stop['name'], 'address' => $stop['address'], 'offset' => (int) ($stop['offset'] ?? 0)];
+                    $this->validate($stop, ['name' => 'required|string|max:150', 'address' => 'required|string|max:300', 'offset' => 'nullable|integer|min:0|max:'.$d['durationMinutes'], 'lat' => 'nullable|numeric|between:-90,90', 'lng' => 'nullable|numeric|between:-180,180']);
+                    // lat/lng (optional) let the GPS tracker check the bus stays on this route.
+                    $geo = isset($stop['lat'], $stop['lng']) && $stop['lat'] !== '' && $stop['lng'] !== '' ? ['lat' => round((float) $stop['lat'], 6), 'lng' => round((float) $stop['lng'], 6)] : [];
+                    $d[$key][] = ['id' => $stop['id'] ?? $key.'-'.$i, 'name' => $stop['name'], 'address' => $stop['address'], 'offset' => (int) ($stop['offset'] ?? 0)] + $geo;
                 }$this->need(count(array_unique(array_column($d[$key], 'id'))) === count($d[$key]), 422, 'Mã điểm dừng phải duy nhất');
             }
+            // GPS-only route shape between pick-ups and drop-offs (not offered to customers).
+            $this->validate($b, ['waypoints' => 'nullable|array|max:50', 'waypoints.*.lat' => 'required|numeric|between:-90,90', 'waypoints.*.lng' => 'required|numeric|between:-180,180', 'waypoints.*.name' => 'nullable|string|max:150']);
+            $d['waypoints'] = array_map(fn ($w) => ['name' => (string) ($w['name'] ?? ''), 'lat' => round((float) $w['lat'], 6), 'lng' => round((float) $w['lng'], 6)], array_values($b['waypoints'] ?? []));
         } elseif ($kind === 'drivers') {
-            $this->validate($b, ['license' => 'required|string|max:30', 'licenseExpiry' => 'nullable|date_format:Y-m-d']);
-            $d += ['phone' => $this->phone($b['phone'] ?? ''), 'license' => $b['license'], 'licenseExpiry' => $b['licenseExpiry'] ?? '', 'active' => ($b['active'] ?? true) !== false];
+            // Crew record: position driver (needs a licence) or assistant ("lơ xe").
+            $position = ($b['position'] ?? 'driver') === 'assistant' ? 'assistant' : 'driver';
+            $this->validate($b, ['license' => ($position === 'driver' ? 'required' : 'nullable').'|string|max:30', 'licenseExpiry' => 'nullable|date_format:Y-m-d']);
+            $d += ['position' => $position, 'phone' => $this->phone($b['phone'] ?? ''), 'license' => $b['license'] ?? '', 'licenseExpiry' => $b['licenseExpiry'] ?? '', 'active' => ($b['active'] ?? true) !== false];
         } elseif ($kind === 'branches') {
             $this->validate($b, ['address' => 'required|string|max:300']);
             $d += ['address' => $b['address'], 'phone' => $this->phone($b['phone'] ?? '')];
@@ -236,7 +243,7 @@ final class OperatorService
         $end = C::parse($r->end_at)->setTimezone('Asia/Ho_Chi_Minh');
         $stop = fn ($s) => ['id' => $s['id'], 'name' => $s['name'], 'address' => $s['address'], 'time' => $start->addMinutes($s['offset'])->format('H:i')];
 
-        return ['id' => $r->id, 'tenantId' => $r->tenant_id, 'code' => $d['code'], 'operator' => $tenant['name'], 'vehicle' => ['id' => $r->vehicle_id, 'name' => $v['name'], 'category' => $v['category'], 'categoryLabel' => ['sleeper' => 'Giường nằm', 'limousine' => 'Limousine', 'cabin' => 'Cabin VIP'][$v['category']], 'seatsTotal' => $v['capacity'], 'floors' => $v['floors'], 'image' => $v['image'] ?: '/assets/images/bus_limousine_vip.png', 'amenities' => $v['amenities'], 'description' => $v['description'], 'rating' => 0], 'from' => $route['from'], 'to' => $route['to'], 'departureTime' => $start->format('H:i'), 'arrivalTime' => $end->format('H:i'), 'duration' => intdiv($route['durationMinutes'], 60).'h'.($route['durationMinutes'] % 60).'m', 'nextDay' => $start->format('Y-m-d') !== $end->format('Y-m-d'), 'departureLocation' => $route['pickups'][0], 'arrivalLocation' => $route['dropoffs'][0], 'price' => $d['price'], 'availableSeatsCount' => count(array_filter($seats, fn ($s) => $s['status'] === 'available')), 'departureStops' => array_map($stop, $route['pickups']), 'dropoffStops' => array_map($stop, $route['dropoffs']), 'seats' => $seats, 'seatGrid' => ['cols' => $map['cols'], 'rows' => $map['rows']], 'date' => $d['date'], 'status' => $r->status, 'driverId' => $r->driver_id, 'branchId' => $d['branchId'] ?? '', 'vehicleId' => $r->vehicle_id, 'routeId' => $r->route_id, 'departAt' => $r->depart_at, 'endAt' => $r->end_at, 'blockedSeats' => $blocked, 'plate' => $v['plate']];
+        return ['id' => $r->id, 'tenantId' => $r->tenant_id, 'code' => $d['code'], 'operator' => $tenant['name'], 'vehicle' => ['id' => $r->vehicle_id, 'name' => $v['name'], 'category' => $v['category'], 'categoryLabel' => ['sleeper' => 'Giường nằm', 'limousine' => 'Limousine', 'cabin' => 'Cabin VIP'][$v['category']], 'seatsTotal' => $v['capacity'], 'floors' => $v['floors'], 'image' => $v['image'] ?: '/assets/images/bus_limousine_vip.png', 'amenities' => $v['amenities'], 'description' => $v['description'], 'rating' => 0], 'from' => $route['from'], 'to' => $route['to'], 'departureTime' => $start->format('H:i'), 'arrivalTime' => $end->format('H:i'), 'duration' => intdiv($route['durationMinutes'], 60).'h'.($route['durationMinutes'] % 60).'m', 'nextDay' => $start->format('Y-m-d') !== $end->format('Y-m-d'), 'departureLocation' => $route['pickups'][0], 'arrivalLocation' => $route['dropoffs'][0], 'price' => $d['price'], 'availableSeatsCount' => count(array_filter($seats, fn ($s) => $s['status'] === 'available')), 'departureStops' => array_map($stop, $route['pickups']), 'dropoffStops' => array_map($stop, $route['dropoffs']), 'seats' => $seats, 'seatGrid' => ['cols' => $map['cols'], 'rows' => $map['rows']], 'date' => $d['date'], 'status' => $r->status, 'driverId' => $r->driver_id, 'assistantId' => $r->assistant_id ?? null, 'branchId' => $d['branchId'] ?? '', 'vehicleId' => $r->vehicle_id, 'routeId' => $r->route_id, 'departAt' => $r->depart_at, 'endAt' => $r->end_at, 'blockedSeats' => $blocked, 'plate' => $v['plate']];
     }
 
     public function saveTrip(string $tid, array $b, ?object $u, ?string $id = null): array
@@ -460,9 +467,7 @@ final class OperatorService
                 $this->notify($tid, 'Vé '.$id.' đã hủy; kiểm tra khoản cần hoàn.');
             } elseif (($b['action'] ?? '') === 'checkin') {
                 $trip = $this->tripRow($tid, $r->trip_id);
-                if ($u->role === 'driver') {
-                    $this->need($u->driver_id === $trip->driver_id, 403, 'Không phải chuyến được phân công');
-                }$this->need($r->payment_status === 'paid' && $r->status !== 'checked_in', 409, 'Vé chưa thu đủ hoặc đã kiểm');
+                $this->need(StudioBridge::onTrip($u, $trip), 403, 'Không phải chuyến được phân công');$this->need($r->payment_status === 'paid' && $r->status !== 'checked_in', 409, 'Vé chưa thu đủ hoặc đã kiểm');
                 $d['checkedInAt'] = $this->now();
                 DB::table('bookings')->where('id', $id)->update(['status' => 'checked_in', 'data' => $this->json($d)]);
             } elseif (($b['action'] ?? '') === 'move') {

@@ -6,9 +6,11 @@ import {
   FileText,
   Printer,
   X,
+  Users,
 } from "lucide-react";
 import { adminApi, type BusTripItem, type PartnerItem, type RouteItem, type BusVehicleItem } from "../../../services/adminApi";
 import { money, formatDate } from "../studioConfig";
+import { crewApi, type CrewMember } from "../../../services/crewApi";
 
 export const TripsView: React.FC = () => {
   const [trips, setTrips] = useState<BusTripItem[]>([]);
@@ -27,6 +29,38 @@ export const TripsView: React.FC = () => {
   const [manifestData, setManifestData] = useState<{ trip: BusTripItem; passenger_manifest: any[] } | null>(null);
   const [createModal, setCreateModal] = useState(false);
   const [msg, setMsg] = useState("");
+
+  // Tổ lái: driver + "lơ xe" of a trip (can change after tickets are sold).
+  const [crewTrip, setCrewTrip] = useState<BusTripItem | null>(null);
+  const [crewList, setCrewList] = useState<CrewMember[]>([]);
+  const [crewPick, setCrewPick] = useState({ driver_id: "", assistant_id: "" });
+  const [crewSaving, setCrewSaving] = useState(false);
+
+  const openCrew = async (t: BusTripItem) => {
+    setCrewTrip(t);
+    setCrewPick({ driver_id: t.driver_id || "", assistant_id: t.assistant_id || "" });
+    try {
+      const res = await crewApi.crew();
+      setCrewList(res.data.filter((c) => c.partner_id === t.partner_id && c.active));
+    } catch (err: any) {
+      alert("Lỗi tải tổ lái: " + err.message);
+    }
+  };
+
+  const saveCrew = async () => {
+    if (!crewTrip) return;
+    setCrewSaving(true);
+    try {
+      await crewApi.assign(crewTrip.id, { driver_id: crewPick.driver_id || null, assistant_id: crewPick.assistant_id || null });
+      setMsg("Đã cập nhật tổ lái cho chuyến");
+      setCrewTrip(null);
+      loadData();
+    } catch (err: any) {
+      alert("Lỗi phân công: " + err.message);
+    } finally {
+      setCrewSaving(false);
+    }
+  };
 
   // New trip form state
   const [newTrip, setNewTrip] = useState({
@@ -203,7 +237,7 @@ export const TripsView: React.FC = () => {
                 <th style={{ padding: "12px 16px", textAlign: "left" }}>Tuyến đường</th>
                 <th style={{ padding: "12px 16px", textAlign: "left" }}>Nhà xe</th>
                 <th style={{ padding: "12px 16px", textAlign: "left" }}>Phương tiện & Biển số</th>
-                <th style={{ padding: "12px 16px", textAlign: "left" }}>Tài xế</th>
+                <th style={{ padding: "12px 16px", textAlign: "left" }}>Tổ lái</th>
                 <th style={{ padding: "12px 16px", textAlign: "center" }}>Tồn ghế</th>
                 <th style={{ padding: "12px 16px", textAlign: "right" }}>Giá vé</th>
                 <th style={{ padding: "12px 16px", textAlign: "center" }}>Trạng thái</th>
@@ -255,8 +289,11 @@ export const TripsView: React.FC = () => {
                             <small style={{ color: "#6c809c" }}>{t.driver.phone}</small>
                           </>
                         ) : (
-                          <span style={{ color: "#9ca3af", fontStyle: "italic" }}>Chưa phân công</span>
+                          <span style={{ color: "#9ca3af", fontStyle: "italic" }}>Chưa có tài xế</span>
                         )}
+                        <div style={{ fontSize: 12, color: "#6c809c", marginTop: 2 }}>
+                          Lơ xe: {t.assistant ? <strong style={{ color: "#102744" }}>{t.assistant.name}</strong> : <em>chưa có</em>}
+                        </div>
                       </td>
                       <td style={{ padding: "14px 16px", textAlign: "center" }}>
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
@@ -285,6 +322,15 @@ export const TripsView: React.FC = () => {
                           >
                             <FileText size={14} /> DS khách
                           </button>
+                          {t.status !== "completed" && t.status !== "cancelled" && (
+                            <button
+                              onClick={() => openCrew(t)}
+                              title="Phân công tài xế và lơ xe"
+                              style={{ border: "1px solid #6c809c", background: "#f6f8fb", color: "#102744", padding: "4px 8px", borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
+                            >
+                              <Users size={14} /> Tổ lái
+                            </button>
+                          )}
                           {(t.status === "draft" || t.status === "pending") && (
                             <button
                               onClick={() => handleUpdateStatus(t.id, "scheduled")}
@@ -322,6 +368,51 @@ export const TripsView: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Modal Tổ lái */}
+      {crewTrip && (
+        <div className="ds-modal-backdrop" onClick={() => setCrewTrip(null)}>
+          <div className="ds-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+            <header>
+              <h3 style={{ margin: 0 }}>Tổ lái chuyến {formatDate(crewTrip.depart_time)}</h3>
+              <button onClick={() => setCrewTrip(null)} aria-label="Đóng"><X size={18} /></button>
+            </header>
+            <div style={{ padding: 20, display: "grid", gap: 14 }}>
+              <p style={{ margin: 0, fontSize: 13, color: "#64748b" }}>
+                {crewTrip.route?.name} · {crewTrip.vehicle?.plate_number}. Tài xế và lơ xe chỉ thấy, soát vé và bật GPS cho chuyến được phân công.
+              </p>
+              {(["driver", "assistant"] as const).map((pos) => {
+                const key = pos === "driver" ? "driver_id" : "assistant_id";
+                const options = crewList.filter((c) => c.position === pos);
+                return (
+                  <div className="ds-form-group" key={pos}>
+                    <label>{pos === "driver" ? "Tài xế" : "Lơ xe"}</label>
+                    <select value={crewPick[key]} onChange={(e) => setCrewPick({ ...crewPick, [key]: e.target.value })}>
+                      <option value="">— Chưa phân công —</option>
+                      {options.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} · {c.phone}{c.login ? "" : " (chưa có tài khoản app)"}
+                        </option>
+                      ))}
+                    </select>
+                    {options.length === 0 && (
+                      <small style={{ color: "#b45309" }}>
+                        Chưa có {pos === "driver" ? "tài xế" : "lơ xe"}. Tạo ở Nhân sự & phân quyền với vai trò “{pos === "driver" ? "Tài xế" : "Lơ xe"}”.
+                      </small>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="ds-modal-footer">
+              <button type="button" className="ds-btn ds-btn-outline" onClick={() => setCrewTrip(null)}>Hủy</button>
+              <button type="button" className="ds-btn ds-btn-primary" disabled={crewSaving} onClick={saveCrew}>
+                {crewSaving ? "Đang lưu..." : "Lưu tổ lái"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Trip Manifest (Danh sách hành khách) */}
       {manifestData && (

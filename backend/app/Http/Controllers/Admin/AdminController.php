@@ -20,7 +20,7 @@ class AdminController extends Controller
 {
     public const ROLES = [
         'owner' => 'Chủ nhà xe', 'manager' => 'Quản lý', 'dispatcher' => 'Điều hành',
-        'sales' => 'Bán vé', 'accountant' => 'Kế toán', 'driver' => 'Tài xế',
+        'sales' => 'Bán vé', 'accountant' => 'Kế toán', 'driver' => 'Tài xế', 'assistant' => 'Lơ xe',
     ];
 
     /** Legacy Studio role values -> live roles. */
@@ -76,11 +76,17 @@ class AdminController extends Controller
             'ho_ten' => 'required|string|max:150', 'email' => 'required|email|max:200|unique:users,email',
             'password' => 'required|string|min:12|max:200', 'role' => 'required|in:'.implode(',', array_keys(self::ROLES)),
             'driver_id' => 'nullable|string', 'permission_group_id' => 'nullable|string|exists:permission_groups,id',
+            'so_dien_thoai' => 'nullable|string|max:20', 'license' => 'nullable|string|max:30',
         ], ['email.unique' => 'Email đã được dùng cho tài khoản khác', 'password.min' => 'Mật khẩu tối thiểu 12 ký tự']);
         $tid = $this->bridge->writeTenant($r);
         $this->guard($actor, $b['role']);
         if (! empty($b['driver_id'])) {
             $this->ops->resource($tid, 'drivers', $b['driver_id']);
+        } elseif (StudioBridge::crewColumn((object) ['role' => $b['role']])) {
+            // Tài xế / lơ xe: the crew record trips are assigned to, linked to this login.
+            $crew = $this->ops->saveRecord($tid, 'drivers', ['name' => $b['ho_ten'], 'phone' => $b['so_dien_thoai'] ?? '', 'license' => $b['license'] ?? '',
+                'position' => $b['role'] === 'assistant' ? 'assistant' : 'driver', 'active' => true], $actor);
+            $b['driver_id'] = $crew['id'];
         }
         $id = $this->ops->uuid();
         User::create(['id' => $id, 'tenant_id' => $tid, 'name' => $b['ho_ten'], 'email' => strtolower($b['email']), 'password' => Hash::make($b['password']),
@@ -90,7 +96,7 @@ class AdminController extends Controller
         }
         $this->ops->audit($actor, $tid, 'staff.create', $id, ['role' => $b['role']]);
 
-        return response()->json(['status' => 1, 'message' => 'Đã tạo tài khoản. Nhân sự đăng nhập tại /manage bằng email và mật khẩu vừa đặt.', 'data' => $this->view(DB::table('users')->find($id))]);
+        return response()->json(['status' => 1, 'message' => 'Đã tạo tài khoản. Nhân sự đăng nhập tại /manage (hoặc app, mục Tài khoản → Nhân viên nhà xe) bằng email và mật khẩu vừa đặt.', 'data' => $this->view(DB::table('users')->find($id))]);
     }
 
     public function updateData(Request $r)

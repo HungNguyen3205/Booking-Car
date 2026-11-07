@@ -5,6 +5,7 @@
 /public/assets/
 /public/robots.txt
 /public/favicon.svg
+/public/icons.svg
 /bootstrap/cache/*
 !/bootstrap/cache/.gitignore
 

@@ -83,6 +83,8 @@ export interface BusTripItem {
   route?: { id: string; name: string; from_city: string; to_city: string; duration_minutes: number };
   vehicle?: { id: string; name: string; plate_number: string; category: string; capacity: number; floor_count: number };
   driver?: { id: string; name: string; phone: string };
+  assistant_id?: string | null;
+  assistant?: { id: string; name: string; phone: string } | null;
 }
 
 export interface RouteItem {
@@ -104,6 +106,8 @@ export interface RouteItem {
     time_offset_minutes: number;
     extra_fee: number;
     sort_order?: number;
+    lat?: number | null;
+    lng?: number | null;
   }[];
 }
 

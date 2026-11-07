@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import {
   MapPin,
@@ -43,11 +43,23 @@ import {
   Download,
   DollarSign,
   Map,
+  Briefcase,
+  LayoutDashboard,
+  Navigation,
 } from "lucide-react";
 import "./danava-go-app.css";
 import { BusSeatDeck } from "../seats/BusSeatDeck";
 import { AccountCreatedModal, AccountPanel, NotificationsSheet } from "./CustomerAccount";
 import { useCustomerSession } from "./useCustomerSession";
+import { DANAVA_BRAND, brandStorageKey, brandVars, type AppBrand } from "./appgoBrand";
+import { StaffLoginSheet } from "./StaffLogin";
+import "./crew-app.css";
+
+// Map (Leaflet) and QR decoder (jsQR) load only when a role screen opens.
+const CrewApp = lazy(() => import("./CrewApp").then((m) => ({ default: m.CrewApp })));
+const ManageTab = lazy(() => import("./ManageTab").then((m) => ({ default: m.ManageTab })));
+const TripTrackingSheet = lazy(() => import("./TripTrackingSheet").then((m) => ({ default: m.TripTrackingSheet })));
+const roleFallback = <p className="go-track-empty" style={{ padding: 24 }}>Đang mở…</p>;
 import { aisleColumns, surchargeBadge } from "../seats/busSeatDeckUtils";
 import type { Booking, Seat, Trip, VehicleCategory } from "../../types";
 import {
@@ -84,27 +96,49 @@ import {
 } from "./appgoData";
 
 type FlowStep = "main" | "trips" | "seats" | "payment" | "eticket";
-type Tab = "home" | "tickets" | "promos" | "account";
+type Tab = "home" | "tickets" | "promos" | "account" | "manage";
 const seatLabel = (trip: Trip) => (trip.vehicle.category === "cabin" ? "Cabin" : "Chỗ");
 const PHONE_RE = /^0[35789]\d{8}$/; // same rule as OperatorService::phone()
 // Sits over a date field so a tap opens the native date picker.
 const DATE_PICKER_OVERLAY: React.CSSProperties = { position: "absolute", inset: 0, opacity: 0, cursor: "pointer", width: "100%", height: "100%" };
 
-export const DanavaGoApp: React.FC = () => {
+export const DanavaGoApp: React.FC<{ brand?: AppBrand }> = ({ brand = DANAVA_BRAND }) => {
   const today = getVietnamTodayDateStr();
+  const isOperator = brand.mode === "operator";
+  const ticketsKey = brandStorageKey("danavago.app.tickets", brand);
+  // DANAVA keeps its two-tone wordmark; an operator shows its logo and name.
+  const brandMark = (nameClass: string, goClass?: string, italicGo = false) =>
+    isOperator ? (
+      <>
+        {brand.logo && <img src={brand.logo} alt="" className="go-op-logo" />}
+        <span className={`${nameClass} go-op-name`.trim()}>{brand.name}</span>
+      </>
+    ) : italicGo ? (
+      <>
+        <span className={nameClass || undefined}>DANAVA</span> <em>Go</em>
+      </>
+    ) : (
+      <>
+        <span className={nameClass || undefined}>DANAVA</span>
+        <span className={goClass}>Go</span>
+      </>
+    );
   const tomorrow = addDaysToDateStr(today, 1);
 
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const tabParam = new URL(window.location.href).searchParams.get("tab");
-    return tabParam === "tickets" || tabParam === "promos" || tabParam === "account" ? tabParam : "home";
+    return tabParam === "tickets" || tabParam === "promos" || tabParam === "account" || tabParam === "manage" ? tabParam : "home";
   });
   const [flowStep, setFlowStep] = useState<FlowStep>("main");
 
   // Search parameters. Dates are YYYY-MM-DD in Asia/Ho_Chi_Minh, as the API expects.
   const [tripType, setTripType] = useState<"one-way" | "round-trip">("one-way");
-  const [origin, setOrigin] = useState("Đà Nẵng");
-  const [destination, setDestination] = useState("Đà Lạt");
-  const [travelDate, setTravelDate] = useState(today);
+  const [origin, setOrigin] = useState(brand.defaultRoute?.from ?? "Đà Nẵng");
+  const [destination, setDestination] = useState(brand.defaultRoute?.to ?? "Đà Lạt");
+  const [travelDate, setTravelDate] = useState(() => {
+    const d = brand.defaultRoute?.date;
+    return d && d >= today ? d : today;
+  });
   const [returnDate, setReturnDate] = useState(() => addDaysToDateStr(today, 3));
   const [cities, setCities] = useState<string[]>(FALLBACK_CITIES);
 
@@ -132,6 +166,9 @@ export const DanavaGoApp: React.FC = () => {
   const session = useCustomerSession();
   const [accountNotice, setAccountNotice] = useState<Booking["account"] | null>(null);
   const [notesOpen, setNotesOpen] = useState(false);
+  // Roles: customer (book, tickets, trip tracking), crew (tài xế / lơ xe), management (chủ nhà xe).
+  const [staffLoginOpen, setStaffLoginOpen] = useState(false);
+  const [trackTicket, setTrackTicket] = useState<{ code: string; phone: string } | null>(null);
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -160,13 +197,14 @@ export const DanavaGoApp: React.FC = () => {
   // City list = cities that have published trips. Keep the fallback if empty/offline.
   useEffect(() => {
     const c = new AbortController();
-    api<{ items: string[] }>("/public/cities", { signal: c.signal })
+    const scope = brand.operatorId ? "?operator=" + encodeURIComponent(brand.operatorId) : "";
+    api<{ items: string[] }>("/public/cities" + scope, { signal: c.signal })
       .then((r) => {
         if (r.items.length) setCities(r.items);
       })
       .catch(() => {});
     return () => c.abort();
-  }, []);
+  }, [brand.operatorId]);
 
   // Give held seats back if the app closes mid-booking.
   useEffect(() => {
@@ -198,7 +236,7 @@ export const DanavaGoApp: React.FC = () => {
   useEffect(() => {
     if (activeTab !== "tickets" || ticketsLoaded) return;
     let live = true;
-    Promise.allSettled(readSavedTickets().map((t) => lookupRemoteBooking(t.code, t.phone))).then((results) => {
+    Promise.allSettled(readSavedTickets(ticketsKey).map((t) => lookupRemoteBooking(t.code, t.phone))).then((results) => {
       if (!live) return;
       const fetched = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
       // Keep anything booked meanwhile; the fresh server copy wins.
@@ -208,7 +246,7 @@ export const DanavaGoApp: React.FC = () => {
     return () => {
       live = false;
     };
-  }, [activeTab, ticketsLoaded]);
+  }, [activeTab, ticketsLoaded, ticketsKey]);
 
   const dropHold = useCallback(() => {
     if (holdRef.current) releaseHold(holdRef.current).catch(() => {});
@@ -266,7 +304,7 @@ export const DanavaGoApp: React.FC = () => {
     goTo("trips");
     setTrips([]);
     setSearching(true);
-    searchMarketplace({ from, to, date, passengers: 1 }, c.signal)
+    searchMarketplace({ from, to, date, passengers: 1 }, c.signal, brand.operatorId)
       .then((r) => {
         if (!c.signal.aborted) setTrips(r.items);
       })
@@ -344,7 +382,7 @@ export const DanavaGoApp: React.FC = () => {
       );
       holdRef.current = null; // the booking consumed the hold
       setHold(null);
-      saveTicket(b.id, phone);
+      saveTicket(b.id, phone, ticketsKey);
       setMyTickets((list) => [b, ...list.filter((t) => t.id !== b.id)]);
       setBooking(b);
       setJustBooked(true);
@@ -366,7 +404,7 @@ export const DanavaGoApp: React.FC = () => {
       const code = lookupCode.trim().toUpperCase();
       if (!code || !PHONE_RE.test(phone)) throw Error("Nhập mã vé và số điện thoại đã dùng khi đặt vé.");
       const b = await lookupRemoteBooking(code, phone);
-      saveTicket(b.id, phone);
+      saveTicket(b.id, phone, ticketsKey);
       setMyTickets((list) => [b, ...list.filter((t) => t.id !== b.id)]);
       setLookupCode("");
       setLookupPhone("");
@@ -390,7 +428,7 @@ export const DanavaGoApp: React.FC = () => {
   };
 
   const shareTicket = async (b: Booking) => {
-    const text = `Vé DANAVA Go ${b.id}: ${b.trip.from} → ${b.trip.to}, ${b.trip.departureTime} ${formatVietnamDate(b.date)}, chỗ ${b.selectedSeats.join(", ")}`;
+    const text = `Vé ${brand.name} ${b.id}: ${b.trip.from} → ${b.trip.to}, ${b.trip.departureTime} ${formatVietnamDate(b.date)}, chỗ ${b.selectedSeats.join(", ")}`;
     try {
       await navigator.clipboard.writeText(text);
       setNotice("Đã sao chép mã vé và thông tin chuyến đi");
@@ -427,8 +465,33 @@ export const DanavaGoApp: React.FC = () => {
   const dropoffStop = selectedTrip ? findStop(selectedTrip.dropoffStops, dropoffId) : undefined;
   const bookingTotal = selectedTrip ? seatTotal(selectedTrip, selectedSeats) : 0;
 
+  const staffOtherOperator =
+    !!session.staff && isOperator && session.staff.role !== "platform" && session.staff.tenantId !== brand.operatorId;
+  const isManager = session.role === "management" && !staffOtherOperator;
+  if (session.role === "crew" || staffOtherOperator) {
+    return (
+      <div className={`go-app-wrapper${isOperator ? " go-brand-operator" : ""}`} style={brandVars(brand)}>
+        <div className="go-app-container go-app-container--ops">
+          {staffOtherOperator ? (
+            <div className="go-ops-empty" style={{ margin: 24 }}>
+              <Briefcase size={28} />
+              <p>Tài khoản {session.staff?.email} thuộc nhà xe khác, không dùng được trong app của {brand.name}.</p>
+              <button type="button" className="go-btn-primary" onClick={() => session.logout()}>
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          ) : (
+            <Suspense fallback={roleFallback}>
+              <CrewApp brand={brand} session={session} />
+            </Suspense>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="go-app-wrapper">
+    <div className={`go-app-wrapper${isOperator ? " go-brand-operator" : ""}`} style={brandVars(brand)}>
       <div className="go-app-container">
         {(error || notice) && (
           <div
@@ -463,11 +526,7 @@ export const DanavaGoApp: React.FC = () => {
             {/* Redesigned Native Layered Hero Banner */}
             <div className="go-home-hero">
               {/* High-Resolution Scenic Bus Background */}
-              <img
-                src="/assets/appgo/hero-bg-clean.jpg"
-                alt="DANAVA Go"
-                className="go-home-hero-bg"
-              />
+              {brand.hero && <img src={brand.hero} alt={brand.name} className="go-home-hero-bg" />}
               <div className="go-home-hero-overlay" />
 
               {/* Status Bar */}
@@ -494,10 +553,7 @@ export const DanavaGoApp: React.FC = () => {
 
               {/* Header Top Bar */}
               <div className="go-home-header">
-                <div className="go-home-brand">
-                  <span className="go-brand-danava">DANAVA</span>
-                  <span className="go-brand-go">Go</span>
-                </div>
+                <div className="go-home-brand">{brandMark("go-brand-danava", "go-brand-go")}</div>
                 <div className="go-home-actions">
                   <button
                     type="button"
@@ -526,7 +582,7 @@ export const DanavaGoApp: React.FC = () => {
               {/* Heading & Subtitle */}
               <div className="go-home-heading-wrap">
                 <h1 className="go-home-title">Đi đâu tiếp theo?</h1>
-                <p className="go-home-subtitle">Những hành trình đẹp hơn bắt đầu từ DANAVA Go</p>
+                <p className="go-home-subtitle">Những hành trình đẹp hơn bắt đầu từ {brand.name}</p>
               </div>
 
               {/* 3 Badges */}
@@ -663,7 +719,7 @@ export const DanavaGoApp: React.FC = () => {
                     <div className="go-location-field" style={{ position: "relative" }}>
                       <div
                         className="go-field-icon-wrap"
-                        style={{ borderRadius: 12, backgroundColor: "#eff6ff" }}
+                        style={{ borderRadius: 12, backgroundColor: "var(--go-primary-light)" }}
                       >
                         <Calendar size={20} />
                       </div>
@@ -716,6 +772,30 @@ export const DanavaGoApp: React.FC = () => {
               </button>
             </div>
 
+            {/* Promo Banner with 3D Gift */}
+            <div className="go-promo-banner">
+              <div className="go-promo-ticket-badge">
+                <div className="go-promo-ticket-icon">
+                  <Ticket size={20} />
+                </div>
+              </div>
+              <div className="go-promo-content">
+                <div className="go-promo-badge">Ưu đãi đặc biệt</div>
+                <div className="go-promo-highlight">Giảm đến 30%</div>
+                <div className="go-promo-sub">Cho nhiều tuyến đường hot</div>
+                <button
+                  type="button"
+                  className="go-promo-btn"
+                  onClick={() => handleTabChange("promos")}
+                >
+                  <span>Xem ưu đãi</span>
+                  <ChevronRight size={13} />
+                </button>
+              </div>
+              <div className="go-promo-art">
+                <img src="/assets/appgo/promo-gift.png" alt="Ưu đãi vé xe" />
+              </div>
+            </div>
             {/* Section: Điểm đến nổi bật */}
             <div className="go-section">
               <div className="go-section-header">
@@ -771,30 +851,6 @@ export const DanavaGoApp: React.FC = () => {
               </div>
             </div>
 
-            {/* Promo Banner with 3D Gift */}
-            <div className="go-promo-banner">
-              <div className="go-promo-ticket-badge">
-                <div className="go-promo-ticket-icon">
-                  <Ticket size={20} />
-                </div>
-              </div>
-              <div className="go-promo-content">
-                <div className="go-promo-badge">Ưu đãi đặc biệt</div>
-                <div className="go-promo-highlight">Giảm đến 30%</div>
-                <div className="go-promo-sub">Cho nhiều tuyến đường hot</div>
-                <button
-                  type="button"
-                  className="go-promo-btn"
-                  onClick={() => handleTabChange("promos")}
-                >
-                  <span>Xem ưu đãi</span>
-                  <ChevronRight size={13} />
-                </button>
-              </div>
-              <div className="go-promo-art">
-                <img src="/assets/appgo/promo-gift.png" alt="Ưu đãi vé xe" />
-              </div>
-            </div>
           </div>
         )}
 
@@ -806,10 +862,7 @@ export const DanavaGoApp: React.FC = () => {
             {/* Top Dark Navy Header */}
             <div className="go-tickets-header">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div className="go-logo-text">
-                  <span>DANAVA</span>
-                  <span className="go-brand-go">Go</span>
-                </div>
+                <div className="go-logo-text">{brandMark("", "go-brand-go")}</div>
                 <button
                   type="button"
                   onClick={() => setNotesOpen(true)}
@@ -892,16 +945,10 @@ export const DanavaGoApp: React.FC = () => {
                 <div key={t.id} className="go-ticket-card">
                   {/* Night Bus Banner with payment badge */}
                   <div className="go-ticket-banner-wrap">
-                    <img
-                      src="/assets/appgo/ticket-night-bus.png"
-                      alt="DANAVA Go"
-                      className="go-ticket-banner-img"
-                    />
+                    {brand.ticketArt && <img src={brand.ticketArt} alt="" className="go-ticket-banner-img" />}
                     <div className="go-ticket-banner-overlay">
                       <div>
-                        <div className="go-ticket-brand-logo">
-                          <span>DANAVA</span> <em>Go</em>
-                        </div>
+                        <div className="go-ticket-brand-logo">{brandMark("", undefined, true)}</div>
                         <div className="go-ticket-brand-slogan">{t.trip.operator}</div>
                       </div>
                       <div className="go-ticket-paid-badge" style={pay.paid ? undefined : { background: "#fef3c7", color: "#92400e" }}>
@@ -1008,22 +1055,35 @@ export const DanavaGoApp: React.FC = () => {
                           setPickupModal("view");
                         }}
                       >
-                        <MapPin size={15} color="#2563eb" />
+                        <MapPin size={15} color="var(--go-primary-text)" />
                         <span>Điểm đón &gt;</span>
                       </button>
+                      {/* Contact the operator only once the ticket is paid. */}
+                      {pay.paid && (
+                        <button
+                          type="button"
+                          className="go-btn-ticket-sub"
+                          onClick={() => setSupportModalOpen(true)}
+                        >
+                          <Headphones size={15} color="var(--go-primary-text)" />
+                          <span>Liên hệ &gt;</span>
+                        </button>
+                      )}
+                    </div>
+                    {t.status !== "cancelled" && (
                       <button
                         type="button"
-                        className="go-btn-ticket-sub"
-                        onClick={() => setSupportModalOpen(true)}
+                        className="go-btn-ticket-track"
+                        onClick={() => setTrackTicket({ code: t.id, phone: t.passenger.phone })}
                       >
-                        <Headphones size={15} color="#2563eb" />
-                        <span>Hỗ trợ &gt;</span>
+                        <Navigation size={16} />
+                        <span>Theo dõi xe & nhật ký chuyến</span>
                       </button>
-                    </div>
+                    )}
 
                     {/* Notice Alert */}
                     <div className="go-alert-notice">
-                      <AlertCircle size={16} color="#2563eb" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <AlertCircle size={16} color="var(--go-primary-text)" style={{ flexShrink: 0, marginTop: 1 }} />
                       <div>
                         <p className="go-alert-title">Có mặt trước giờ khởi hành 30 phút</p>
                         <p className="go-alert-sub">Để làm thủ tục và lên xe đúng giờ.</p>
@@ -1102,10 +1162,7 @@ export const DanavaGoApp: React.FC = () => {
                 >
                   <ChevronLeft size={24} />
                 </button>
-                <div className="go-trips-logo">
-                  <span className="go-trips-logo-danava">DANAVA</span>
-                  <span className="go-trips-logo-go">Go</span>
-                </div>
+                <div className="go-trips-logo">{brandMark("go-trips-logo-danava", "go-trips-logo-go")}</div>
                 <div style={{ width: 28 }} />
               </div>
 
@@ -1163,7 +1220,7 @@ export const DanavaGoApp: React.FC = () => {
                 <SlidersHorizontal size={14} />
                 <span>Bộ lọc</span>
               </button>
-              <button type="button" className="go-trips-filter-chip" aria-pressed={tripSort === "time"} style={tripSort === "time" ? { borderColor: "#2563eb", color: "#2563eb" } : undefined} onClick={() => setTripSort("time")}>
+              <button type="button" className="go-trips-filter-chip" aria-pressed={tripSort === "time"} style={tripSort === "time" ? { borderColor: "var(--go-primary)", color: "var(--go-primary-text)" } : undefined} onClick={() => setTripSort("time")}>
                 <Clock size={13} />
                 <span>Giờ đi</span>
                 <ChevronDown size={12} />
@@ -1172,7 +1229,7 @@ export const DanavaGoApp: React.FC = () => {
                 type="button"
                 className="go-trips-filter-chip"
                 aria-pressed={!!categoryFilter}
-                style={categoryFilter ? { borderColor: "#2563eb", color: "#2563eb" } : undefined}
+                style={categoryFilter ? { borderColor: "var(--go-primary)", color: "var(--go-primary-text)" } : undefined}
                 disabled={tripCategories.length < 2 && !categoryFilter}
                 onClick={() => {
                   // Cycle: all -> each vehicle type present in the results -> all
@@ -1184,7 +1241,7 @@ export const DanavaGoApp: React.FC = () => {
                 <span>{categoryFilter ? trips.find((t) => t.vehicle.category === categoryFilter)?.vehicle.categoryLabel : "Loại xe"}</span>
                 <ChevronDown size={12} />
               </button>
-              <button type="button" className="go-trips-filter-chip" aria-pressed={tripSort === "price"} style={tripSort === "price" ? { borderColor: "#2563eb", color: "#2563eb" } : undefined} onClick={() => setTripSort("price")}>
+              <button type="button" className="go-trips-filter-chip" aria-pressed={tripSort === "price"} style={tripSort === "price" ? { borderColor: "var(--go-primary)", color: "var(--go-primary-text)" } : undefined} onClick={() => setTripSort("price")}>
                 <Tag size={13} />
                 <span>Giá</span>
                 <ChevronDown size={12} />
@@ -1499,10 +1556,7 @@ export const DanavaGoApp: React.FC = () => {
                   </button>
                   <h2 className="go-payment-page-title">Thanh toán</h2>
                 </div>
-                <div className="go-trips-logo">
-                  <span className="go-trips-logo-danava">DANAVA</span>
-                  <span className="go-trips-logo-go">Go</span>
-                </div>
+                <div className="go-trips-logo">{brandMark("go-trips-logo-danava", "go-trips-logo-go")}</div>
               </div>
 
               {/* Stepper Progress 1 - 2 - 3 */}
@@ -1527,7 +1581,7 @@ export const DanavaGoApp: React.FC = () => {
             {/* Reservation Countdown (server hold, 8 minutes) */}
             <div className="go-payment-countdown-banner" style={holdRemaining <= 0 ? { background: "#fef2f2", borderColor: "#fecaca" } : undefined}>
               <div className="go-countdown-left">
-                <Clock size={19} color={holdRemaining <= 0 ? "#dc2626" : "#2563eb"} />
+                <Clock size={19} color={holdRemaining <= 0 ? "#dc2626" : "var(--go-primary)"} />
                 <span>
                   Giữ chỗ <strong className="go-countdown-time">{holdClock}</strong>
                 </span>
@@ -1689,7 +1743,7 @@ export const DanavaGoApp: React.FC = () => {
                 <span className="go-terms-link" onClick={() => setPolicyModalOpen(true)}>
                   Chính sách hoàn tiền
                 </span>{" "}
-                của DANAVA Go
+                của {brand.name}
               </label>
             </div>
 
@@ -1753,7 +1807,7 @@ export const DanavaGoApp: React.FC = () => {
                   <h3 className="go-eticket-success-title">{pay.paid ? "Đặt vé thành công!" : justBooked ? "Đã giữ vé cho bạn!" : pay.text}</h3>
                   <p className="go-eticket-success-desc">
                     {pay.paid
-                      ? "Cảm ơn bạn đã chọn DANAVA Go!"
+                      ? `Cảm ơn bạn đã chọn ${brand.name}!`
                       : booking.paymentMethod === "bank_transfer"
                         ? `Vé đang chờ thanh toán. Chuyển khoản ${money(booking.totalAmount)} theo thông tin nhà xe, nội dung ghi mã ${booking.id}; nhà xe xác nhận khi nhận tiền.`
                         : `Vé đang chờ thanh toán. Thanh toán ${money(booking.totalAmount)} tại quầy hoặc khi lên xe, đọc mã ${booking.id} cho nhân viên.`}
@@ -1767,19 +1821,12 @@ export const DanavaGoApp: React.FC = () => {
               {/* Ticket Top Banner */}
               <div className="go-ticket-banner">
                 <div className="go-ticket-banner-brand">
-                  <div className="go-ticket-banner-logo">
-                    <span className="danava">DANAVA</span>
-                    <span className="go">Go</span>
-                  </div>
+                  <div className="go-ticket-banner-logo">{brandMark("danava", "go")}</div>
                   <div className="go-ticket-banner-slogan">
-                    TRAVEL &bull; KẾT NỐI MUÔN HÀNH TRÌNH
+                    {isOperator ? "VÉ ĐIỆN TỬ" : <>TRAVEL &bull; KẾT NỐI MUÔN HÀNH TRÌNH</>}
                   </div>
                 </div>
-                <img
-                  src="/assets/appgo/ticket-night-bus.png"
-                  alt="DANAVA VIP Bus"
-                  className="go-ticket-bus-img"
-                />
+                {brand.ticketArt && <img src={brand.ticketArt} alt="" className="go-ticket-bus-img" />}
               </div>
 
               {/* Route Section */}
@@ -1918,21 +1965,35 @@ export const DanavaGoApp: React.FC = () => {
                   <Map size={16} />
                   <span>Xem điểm đón</span>
                 </button>
+                {/* Contact the operator only once the ticket is paid. */}
+                {pay.paid && (
+                  <button
+                    type="button"
+                    className="go-eticket-action-btn"
+                    onClick={() => setSupportModalOpen(true)}
+                  >
+                    <Phone size={16} />
+                    <span>Liên hệ</span>
+                  </button>
+                )}
+              </div>
+              {booking.status !== "cancelled" && (
                 <button
                   type="button"
-                  className="go-eticket-action-btn"
-                  onClick={() => setSupportModalOpen(true)}
+                  className="go-btn-ticket-track"
+                  style={{ marginTop: 10 }}
+                  onClick={() => setTrackTicket({ code: booking.id, phone: booking.passenger.phone })}
                 >
-                  <Phone size={16} />
-                  <span>Liên hệ</span>
+                  <Navigation size={16} />
+                  <span>Theo dõi xe & nhật ký chuyến</span>
                 </button>
-              </div>
+              )}
             </div>
 
             {/* Bottom Floating Bar: round-trip next step, then download */}
             <div className="go-eticket-bottom-bar" style={justBooked && tripType === "round-trip" ? { display: "flex", gap: 10 } : undefined}>
               {justBooked && tripType === "round-trip" && (
-                <button type="button" className="go-eticket-download-btn" style={{ background: "#ffffff", color: "#2563eb", border: "1.5px solid #2563eb" }} onClick={bookReturn}>
+                <button type="button" className="go-eticket-download-btn" style={{ background: "#ffffff", color: "var(--go-primary-text)", border: "1.5px solid var(--go-primary)" }} onClick={bookReturn}>
                   <RotateCcw size={18} />
                   <span>Đặt chiều về</span>
                 </button>
@@ -1983,13 +2044,13 @@ export const DanavaGoApp: React.FC = () => {
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: "var(--go-primary-light)", color: "var(--go-primary-text)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <Tag size={20} />
                     </div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>{promo.title}</div>
                       <div style={{ fontSize: 11, color: "#64748b", margin: "2px 0 3px" }}>{promo.min} &bull; {promo.exp}</div>
-                      <div style={{ display: "inline-block", backgroundColor: "#f1f5f9", padding: "2px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, color: "#2563eb" }}>
+                      <div style={{ display: "inline-block", backgroundColor: "#f1f5f9", padding: "2px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, color: "var(--go-primary-text)" }}>
                         Mã: {promo.code}
                       </div>
                     </div>
@@ -1999,8 +2060,8 @@ export const DanavaGoApp: React.FC = () => {
                     style={{
                       padding: "6px 14px",
                       borderRadius: 999,
-                      backgroundColor: "#2563eb",
-                      color: "#ffffff",
+                      backgroundColor: "var(--go-primary)",
+                      color: "var(--go-on-primary)",
                       border: 0,
                       fontSize: 12,
                       fontWeight: 700,
@@ -2031,10 +2092,10 @@ export const DanavaGoApp: React.FC = () => {
                   <img src="/assets/appgo/user-avatar.jpg" alt="User" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
                 <div>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "#ffffff" }}>{session.active ? session.customer?.name : "Khách DANAVA Go"}</h2>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "#ffffff" }}>{session.active ? session.customer?.name : `Khách ${brand.name}`}</h2>
                   <p style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", margin: "2px 0 0" }}>
-                    {readSavedTickets().length
-                      ? `${readSavedTickets().length} vé đã lưu trên máy này`
+                    {readSavedTickets(ticketsKey).length
+                      ? `${readSavedTickets(ticketsKey).length} vé đã lưu trên máy này`
                       : "Tra cứu vé bằng mã vé và số điện thoại"}
                   </p>
                 </div>
@@ -2042,14 +2103,33 @@ export const DanavaGoApp: React.FC = () => {
             </div>
 
             <div style={{ padding: "16px 16px 0" }}>
-              <AccountPanel session={session} onOpenTicket={openTicket} onOpenNotes={() => setNotesOpen(true)} />
+              {session.staff ? (
+                <div className="go-staff-card">
+                  <Briefcase size={20} />
+                  <div>
+                    <strong>{session.staff.name}</strong>
+                    <small>{session.staff.email} · {({ owner: "Chủ nhà xe", manager: "Quản lý", dispatcher: "Điều hành", sales: "Bán vé", accountant: "Kế toán", platform: "Quản trị nền tảng" } as Record<string, string>)[session.staff.role] ?? session.staff.role}</small>
+                  </div>
+                  {isManager && (
+                    <button type="button" onClick={() => handleTabChange("manage")}>Quản lý</button>
+                  )}
+                  <button type="button" onClick={() => session.logout()}>Đăng xuất</button>
+                </div>
+              ) : (
+                <AccountPanel session={session} onOpenTicket={openTicket} onOpenNotes={() => setNotesOpen(true)} />
+              )}
+              {!session.user && (
+                <button type="button" className="go-staff-entry" onClick={() => setStaffLoginOpen(true)}>
+                  <Briefcase size={16} /> Nhân viên nhà xe (chủ xe, tài xế, lơ xe) đăng nhập
+                </button>
+              )}
               <div style={{ backgroundColor: "#ffffff", borderRadius: 20, border: "1px solid #e2e8f0", overflow: "hidden", margin: "14px 0" }}>
                 <div
                   style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f1f5f9", cursor: "pointer" }}
                   onClick={() => handleTabChange("tickets")}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <Ticket size={18} color="#2563eb" />
+                    <Ticket size={18} color="var(--go-primary-text)" />
                     <span style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Vé của tôi</span>
                   </div>
                   <ChevronRight size={18} color="#94a3b8" />
@@ -2059,7 +2139,7 @@ export const DanavaGoApp: React.FC = () => {
                   onClick={() => handleTabChange("promos")}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <Gift size={18} color="#2563eb" />
+                    <Gift size={18} color="var(--go-primary-text)" />
                     <span style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Ví ưu đãi & Voucher</span>
                   </div>
                   <ChevronRight size={18} color="#94a3b8" />
@@ -2069,20 +2149,28 @@ export const DanavaGoApp: React.FC = () => {
                   onClick={() => setSupportModalOpen(true)}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <Headphones size={18} color="#2563eb" />
+                    <Headphones size={18} color="var(--go-primary-text)" />
                     <span style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Trung tâm trợ giúp</span>
                   </div>
                   <ChevronRight size={18} color="#94a3b8" />
                 </div>
               </div>
 
-              <div style={{ textAlign: "center", marginTop: 24 }}>
-                <a href="/" style={{ fontSize: 13, color: "#2563eb", fontWeight: 600, textDecoration: "none" }}>
-                  &larr; Về trang chủ DANAVA Go Web
-                </a>
-              </div>
+              {!isOperator && (
+                <div style={{ textAlign: "center", marginTop: 24 }}>
+                  <a href="/" style={{ fontSize: 13, color: "var(--go-primary-text)", fontWeight: 600, textDecoration: "none" }}>
+                    &larr; Về trang chủ DANAVA Go Web
+                  </a>
+                </div>
+              )}
             </div>
           </div>
+        )}
+
+        {activeTab === "manage" && flowStep === "main" && isManager && (
+          <Suspense fallback={roleFallback}>
+            <ManageTab brand={brand} session={session} />
+          </Suspense>
         )}
 
         {accountNotice && flowStep === "eticket" && (
@@ -2131,6 +2219,17 @@ export const DanavaGoApp: React.FC = () => {
               <span className="go-tab-label">Ưu đãi</span>
             </button>
 
+            {isManager && (
+              <button
+                type="button"
+                className={`go-tab-item ${activeTab === "manage" ? "active" : ""}`}
+                onClick={() => handleTabChange("manage")}
+              >
+                <LayoutDashboard size={22} strokeWidth={activeTab === "manage" ? 2.5 : 2} />
+                <span className="go-tab-label">Quản lý</span>
+              </button>
+            )}
+
             <button
               type="button"
               className={`go-tab-item ${activeTab === "account" ? "active" : ""}`}
@@ -2171,9 +2270,9 @@ export const DanavaGoApp: React.FC = () => {
                       padding: "12px 14px",
                       borderRadius: 14,
                       border: "1px solid #e2e8f0",
-                      backgroundColor: (cityPickerTarget === "origin" && origin === city) || (cityPickerTarget === "dest" && destination === city) ? "#eff6ff" : "#ffffff",
-                      borderColor: (cityPickerTarget === "origin" && origin === city) || (cityPickerTarget === "dest" && destination === city) ? "#2563eb" : "#e2e8f0",
-                      color: (cityPickerTarget === "origin" && origin === city) || (cityPickerTarget === "dest" && destination === city) ? "#2563eb" : "#0f172a",
+                      backgroundColor: (cityPickerTarget === "origin" && origin === city) || (cityPickerTarget === "dest" && destination === city) ? "var(--go-primary-light)" : "#ffffff",
+                      borderColor: (cityPickerTarget === "origin" && origin === city) || (cityPickerTarget === "dest" && destination === city) ? "var(--go-primary)" : "#e2e8f0",
+                      color: (cityPickerTarget === "origin" && origin === city) || (cityPickerTarget === "dest" && destination === city) ? "var(--go-primary)" : "#0f172a",
                       fontSize: 14,
                       fontWeight: 700,
                       textAlign: "left",
@@ -2209,7 +2308,7 @@ export const DanavaGoApp: React.FC = () => {
           const pickStop = findStop(trip.departureStops, chosenPick || "");
           const stopList = (title: string, stops: typeof trip.departureStops, chosen: string | undefined, onPick: (id: string) => void) => (
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", marginBottom: 6 }}>{title}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--go-primary-text)", marginBottom: 6 }}>{title}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {(selecting ? stops : stops.filter((s) => s.id === chosen)).map((s) => {
                   const active = s.id === chosen;
@@ -2219,7 +2318,7 @@ export const DanavaGoApp: React.FC = () => {
                       type="button"
                       disabled={!selecting}
                       onClick={() => onPick(s.id)}
-                      style={{ textAlign: "left", padding: 12, borderRadius: 14, cursor: selecting ? "pointer" : "default", font: "inherit", background: active ? "#eff6ff" : "#f8fafc", border: `1.5px solid ${active ? "#2563eb" : "#e2e8f0"}`, color: "#0f172a" }}
+                      style={{ textAlign: "left", padding: 12, borderRadius: 14, cursor: selecting ? "pointer" : "default", font: "inherit", background: active ? "var(--go-primary-light)" : "#f8fafc", border: `1.5px solid ${active ? "var(--go-primary)" : "#e2e8f0"}`, color: "#0f172a" }}
                     >
                       <div style={{ fontSize: 13, fontWeight: 700 }}>{s.time ? `${s.time} · ` : ""}{s.name}</div>
                       {s.address && <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{s.address}</div>}
@@ -2270,11 +2369,11 @@ export const DanavaGoApp: React.FC = () => {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <a
-                  href="tel:19001234"
+                  href={`tel:${brand.hotline.replace(/[^\d+]/g, "")}`}
                   style={{
                     padding: "12px 16px",
                     borderRadius: 14,
-                    backgroundColor: "#eff6ff",
+                    backgroundColor: "var(--go-primary-light)",
                     border: "1px solid rgba(191,219,254,0.7)",
                     display: "flex",
                     alignItems: "center",
@@ -2283,14 +2382,14 @@ export const DanavaGoApp: React.FC = () => {
                     color: "#0f172a",
                   }}
                 >
-                  <Phone size={20} color="#2563eb" />
+                  <Phone size={20} color="var(--go-primary-text)" />
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700 }}>Tổng đài đặt vé & hỗ trợ 24/7</div>
-                    <div style={{ fontSize: 12, color: "#2563eb", fontWeight: 800 }}>1900 1234 (1.000đ/phút)</div>
+                    <div style={{ fontSize: 14, fontWeight: 700 }}>{isOperator ? `Hotline ${brand.name}` : "Tổng đài đặt vé & hỗ trợ 24/7"}</div>
+                    <div style={{ fontSize: 12, color: "var(--go-primary-text)", fontWeight: 800 }}>{isOperator ? brand.hotline || "Chưa cập nhật" : "1900 1234 (1.000đ/phút)"}</div>
                   </div>
                 </a>
                 <a
-                  href="mailto:support@danavago.vn"
+                  href={`mailto:${isOperator ? brand.email : "support@danavago.vn"}`}
                   style={{
                     padding: "12px 16px",
                     borderRadius: 14,
@@ -2303,10 +2402,10 @@ export const DanavaGoApp: React.FC = () => {
                     color: "#0f172a",
                   }}
                 >
-                  <Mail size={20} color="#2563eb" />
+                  <Mail size={20} color="var(--go-primary-text)" />
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 700 }}>Email hỗ trợ dịch vụ</div>
-                    <div style={{ fontSize: 12, color: "#64748b" }}>hotro@danavago.vn</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}>{isOperator ? brand.email || "Chưa cập nhật" : "hotro@danavago.vn"}</div>
                   </div>
                 </a>
               </div>
@@ -2314,13 +2413,20 @@ export const DanavaGoApp: React.FC = () => {
           </div>
         )}
 
+        {trackTicket && (
+          <Suspense fallback={null}>
+            <TripTrackingSheet code={trackTicket.code} phone={trackTicket.phone} onClose={() => setTrackTicket(null)} />
+          </Suspense>
+        )}
+        {staffLoginOpen && <StaffLoginSheet session={session} onClose={() => setStaffLoginOpen(false)} />}
+
         {/* Policy Modal */}
         {policyModalOpen && (
           <div className="go-modal-backdrop" onClick={() => setPolicyModalOpen(false)}>
             <div className="go-bottom-sheet" onClick={(e) => e.stopPropagation()}>
               <div className="go-sheet-handle" />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "#0f172a" }}>Chính sách nhà xe DANAVA Travel</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "#0f172a" }}>Chính sách nhà xe {isOperator ? brand.name : "DANAVA Travel"}</h3>
                 <button
                   type="button"
                   onClick={() => setPolicyModalOpen(false)}
@@ -2331,6 +2437,12 @@ export const DanavaGoApp: React.FC = () => {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {isOperator ? (
+                <div style={{ backgroundColor: "#f8fafc", borderRadius: 14, padding: 14, border: "1px solid #e2e8f0", fontSize: 13, color: "#475569", lineHeight: 1.6, whiteSpace: "pre-line" }}>
+                  {brand.policies || "Đổi/hủy vé vui lòng liên hệ hotline nhà xe để được xác nhận."}
+                </div>
+                ) : (
+                <>
                 <div style={{ backgroundColor: "#f8fafc", borderRadius: 14, padding: 14, border: "1px solid #e2e8f0" }}>
                   <h4 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 6px", color: "#0f172a" }}>1. Chính sách hoàn hủy</h4>
                   <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: "#475569", lineHeight: 1.6 }}>
@@ -2353,12 +2465,14 @@ export const DanavaGoApp: React.FC = () => {
                     Trẻ em dưới 5 tuổi hoặc cao dưới 100cm được miễn vé khi nằm chung giường với người lớn. Trẻ từ 5 tuổi trở lên cần mua vé riêng.
                   </p>
                 </div>
+                </>
+                )}
 
                 <button
                   type="button"
                   style={{
-                    backgroundColor: "#2563eb",
-                    color: "#ffffff",
+                    backgroundColor: "var(--go-primary)",
+                    color: "var(--go-on-primary)",
                     fontWeight: 700,
                     fontSize: 14,
                     padding: "12px",

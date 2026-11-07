@@ -38,6 +38,9 @@ export const findStop = (stops: StopPoint[], id: string) => stops.find((s) => s.
 export type TicketFilter = "upcoming" | "completed" | "cancelled";
 export function ticketBucket(b: Booking, todayIso: string): TicketFilter {
   if (b.status === "cancelled") return "cancelled";
+  // A boarded passenger is still travelling until the trip ends: keep the
+  // ticket under "Sắp đi" so trip tracking stays one tap away.
+  if (b.trip.endAt) return Date.parse(b.trip.endAt) < Date.now() ? "completed" : "upcoming";
   if (b.status === "checked_in" || b.date < todayIso) return "completed";
   return "upcoming";
 }
@@ -64,9 +67,9 @@ export interface SavedTicket {
   code: string;
   phone: string;
 }
-export function readSavedTickets(): SavedTicket[] {
+export function readSavedTickets(key = TICKETS_KEY): SavedTicket[] {
   try {
-    const list = JSON.parse(localStorage.getItem(TICKETS_KEY) || "[]");
+    const list = JSON.parse(localStorage.getItem(key) || "[]");
     return Array.isArray(list)
       ? list.filter((t) => t && typeof t.code === "string" && typeof t.phone === "string").slice(0, 20)
       : [];
@@ -74,10 +77,10 @@ export function readSavedTickets(): SavedTicket[] {
     return [];
   }
 }
-export function saveTicket(code: string, phone: string) {
+export function saveTicket(code: string, phone: string, key = TICKETS_KEY) {
   try {
-    const rest = readSavedTickets().filter((t) => t.code !== code);
-    localStorage.setItem(TICKETS_KEY, JSON.stringify([{ code, phone }, ...rest].slice(0, 20)));
+    const rest = readSavedTickets(key).filter((t) => t.code !== code);
+    localStorage.setItem(key, JSON.stringify([{ code, phone }, ...rest].slice(0, 20)));
   } catch {
     /* private mode: the ticket still shows for this session */
   }

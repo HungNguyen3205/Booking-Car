@@ -17,6 +17,7 @@ export const roleLabels: Record<string, string> = {
   sales: "Bán vé",
   accountant: "Kế toán",
   driver: "Tài xế",
+  assistant: "Lơ xe",
 };
 export const statuses: Record<string, string> = {
   draft: "Bản nháp",

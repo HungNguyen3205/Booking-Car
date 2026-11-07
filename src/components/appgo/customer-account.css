@@ -41,8 +41,8 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: #2563eb;
-  background: #eff6ff;
+  color: var(--go-primary-text);
+  background: var(--go-primary-light);
 }
 
 .go-account-creds {
@@ -50,7 +50,7 @@
   padding: 12px 14px;
   border-radius: 16px;
   background: #f8fafc;
-  border: 1px dashed #93c5fd;
+  border: 1px dashed var(--go-primary-pale);
   text-align: left;
 }
 
@@ -96,7 +96,7 @@
   border-radius: 50%;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
-  color: #1e3a8a;
+  color: var(--go-primary-deep);
   cursor: pointer;
 }
 
@@ -155,7 +155,7 @@
 }
 
 .go-notif-list li.unread {
-  color: #2563eb;
+  color: var(--go-primary-text);
 }
 
 .go-notif-list strong {
